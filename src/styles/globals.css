@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* @import "@fontsource/crimson-text"; 
+@import "@fontsource/crimson-text/400.css";
+@import "@fontsource/crimson-text/600.css";
+@import "@fontsource/crimson-text/700.css"; */
+.min-h-screen {
+    min-height: auto;
+}
+/* globals.css */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+ background: linear-gradient(90deg, #28A7E4, #4C609A);
+  border-radius: 10px;
+  border: 3px solid #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+ background: linear-gradient(90deg, #28A7E4, #4C609A);
+}

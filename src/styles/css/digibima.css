@@ -1,0 +1,13 @@
+
+
+*{
+    margin: 0;
+    padding: 0%;
+    box-sizing: border-box;
+    
+
+}
+.thmbtn {
+  @apply  rounded-full text-sm font-semibold text-white hover:scale-105 transition;
+  background: linear-gradient(to bottom, #426D98, #28A7E4);
+}

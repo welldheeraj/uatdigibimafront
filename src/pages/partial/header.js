@@ -1,67 +1,102 @@
-import { useState } from "react";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+"use client";
 
-export default function Header() {
+import { useState,useEffect } from "react";
+import { FaEnvelope,FaSignOutAlt , FaUser , FaPhoneAlt, FaUserCircle, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { CallApi } from "../../api";
+
+
+export default function Header({ token, setToken }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+
+   useEffect(() => {
+    
+      const sToken = localStorage.getItem("token");
+    
+     setToken(sToken);
+      
+     
+    }, []);
+
+    async function logout(){
+      console.log(token);
+      let response = await CallApi("/api/logout", "POST", "");
+        console.log(response);
+        if(response.status){
+          localStorage.removeItem("token");
+          setToken();
+        }
+    }
+
   return (
-    <>
-      {/* Top Bar */}
-      <div className="w-full bg-blue-900 text-white text-xs sm:text-sm px-2 sm:px-4 py-2">
-        <div className="max-w-screen-xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <EmailIcon fontSize="small" />
-            <span>info@digibima.com</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <PhoneIcon fontSize="small" />
-            <span>+91 9119 173 733</span>
-          </div>
+    <header className="w-full bg-[#C8EDFE]">
+      {/* Top Contact Bar */}
+      <div className="w-full bg-gradient-to-r from-[#28A7E4] to-[#4C609A] text-white text-sm px-6 py-2 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <FaEnvelope className="text-xs" />
+          <span>info@digibima.com</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <FaPhoneAlt className="text-xs" />
+          <span>+91 9876543210</span>
         </div>
       </div>
 
-      {/* Main Header */}
-      <div className="w-full bg-white px-4 py-3 shadow border-b">
-        <div className="max-w-screen-xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <img
-              src="https://test.digibima.com/public/front/images/logo.png"
-              alt="Logo"
-              className="h-[35px] w-auto"
-            />
-          </div>
+      {/* Logo and Profile */}
+      <div className="bg-white px-6 py-4 mx-4 flex justify-between items-center rounded-bl-[40px] rounded-br-[40px] shadow-sm border-b relative">
+        <div className="flex items-center gap-2">
+          <img src="https://test.digibima.com/public/front/images/logo.png" alt="DigiBima Logo" className="h-[35px] w-auto" />
+        </div>
 
-          <div className="relative">
-            <button
-              className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full shadow text-sm hover:bg-gray-200 transition"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              <AccountCircleIcon className="text-gray-500" />
-              <span className="hidden sm:inline">Hi, </span>
-              {isDropdownOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-            </button>
-
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 bg-white shadow rounded w-48 z-50">
-                <a href="#" className="block px-4 py-2 text-sm hover:bg-gray-100">
-                  Profile
-                </a>
-                <hr />
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-red-500 hover:bg-red-100"
-                >
-                  Logout
-                </a>
-              </div>
+        {/* Profile Button with Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setIsDropdownOpen(prev => !prev)}
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-400 to-pink-400 px-4 py-2 rounded-full text-white"
+          >
+            <FaUserCircle className="text-lg" />
+            <span>Hi, Gulshan</span>
+            {isDropdownOpen ? (
+              <FaChevronUp className="text-sm" />
+            ) : (
+              <FaChevronDown className="text-sm" />
             )}
+          </button>
+
+
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
+            <ul className="divide-y divide-gray-100 text-sm text-gray-700">
+      {!token && (
+        <li className="px-5 py-3 hover:bg-blue-50 hover:text-blue-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2">
+          <FaUser className="text-blue-400 w-4 h-4" />
+          Login
+        </li>
+      )}
+
+      {token && (
+        <>
+          <li className="px-5 py-3 hover:bg-blue-50 hover:text-blue-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2">
+            <FaUser className="text-blue-400 w-4 h-4" />
+            Profile
+          </li>
+
+          <li className="px-5 py-3 hover:bg-red-50 hover:text-red-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2">
+            <button onClick={logout} className="flex items-center gap-2">
+              <FaSignOutAlt className="text-red-400 w-4 h-4" />
+              Logout
+            </button>
+          </li>
+        </>
+      )}
+    </ul>
+
+            
           </div>
+
+          )}
         </div>
       </div>
-    </>
+    </header>
   );
 }
