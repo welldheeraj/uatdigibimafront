@@ -14,7 +14,7 @@ export default function ProposalUI() {
 
   return (
     <div className="bg-[#C8EDFE] min-h-screen px-4 sm:px-10 lg:px-20 py-6">
-      <button className="text-sm text-gray-700 mb-4"  onClick={() => router.push("/health/plans")}>
+      <button className="text-sm text-gray-700 mb-4"  onClick={() => router.push(constant.ROUTES.HEALTH.PLANS)}>
         ← Go back to Previous
       </button>
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">

@@ -30,4 +30,14 @@ export async function CallApi(url,method = 'GET',data = null){
      return response;
 //  }
 }
+ export async function VerifyToken(pretoken){
+     const response = await fetch("/api/verifytoken",{
+      headers:{
+         'Content-Type': 'application/json',
+         'Authorization': `${pretoken}`,
+    }
+     }); 
+         return response;
+//  }
+}
 

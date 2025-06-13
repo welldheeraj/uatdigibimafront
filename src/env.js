@@ -3,8 +3,9 @@ const constant = {
     EMAIL_ID:''
     ,ROUTES:{
         HEALTH:{
-            'INSURE':'health/insure',
-            'ILLNESS':'health/illness',
+            'INDEX':'/health/',
+            'INSURE':'/health/insure',
+            'ILLNESS':'/health/illness',
             'PLANS':'/health/plans'
         } 
     },
@@ -15,6 +16,8 @@ const constant = {
         'PINCODE':'/api/acpincode',
         'ILLNESS':'/api/illnesses',
         'SAVEILLNESS':'/api/saveillnesses',
+        'INSUREVIEW':'/api/insureview',
+        'GETINSURE':'/api/getinsureinfo'
        } 
     }
 };

@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { HiPlus, HiMinus } from 'react-icons/hi';
 import { showSuccess, showError } from "../../styles/js/toaster"; 
-import {CallApi} from "../../api";
+import {CallApi,VerifyToken} from "../../api";
 import constant from "../../env";
 
 
@@ -14,20 +15,69 @@ export default function InsurePage({
   child = [],
 }) {
   const router = useRouter();
+  const [members, setMembers] = useState([]);
+  const [tokenverified,setTokenVerified] = useState();
+  const [data,setData] = useState();
+   const { reset } = useForm();
+  
+ //console.log(tokenverified);
+  useEffect(() => {
+    const getInsureData = async () => {
+      try {
+        const res = await CallApi(constant.API.HEALTH.GETINSURE);
+        if (res.status === true && res.data) {
+          console.log(res.data);
 
-  const [members, setMembers] = useState([
+          // Dynamically populate the members list with fetched data
+           const updatedMembers = [
+            { name: "self", age: res.data.find(item => item.name === "self")?.age || "", mobile: res.data.find(item => item.name === "self")?.mobile || "" },
+            { name: gender === "male" ? "wife" : "husband", age: res.data.find(item => item.name === (gender === "male" ? "wife" : "husband"))?.age || "", mobile: res.data.find(item => item.name === (gender === "male" ? "wife" : "husband"))?.mobile || "" },
+            ...["father", "mother", "grandfather", "grandmother", "fatherinlaw", "motherinlaw"].map((m) => ({
+              name: m, 
+              age: res.data.find(item => item.name === m)?.age || "" 
+            }))
+          ];
+
+          setMembers(updatedMembers);
+
+          // Reset form with fetched data
+          reset({
+            name: res.data[0]?.name || "",
+            mobile: res.data[0]?.mobile || "",
+            pincode: res.data[0]?.pincode || "",
+            gender: res.data[0]?.gender || "",
+          });
+
+          // Set selected members based on the fetched data
+          const selectedMembers = res.data.map(member => member.name);
+          setSelectedMembers(selectedMembers); // Set the selected members to include those from the API
+        } else {
+          console.error("Failed to fetch data.");
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+
+    getInsureData();
+  }, [gender, reset]);
+useEffect(() => {
+  const updatedMembers = [
     { name: "self", age: "" },
     { name: gender === "male" ? "wife" : "husband", age: "" },
     ...["father", "mother", "grandfather", "grandmother", "fatherinlaw", "motherinlaw"].map((m) => ({ name: m, age: "" }))
-  ]);
+  ];
+  setMembers(updatedMembers);
+}, [gender]);
 
   const [selectedMembers, setSelectedMembers] = useState(
     prefilledData?.map((item) => item.name) || []
   );
 
-  const maxChildren = 4;
+   const maxChildren = 4;
   const [children, setChildren] = useState([]);
   const [isChildChecked, setIsChildChecked] = useState(child.length > 0);
+
 
   useEffect(() => {
     if (child && child.length > 0) {
@@ -162,7 +212,7 @@ export default function InsurePage({
   try {
     const response = await CallApi(constant.API.HEALTH.ILLNESS, "POST", formData);
     console.log("Server Response:", response);
-    router.push("/health/illness");
+    router.push(constant.ROUTES.HEALTH.ILLNESS);
   } catch (err) {
     console.error("API error:", err);
     showError("Failed to submit data. Please try again.");
@@ -205,7 +255,7 @@ export default function InsurePage({
             </div>
 
             <div className="flex flex-wrap gap-3 justify-start">
-              <button type="button" onClick={() => router.push("/health")}  className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition" style={{
+              <button type="button" onClick={() => router.push(constant.ROUTES.HEALTH.INDEX)}  className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition" style={{
                 background: "linear-gradient(to bottom, #426D98, #28A7E4)"
               }}>
                 Back

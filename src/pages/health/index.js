@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { showSuccess, showError } from "../../styles/js/toaster";
 import { CallApi, getUserinfo } from "../../api";
+import constant from "../../env";
+import {isNumber} from '../../styles/js/validation'
 
 export default function FormPage() {
   const {
@@ -113,7 +115,7 @@ export default function FormPage() {
   const fetchCities = (cleaned) => {
     if (/^\d{5,6}$/.test(cleaned)) {
       let pincodeData = { pincode: cleaned };
-      CallApi("/api/acpincode", "POST", pincodeData)
+      CallApi(constant.API.HEALTH.PINCODE, "POST", pincodeData)
         .then((data) => {
           setCities(data);
           setError("");
@@ -144,7 +146,7 @@ export default function FormPage() {
     setIsLoading(true);
     try {
       const sendotpdata = { mobile };
-      const res = CallApi("/api/sendotp", "POST", sendotpdata);
+      const res = CallApi(constant.API.HEALTH.SENDOTP, "POST", sendotpdata);
       console.log(res);
       setOtpVisible(true);
       setTimer(30);
@@ -165,7 +167,7 @@ export default function FormPage() {
     setIsLoading(true);
     try {
       const verifyotpdata = { mobile, otp };
-      const res = CallApi("/api/verifyotp", "POST", verifyotpdata);
+      const res = CallApi(constant.API.HEALTH.VERIFYOTP, "POST", verifyotpdata);
       console.log(res);
       setIsOtpVerified(true);
 
@@ -181,43 +183,45 @@ export default function FormPage() {
   };
 
   const onSubmit = async (data) => {
-    const gender = watch("gender");
-    const mobile = watch("mobile");
-    const name = watch("name");
-    const pincode = watch("pincode");
-    
-    if (!name) {
-      showError("Please Enter your name");
-      return;
+  const gender = watch("gender");
+  const mobile = watch("mobile");
+  const name = watch("name");
+  const pincode = watch("pincode");
+
+  if (!name) {
+    showError("Please Enter your name");
+    return;
+  }
+
+  console.log(isOtpVerified, stoken);
+  if (!isOtpVerified) {
+    showError("Please verify your mobile number");
+    return;
+  }
+
+  if (!pincode) {
+    showError("Please Enter Pincode");
+    return;
+  }
+
+  try {
+    const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
+    console.log(res);
+    if (!stoken) {
+      localStorage.setItem("token", res.token);
+      setToken(res.token);
+      window.dispatchEvent(new Event("auth-change"));
     }
-    console.log(isOtpVerified,stoken);
-    if (!isOtpVerified) {
-      showError("Please verify your mobile number");
-      return;
-    }
-    
-    if (!pincode) {
-      showError("Please Enter Pincode");
-      return;
-    }
-    // console.log(data,gender,mobile,name,pincode,stoken);
-    // return;
-    try {
-      const res = await CallApi("api/insureview", "POST", data);
-      console.log(res);
-      if(!stoken)
-      {
-        localStorage.setItem("token", res.token);
-      }
-      
-      showSuccess(res.message);
-      setToken(res.token)
-      router.push("health/insure");
-    } catch (error) {
-      console.error("Submission Error:", error);
-      showError("Submission failed. Please try again later.");
-    }
-  };
+    showSuccess(res.message);
+     // Update the token state without reloading the page
+    // router.push("/health/insure");
+    router.push(constant.ROUTES.HEALTH.INSURE);
+  } catch (error) {
+    console.error("Submission Error:", error);
+    showError("Submission failed. Please try again later.");
+  }
+};
+
 
   return (
     <form
@@ -226,7 +230,7 @@ export default function FormPage() {
     >
       <div className="w-full max-w-6xl rounded-[64px] bg-white shadow-lg px-10 py-8 gap-6 flex flex-col md:flex-row  items-center">
         <div className="w-full md:w-3/5 p-2 md:p-6">
-          <h2 className="text-[#2F4A7E] text-2xl md:text-3xl font-semibold mb-3">
+          <h2 className="text-[#2F4A7E] text-2xl md:text-3xl font-semibold mb-2">
             Find Top Plans For You
           </h2>
 
@@ -237,8 +241,12 @@ export default function FormPage() {
                   {...register("gender")}
                   type="radio"
                   name="gender" 
+                  value={gender} 
                   checked={selectedGender === gender}
-                  onChange={() => setSelectedGender(gender)}
+                  onChange={() => {
+                    setSelectedGender(gender); 
+                    setValue("gender", gender); 
+                  }}
                   className="hidden"
                 />
                 <div
@@ -258,7 +266,7 @@ export default function FormPage() {
             <div>
               <label
                 htmlFor="name"
-                className="text-sm font-semibold text-blue-900 mb-1 block"
+                className="block text-[#2F4A7E] text-sm font-semibold mb-1"
               >
                 Name
               </label>
@@ -269,12 +277,12 @@ export default function FormPage() {
                 placeholder="Enter Full Name"
                 //onChange={handleChange} // Handles changes when the field is editable
                 //readOnly={isReadOnly} // Makes the field read-only based on `isReadOnly`
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md"
+                className="w-full border border-gray-400 px-4 py-2 rounded-md text-sm"
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-blue-900 mb-1 block">
+              <label className="block text-[#2F4A7E] text-sm font-semibold mb-1">
                 Mobile Number
               </label>
               <div className="flex flex-col gap-1">
@@ -288,8 +296,9 @@ export default function FormPage() {
                     maxLength={10}
                     readOnly={isOtpVerified}
                     placeholder="Enter Mobile Number"
+                    onInput={isNumber}
                     //onChange={handleChange}
-                    className={`w-full px-4 py-2 text-sm border rounded-md shadow-sm focus:outline-none focus:ring-2 ${
+                    className={`w-full border border-gray-400 px-4 py-2 rounded-md text-sm ${
                       isOtpVerified
                         ? "bg-white text-gray-700"
                         : "border-gray-300 bg-white focus:ring-blue-100"
@@ -301,10 +310,10 @@ export default function FormPage() {
                       type="button"
                       disabled={mobile?.length !== 10 || isLoading || timer > 0}
                       onClick={sendOtp}
-                      className={`px-6 py-2 text-sm rounded-full ${
+                      className={`px-3 py-2 text-sm rounded-full bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${
                         mobile?.length === 10 && timer === 0
-                          ? "bg-gradient-to-r from-indigo-400 to-purple-400 text-white"
-                          : "bg-[#c7cdfc] text-white cursor-not-allowed"
+                          ? ""
+                          : "opacity-40 cursor-not-allowed"
                       }`}
                     >
                       {timer > 0 ? "Resend" : "Verify"}
@@ -312,12 +321,42 @@ export default function FormPage() {
                   )}
                 </div>
                 {!isOtpVerified && timer > 0 && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-red-600">
                     You can resend OTP in 00:{timer.toString().padStart(2, "0")}
                   </p>
                 )}
               </div>
             </div>
+
+            {otpVisible && (
+              <div>
+                <label className="text-sm font-semibold text-blue-900 mb-1 block">
+                  Enter OTP
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    placeholder="Enter OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    maxLength={6}
+                    className="w-full px-4 py-2 text-sm border border-gray-400 rounded-md shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={verifyOtp}
+                    disabled={otp.length !== 6 || isLoading || stoken}
+                    className={`px-3 py-2 text-sm rounded-full font-semibold shadow-md bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${
+                      otp.length === 6
+                        ? ""
+                        : "opacity-40 cursor-not-allowed"
+                    }`}
+                  >
+                    {isLoading ? "Verifying..." : "Submit"}
+                  </button>
+                </div>
+              </div>
+            )}
             <div>
               <label className="text-sm font-semibold text-blue-900 mb-1 block">
                 Pincode
@@ -338,7 +377,7 @@ export default function FormPage() {
                 }}
                 //readOnly={isReadOnly}
                 placeholder="Enter Pincode"
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md"
+                className="w-full px-4 py-2 text-sm border border-gray-400 rounded-md"
               />
               <input
                 type="hidden"
@@ -367,52 +406,24 @@ export default function FormPage() {
               {error && <p className="text-red-500 text-sm">{error}</p>}
             </div>
 
-            {otpVisible && (
-              <div>
-                <label className="text-sm font-semibold text-blue-900 mb-1 block">
-                  Enter OTP
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="tel"
-                    placeholder="Enter OTP"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    maxLength={6}
-                    className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md"
-                  />
-                  <button
-                    type="button"
-                    onClick={verifyOtp}
-                    disabled={otp.length !== 6 || isLoading || stoken}
-                    className={`px-6 py-2 text-sm rounded-full ${
-                      otp.length === 6
-                        ? "bg-gradient-to-r from-indigo-400 to-purple-400 text-white"
-                        : "bg-gray-300 text-white cursor-not-allowed"
-                    }`}
-                  >
-                    {isLoading ? "Verifying..." : "Submit"}
-                  </button>
-                </div>
-              </div>
-            )}
+            
           </div>
 
           <div className="flex flex-col md:items-start gap-1 mt-2">
             <button
               type="submit"
               disabled={!(isOtpVerified||stoken)} // <-- actual button disabling
-              className={`px-6 py-2 rounded-full text-sm font-semibold transition ${
+              className={`px-10 py-2 thmbtn text-base ${
                 isOtpVerified || stoken
-                  ? "bg-gradient-to-r from-indigo-400 to-purple-400 text-white"
-                  : "bg-[#c7cdfc] text-white cursor-not-allowed"
+                  ? ""
+                  : "opacity-50 cursor-not-allowed"
               }`}
             >
               Continue
             </button>
-            <p className="text-sm mt-1">
+            <p className="text-base text-black mt-1">
               Already bought a policy from DigiBima?{" "}
-              <a href="#" className="text-blue-600 underline">
+              <a href="#" className="text-green-600 font-bold underline">
                 Renew Now
               </a>
             </p>

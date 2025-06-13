@@ -133,7 +133,7 @@ export default function IllnessForm() {
         <div className="flex justify-center gap-4 flex-wrap">
           <button
             type="button"
-            onClick={() => router.push("/health/insure")}
+            onClick={() => router.push(constant.ROUTES.HEALTH.INSURE)}
             className="px-10 py-2 thmbtn"
           >
             Back
