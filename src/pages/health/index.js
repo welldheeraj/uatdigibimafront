@@ -43,6 +43,32 @@ export default function FormPage() {
   // });
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [stoken, setToken] = useState();
+
+   useEffect(() => {
+    const handleAuthChange = () => {
+      console.log("Resetting form after logout...");
+      setToken(null);
+      reset({
+        name: "",
+        mobile: "",
+        pincode: "",
+        gender: "",
+      });
+      setOtp("");
+      setOtpVisible(false);
+      setIsOtpVerified(false);
+      setIsReadOnly(false);
+      setCities({});
+      setError("");
+      setIsButtonEnabled(false);
+      setDisplayedPincode("");
+      setTimer(0);
+    };
+
+    window.addEventListener("auth-change", handleAuthChange);
+    return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, [reset]);
+
   useEffect(() => {
     //localStorage.removeItem("token");
     const getToken = localStorage.getItem("token");
@@ -115,9 +141,11 @@ export default function FormPage() {
   const fetchCities = (cleaned) => {
     if (/^\d{5,6}$/.test(cleaned)) {
       let pincodeData = { pincode: cleaned };
+      console.log("pincodce",pincodeData);
       CallApi(constant.API.HEALTH.PINCODE, "POST", pincodeData)
         .then((data) => {
           setCities(data);
+          console.log(data);
           setError("");
         })
         .catch(() => {
@@ -146,11 +174,16 @@ export default function FormPage() {
     setIsLoading(true);
     try {
       const sendotpdata = { mobile };
-      const res = CallApi(constant.API.HEALTH.SENDOTP, "POST", sendotpdata);
+      const res = await CallApi(constant.API.HEALTH.SENDOTP, "POST", sendotpdata);
       console.log(res);
+      if(res.status){
       setOtpVisible(true);
       setTimer(30);
       showSuccess("OTP sent to your mobile");
+      }
+      else{
+        showError("OTP not sent to your mobile");
+      }
     } catch (error) {
       showError(error.message || "Something went wrong");
     } finally {
@@ -167,12 +200,18 @@ export default function FormPage() {
     setIsLoading(true);
     try {
       const verifyotpdata = { mobile, otp };
-      const res = CallApi(constant.API.HEALTH.VERIFYOTP, "POST", verifyotpdata);
+      const res = await CallApi(constant.API.HEALTH.VERIFYOTP, "POST", verifyotpdata);
       console.log(res);
-      setIsOtpVerified(true);
-
-      setOtpVisible(false);
+      if(res.status){
+        setIsOtpVerified(true);
+        setOtpVisible(false);
       showSuccess("OTP Verified Successfully");
+      }
+     else{
+      setIsOtpVerified(false);
+      setOtpVisible(true);
+      showError("OTP is not Verified ");
+     }
     } catch (error) {
       showError(
         error.message || "Something went wrong during OTP verification"
@@ -187,7 +226,7 @@ export default function FormPage() {
   const mobile = watch("mobile");
   const name = watch("name");
   const pincode = watch("pincode");
-
+ console.log(pincode);
   if (!name) {
     showError("Please Enter your name");
     return;
@@ -361,7 +400,7 @@ export default function FormPage() {
               <label className="text-sm font-semibold text-blue-900 mb-1 block">
                 Pincode
               </label>
-              {/* This input is for display only */}
+             
               <input
                 type="text"
                 {...register("pincode", {
@@ -385,7 +424,6 @@ export default function FormPage() {
                   pattern: /^[0-9]{5,6}$/,
                 })}
               />
-
               {Object.keys(cities).length > 0 && (
                 <ul className="border rounded shadow-sm bg-white city-suggestions mt-1 max-h-[120px] overflow-y-scroll">
                   {Object.entries(cities).map(([code, city]) => (

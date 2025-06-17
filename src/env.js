@@ -3,7 +3,7 @@ const constant = {
     EMAIL_ID:''
     ,ROUTES:{
         HEALTH:{
-            'INDEX':'/health/',
+            'INDEX':'/health',
             'INSURE':'/health/insure',
             'ILLNESS':'/health/illness',
             'PLANS':'/health/plans'
@@ -14,10 +14,12 @@ const constant = {
         'SENDOTP':'/api/sendotp',
         'VERIFYOTP':'/api/verifyotp',
         'PINCODE':'/api/acpincode',
+        'INSUREVIEW':'/api/insureview',
+        'GETINSURE':'/api/getinsureinfo',
         'ILLNESS':'/api/illnesses',
         'SAVEILLNESS':'/api/saveillnesses',
-        'INSUREVIEW':'/api/insureview',
-        'GETINSURE':'/api/getinsureinfo'
+        'PLANDATA':'/api/quoteview',
+        'GETQUOTE':'/api/health-quotation-generate',
        } 
     }
 };

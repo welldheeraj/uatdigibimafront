@@ -8,7 +8,7 @@ export async function CallApi(url,method = 'GET',data = null){
     }
    };
    if(data){
-    options.body = JSON.stringify(data);
+    options.body = JSON.stringify({data:data});
    }
    let res = await fetch(url,options);
    if (!res.ok) throw new Error('API request failed');
@@ -16,19 +16,13 @@ export async function CallApi(url,method = 'GET',data = null){
 }
 
  export async function getUserinfo(token){
-//  let token = localStorage.getItem('token');
-//  if(token){
-
-     const response = await fetch("api/getuserinfo",{
+     const response = await fetch("/api/getuserinfo",{
       headers:{
          'Content-Type': 'application/json',
          'Authorization': `${token}`,
     }
-     }); // Await the API call
-    
-   //   console.log(response);
+     });  
      return response;
-//  }
 }
  export async function VerifyToken(pretoken){
      const response = await fetch("/api/verifytoken",{
@@ -38,6 +32,16 @@ export async function CallApi(url,method = 'GET',data = null){
     }
      }); 
          return response;
-//  }
 }
 
+ export async function setCookies(){
+     const response = await fetch('/api/insureview',{
+      headers:{
+         'Content-Type': 'application/json',
+         'Authorization': `${token}`,
+    }
+
+     }); 
+   const result = response.json();
+
+}
