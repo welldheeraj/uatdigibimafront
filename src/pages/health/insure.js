@@ -43,8 +43,19 @@ export default function InsurePage() {
               name: m,
               age: apiData.find((item) => item.name === m)?.age || "",
             })),
+            // {
+            //   name:"Son",
+            //   age
+            // }
           ];
-
+           const childData = apiData
+          .filter((item) => item.name === "Son" || item.name === "Daughter")
+          .map((item) => ({
+            name: item.name,
+            age: item.age,
+          }));
+          setChildren(childData); 
+          setIsChildChecked(childData.length > 0);
           setMembers(updatedMembers);
           // reset({
           //   name: apiData[0]?.name || "",
@@ -53,8 +64,11 @@ export default function InsurePage() {
           //   gender: apiData[0]?.gender || "",
           // });
 
-          const selected = apiData.map((m) => m.name);
+         const selected = apiData
+          .filter((item) => item.name !== "Son" && item.name !== "Daughter")
+          .map((m) => m.name);
           setSelectedMembers(selected);
+
         } else {
           showError("Failed to fetch data.");
         }
@@ -153,25 +167,17 @@ export default function InsurePage() {
     return true;
   };
 const handleSubmit = async () => {
-  // Filter selected members from the `members` state
   const selected = members.filter((m) => selectedMembers.includes(m.name));
-
-  // Check if at least one member is selected
   if (selected.length === 0) {
     return showError("Please select at least one family member.");
   }
-
-  // Ensure all selected members have their age set
   for (const m of selected) {
     if (!m.age) {
       return showError(`Please select age for ${m.name}`);
     }
   }
 
-  // Validate age gaps
   if (!validateAgeGaps()) return;
-
-  // Validate children data if any child is checked
   if (isChildChecked) {
     for (let i = 0; i < children.length; i++) {
       const { name, age } = children[i];
@@ -185,21 +191,11 @@ const handleSubmit = async () => {
     }
   }
 
-  // Constructing formData by merging selected members and children data
   let childdd=children.map((child) => ({ name: child.name, age: child.age }));
-  let membersss= selected.map((m) => ({ name: m.name, age: m.age }));
-  //let merge=[...childdd,...membersss];
-  
-  const formData = {
-  ...childdd,...membersss
-  };
- 
-
-
-  // Log formData to check structure
+  let membersss= selected.map((m) => ({ name: m.name, age: m.age })); 
+  const formData =[...childdd,...membersss];
   console.log("Submitting form data:", formData);
 
-  // Send data to the server
   try {
     const response = await CallApi(constant.API.HEALTH.ILLNESS, "POST", formData);
     console.log("Server response:", response);

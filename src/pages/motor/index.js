@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { showSuccess, showError } from "../../styles/js/toaster";
 import { CallApi, getUserinfo } from "../../api";
 import constant from "../../env";
-import {isNumber} from '../../styles/js/validation'
+import { isNumber } from "../../styles/js/validation";
 
 export default function FormPage() {
   const {
@@ -29,23 +29,17 @@ export default function FormPage() {
   const mobile = watch("mobile");
   const name = watch("name");
   const pincode = watch("pincode");
+  const email = watch("email");
 
   const [cities, setCities] = useState({});
   const [error, setError] = useState("");
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   const [displayedPincode, setDisplayedPincode] = useState("");
   const router = useRouter();
-  // const [logindata, setLogindata] = useState({
-  //   name: "",
-  //   mobile: "",
-  //   pincode: "",
-  //   gender: "",
-  // });
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [stoken, setToken] = useState();
 
-   useEffect(() => {
-
+  useEffect(() => {
     const handleAuthChange = () => {
       console.log("Resetting form after logout...");
       setToken(null);
@@ -54,6 +48,7 @@ export default function FormPage() {
         mobile: "",
         pincode: "",
         gender: "",
+        email: "",
       });
       setOtp("");
       setOtpVisible(false);
@@ -73,10 +68,10 @@ export default function FormPage() {
   useEffect(() => {
     //localStorage.removeItem("token");
     const getToken = localStorage.getItem("token");
-    console.log("token:",getToken);
+    console.log("token:", getToken);
     if (getToken) {
       setToken(getToken);
-      setIsOtpVerified(true)
+      setIsOtpVerified(true);
       const fetchData = async () => {
         try {
           const res = await getUserinfo(getToken);
@@ -88,6 +83,7 @@ export default function FormPage() {
               mobile: data.user.mobile || "",
               pincode: data.user.pincode || "",
               gender: data.user.gender || "",
+              gender: data.user.email || "",
             });
             setIsReadOnly(true);
           } else {
@@ -103,17 +99,7 @@ export default function FormPage() {
     } else {
       setIsReadOnly(false);
     }
-    // console.log(isReadOnly);
   }, []);
-
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setLogindata((prevData) => ({
-  //     ...prevData,
-  //     [name]: value,
-  //   }));
-  // };
-
   useEffect(() => {
     let interval;
     if (timer > 0) {
@@ -139,14 +125,14 @@ export default function FormPage() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const  fetchCities = async (cleaned) => {
+  const fetchCities = async (cleaned) => {
     if (/^\d{5,6}$/.test(cleaned)) {
       let pincodeData = { pincode: cleaned };
-      console.log("pincode",pincodeData);
+      console.log("pincode", pincodeData);
       await CallApi(constant.API.HEALTH.PINCODE, "POST", pincodeData)
         .then((pindata) => {
           setCities(pindata);
-          console.log("rcvpincode",pindata);
+          console.log("rcvpincode", pindata);
           setError("");
         })
         .catch(() => {
@@ -175,14 +161,17 @@ export default function FormPage() {
     setIsLoading(true);
     try {
       const sendotpdata = { mobile };
-      const res = await CallApi(constant.API.HEALTH.SENDOTP, "POST", sendotpdata);
+      const res = await CallApi(
+        constant.API.HEALTH.SENDOTP,
+        "POST",
+        sendotpdata
+      );
       console.log(res);
-      if(res.status){
-      setOtpVisible(true);
-      setTimer(30);
-      showSuccess("OTP sent to your mobile");
-      }
-      else{
+      if (res.status) {
+        setOtpVisible(true);
+        setTimer(30);
+        showSuccess("OTP sent to your mobile");
+      } else {
         showError("OTP not sent to your mobile");
       }
     } catch (error) {
@@ -201,18 +190,21 @@ export default function FormPage() {
     setIsLoading(true);
     try {
       const verifyotpdata = { mobile, otp };
-      const res = await CallApi(constant.API.HEALTH.VERIFYOTP, "POST", verifyotpdata);
+      const res = await CallApi(
+        constant.API.HEALTH.VERIFYOTP,
+        "POST",
+        verifyotpdata
+      );
       console.log(res);
-      if(res.status){
+      if (res.status) {
         setIsOtpVerified(true);
         setOtpVisible(false);
-      showSuccess("OTP Verified Successfully");
+        showSuccess("OTP Verified Successfully");
+      } else {
+        setIsOtpVerified(false);
+        setOtpVisible(true);
+        showError("OTP is not Verified ");
       }
-     else{
-      setIsOtpVerified(false);
-      setOtpVisible(true);
-      showError("OTP is not Verified ");
-     }
     } catch (error) {
       showError(
         error.message || "Something went wrong during OTP verification"
@@ -223,45 +215,49 @@ export default function FormPage() {
   };
 
   const onSubmit = async (data) => {
-  const gender = watch("gender");
-  const mobile = watch("mobile");
-  const name = watch("name");
-  const pincode = watch("pincode");
- console.log(pincode);
-  if (!name) {
-    showError("Please Enter your name");
-    return;
-  }
-
-  console.log(isOtpVerified, stoken);
-  if (!isOtpVerified) {
-    showError("Please verify your mobile number");
-    return;
-  }
-
-  if (!pincode) {
-    showError("Please Enter Pincode");
-    return;
-  }
-
-  try {
-    const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
-    console.log(res);
-    if (!stoken) {
-      localStorage.setItem("token", res.token);
-      setToken(res.token);
-      window.dispatchEvent(new Event("auth-change"));
+    const gender = watch("gender");
+    const mobile = watch("mobile");
+    const name = watch("name");
+    const pincode = watch("pincode");
+    const email = watch("email");
+    console.log(pincode);
+    if (!name) {
+      showError("Please Enter your name");
+      return;
     }
-    showSuccess(res.message);
-     // Update the token state without reloading the page
-    // router.push("/health/insure");
-    router.push(constant.ROUTES.HEALTH.INSURE);
-  } catch (error) {
-    console.error("Submission Error:", error);
-    showError("Submission failed. Please try again later.");
-  }
-};
 
+    console.log(isOtpVerified, stoken);
+    if (!isOtpVerified) {
+      showError("Please verify your mobile number");
+      return;
+    }
+
+    if (!pincode) {
+      showError("Please Enter Pincode");
+      return;
+    }
+    if (!email) {
+      showError("Please Enter Email");
+      return;
+    }
+
+    try {
+      const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
+      console.log(res);
+      if (!stoken) {
+        localStorage.setItem("token", res.token);
+        setToken(res.token);
+        window.dispatchEvent(new Event("auth-change"));
+      }
+      showSuccess(res.message);
+      // Update the token state without reloading the page
+      // router.push("/health/insure");
+      //router.push(constant.ROUTES.HEALTH.INSURE);
+    } catch (error) {
+      console.error("Submission Error:", error);
+      showError("Submission failed. Please try again later.");
+    }
+  };
 
   return (
     <form
@@ -280,12 +276,12 @@ export default function FormPage() {
                 <input
                   {...register("gender")}
                   type="radio"
-                  name="gender" 
-                  value={gender} 
+                  name="gender"
+                  value={gender}
                   checked={selectedGender === gender}
                   onChange={() => {
-                    setSelectedGender(gender); 
-                    setValue("gender", gender); 
+                    setSelectedGender(gender);
+                    setValue("gender", gender);
                   }}
                   className="hidden"
                 />
@@ -319,6 +315,32 @@ export default function FormPage() {
                 //readOnly={isReadOnly} // Makes the field read-only based on `isReadOnly`
                 className="w-full border border-gray-400 px-4 py-2 rounded-md text-sm"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-[#2F4A7E] text-sm font-semibold mb-1"
+              >
+                Email
+              </label>
+              <input
+                {...register("email", {
+                //   required: "Email is required",
+                  pattern: {
+                    value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                    message: "Enter a valid email address",
+                  },
+                })}
+                type="text"
+                placeholder="Enter Email"
+                className="w-full border border-gray-400 px-4 py-2 rounded-md text-sm"
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -387,9 +409,7 @@ export default function FormPage() {
                     onClick={verifyOtp}
                     disabled={otp.length !== 6 || isLoading || stoken}
                     className={`px-3 py-2 text-sm rounded-full font-semibold shadow-md bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${
-                      otp.length === 6
-                        ? ""
-                        : "opacity-40 cursor-not-allowed"
+                      otp.length === 6 ? "" : "opacity-40 cursor-not-allowed"
                     }`}
                   >
                     {isLoading ? "Verifying..." : "Submit"}
@@ -401,7 +421,7 @@ export default function FormPage() {
               <label className="text-sm font-semibold text-blue-900 mb-1 block">
                 Pincode
               </label>
-             
+
               <input
                 type="text"
                 {...register("pincode", {
@@ -448,11 +468,9 @@ export default function FormPage() {
           <div className="flex flex-col md:items-start gap-1 mt-2">
             <button
               type="submit"
-              disabled={!(isOtpVerified||stoken)} // <-- actual button disabling
+              disabled={!(isOtpVerified || stoken)} // <-- actual button disabling
               className={`px-10 py-2 thmbtn text-base ${
-                isOtpVerified || stoken
-                  ? ""
-                  : "opacity-50 cursor-not-allowed"
+                isOtpVerified || stoken ? "" : "opacity-50 cursor-not-allowed"
               }`}
             >
               Continue

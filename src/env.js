@@ -6,8 +6,13 @@ const constant = {
             'INDEX':'/health',
             'INSURE':'/health/insure',
             'ILLNESS':'/health/illness',
-            'PLANS':'/health/plans'
-        } 
+            'PLANS':'/health/plans',
+            'CHECKOUT':'/health/checkout',
+            'PROPOSAL':'/health/proposal',
+        } ,
+        USER:{
+            'PROFILE':'/userpnlx'
+        }
     },
     API:{
        HEALTH:{

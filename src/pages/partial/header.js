@@ -44,7 +44,7 @@ export default function Header({ token, setToken }) {
 
       fetchData(); // Call the async function to fetch data
     }
-  }, [getToken, pathname]); // Run effect on `getToken` or `pathname` change
+  }, [getToken, Username]); // Run effect on `getToken` or `pathname` change
 
   const logout = async () => {
     const response = await CallApi("/api/logout", "POST", "");
@@ -54,6 +54,7 @@ export default function Header({ token, setToken }) {
       setIsDropdownOpen(false);
       showSuccess(response.message);
       setToken(null);
+      setUsername('');
       if (pathname === constant.ROUTES.HEALTH.INDEX) {
         router.replace(pathname);
       } else {
@@ -106,13 +107,13 @@ export default function Header({ token, setToken }) {
                   </li>
                 ) : (
                   <>
-                    <li className="px-5 py-3 hover:bg-blue-50 hover:text-blue-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2">
+                    <li onClick={() => router.push(constant.ROUTES.USER.PROFILE)} className="px-5 py-3 hover:bg-blue-50 hover:text-blue-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2">
                       <FaUser className="text-blue-400 w-4 h-4" />
                       Profile
                     </li>
 
-                    <li className="px-5 py-3 hover:bg-red-50 hover:text-red-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2">
-                      <button onClick={logout} className="flex items-center gap-2">
+                    <li onClick={logout} className="px-5 py-3 hover:bg-red-50 hover:text-red-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2">
+                      <button  className="flex items-center gap-2">
                         <FaSignOutAlt className="text-red-400 w-4 h-4" />
                         Logout
                       </button>

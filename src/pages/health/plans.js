@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from "next/navigation";
 import { FiArrowRight } from 'react-icons/fi';
+import { FaRupeeSign } from "react-icons/fa";
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -22,12 +23,25 @@ export default function HealthPlan() {
   const [pincode, setPincode] = useState('110065');
   const [memberName, setMemberName] = useState('Gfggf');
 
+  // Added state for coverage and tenure lists
+const [coveragelist, setCoveragelist] = useState([]);
+const [tenurelist, setTenurelist] = useState([]);
+const [selectcoverage, setSelectcoverage] = useState(null);
+const [selecttenure, setSelecttenure] = useState(null);
+
   const router = useRouter();
 
   useEffect(() => {
     const planData = async () => {
       try {
         const res = await CallApi(constant.API.HEALTH.PLANDATA);
+         
+        console.log("hello",res);
+         setCoveragelist(res.coveragelist || []);
+      setSelectcoverage(res.coverage || null);
+      setTenurelist(res.tenurelist || []);
+      setSelecttenure(res.tenure || null);
+      setVendorData(res.vendor || []);
         setVendorData(res.vendor);
         setIsDataLoaded(true);
       } catch (error) {
@@ -46,25 +60,37 @@ export default function HealthPlan() {
     const fetchQuotes = async () => {
       const tempPlansData = [];
       for (let i = 0; i < vendorData.length; i++) {
+        console.log("Submit Data:", vendorData[i]);
+
         try {
           const res = await CallApi(constant.API.HEALTH.GETQUOTE, "POST", vendorData[i]);
+          console.log("Response:", res);
 
-          if (res.status && res.value) {
-            // If 'res.value' is not already an array, push it into an array
-            if (Array.isArray(res.value)) {
-              tempPlansData.push(...res.value);
-              console.log(tempPlansData);
-            } else {
-              tempPlansData.push(res.value);
-            }
-          } 
+          if (res.status && res.data) {
+            const { premium, coverage, tenure, route, addons, logo, productname } = res.data;
+
+            console.log("Parsed Quote:", {
+              premium,
+              coverage,
+              tenure,
+              route,
+              addons,
+              logo,
+              productname,
+            });
+
+            // Always push the object directly (no need to check for array)
+            tempPlansData.push(res.data);
+          }
+
         } catch (error) {
           console.error("Error fetching vendor data:", error);
         }
       }
 
+
       if (tempPlansData.length > 0) {
-        console.log(tempPlansData);
+        // console.log(tempPlansData);
         setPlansData(tempPlansData);
         setLoadingPlans(false); 
       } else {
@@ -75,13 +101,30 @@ export default function HealthPlan() {
     fetchQuotes();
   }, [vendorData, isDataLoaded]);
 
-  const filterData = [
-    { label: 'Plan Type', name: 'planType', options: ['Select', 'Base', 'Top-up'] },
-    { label: 'Coverage', name: 'coverage', options: ['Select', '5 Lac', '10 Lac', '20 Lac'] },
-    { label: 'Insurers', name: 'insurers', options: ['Select', 'TATA AIG', 'Care'] },
-    { label: 'Features', name: 'features', options: ['Select', 'OPD', 'Daycare'] },
-    { label: 'Tenure', name: 'tenure', options: ['Select', '1 Year', '2 Year', '3 Year'] },
-  ];
+ const filterData = [
+  { label: 'Plan Type', name: 'planType', options: ['Select', 'Base', 'Top-up'] },
+  {
+    label: 'Coverage',
+    name: 'coverage',
+    options: ['Select', ...coveragelist.map(val => `${val} Lac`)]
+  },
+  {
+    label: 'Insurers',
+    name: 'insurers',
+    options: ['Select', 'TATA AIG', 'Care'] // You can also map this dynamically from vendor[]
+  },
+  {
+    label: 'Features',
+    name: 'features',
+    options: ['Select', 'OPD', 'Daycare']
+  },
+  {
+    label: 'Tenure',
+    name: 'tenure',
+    options: ['Select', ...tenurelist.map(val => `${val} Year`)]
+  }
+];
+
 
   const { register, handleSubmit } = useForm();
   const onSubmit = (data) => {
@@ -197,16 +240,19 @@ export default function HealthPlan() {
                     <div className="flex flex-col items-center sm:ml-auto">
                       <span className="text-xs text-gray-500 font-semibold">Cover</span>
                       <span className="bg-gradient-to-r from-sky-100 to-sky-50 text-blue-800 font-semibold text-sm px-4 py-1.5 rounded-full shadow mt-1">
-                        {plan.cover}
-                      </span>
+                      {plan.coverage} {plan.coverage === 100 ? "Cr" : "Lakh"}
+                    </span>
                     </div>
                   </div>
 
                   <div className="text-right">
                     <button type="submit" className="px-8 py-2 flex items-center justify-center thmbtn">
-                      {plan.price} <FiArrowRight />
+                      <FaRupeeSign className=" text-xs" />
+                       {Math.round(Number(plan.premium.replace(/,/g, "")) / 12).toLocaleString("en-IN")} / month <FiArrowRight />
                     </button>
-                    <div className="text-base flex items-center justify-center text-gray-500 mt-1 italic">{plan.annual}</div>
+                    <div className="text-base flex items-center justify-center text-gray-500 mt-1 italic">
+                      <FaRupeeSign className=" text-xs" />{plan.premium}/Year
+                    </div>
                   </div>
                 </form>
               ))
