@@ -250,9 +250,7 @@ export default function FormPage() {
         window.dispatchEvent(new Event("auth-change"));
       }
       showSuccess(res.message);
-      // Update the token state without reloading the page
-      // router.push("/health/insure");
-      //router.push(constant.ROUTES.HEALTH.INSURE);
+      router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
     } catch (error) {
       console.error("Submission Error:", error);
       showError("Submission failed. Please try again later.");

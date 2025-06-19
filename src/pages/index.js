@@ -1,35 +1,24 @@
-import { useEffect,useState } from "react";
-import { getCookie } from 'cookies-next';
+import { useEffect, useState } from "react";
+import { getIronSession } from 'iron-session';
+import { sessionOptions } from './lib/sessionconfig';
 
-// export async function getServerSideProps({ req, res }) {
-//   const token = getCookie('token', { req, res });
+// export async function getServerSideProps(context) {
+//   const session = await getIronSession(context.req, context.res, sessionOptions);
 
 //   return {
 //     props: {
-//       token: token || null,
+//       token: session.token || null,
 //     },
 //   };
 // }
 
+
 export default function Home() {
-  const [token, setToken] = useState(null);
-
-  useEffect(() => {
-  async function setAndFetchToken() {
-    await fetch("/api/setcookie");
-    const res = await fetch("/api/getcookie");
-    const data = await res.json();
-    setToken(data.token);
-    console.log(data);
-  }
-
-  setAndFetchToken();
-}, []);
-
+  // console.log(token);
   return (
     <>
       <h1>Index Page</h1>
-     <p>Token from cookie: {token ? JSON.stringify(token) : "No Token Yet"}</p>
+      <p>Token from session: {token ? JSON.stringify(token) : "No Token Yet"}</p>
     </>
   );
 }

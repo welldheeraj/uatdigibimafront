@@ -13,60 +13,106 @@
 }
 
 /* styles/globals.css or create a separate CSS file */
+#loader {
+  width: 100%;
+  height: 50vh;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Poppins', sans-serif;
+}
+
 .loader-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.loader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 1.5s ease-in-out infinite;
-}
-
-.heartbeat {
-  width: 50px;
-  height: 50px;
+  position: relative;
+  width: 18rem;
+  height: 18rem;
+  background-color: #ffffff;
   border-radius: 50%;
-  background-color: #00A859; /* Health-related color */
-  animation: heartbeat 1.5s infinite;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.loader-text {
-  margin-top: 15px;
-  font-size: 18px;
-  color: #00A859;
-  font-weight: bold;
-  text-align: center;
+.dot {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
 }
 
-@keyframes heartbeat {
-  0% {
-    transform: scale(1);
+.dot-1 {
+  background-color: #3db5e9;
+  z-index: 4;
+  animation: moveDot1 2s infinite ease;
+}
+
+.dot-2 {
+  background-color: #1de1c0;
+  z-index: 3;
+  animation: moveDot2 2s infinite ease;
+}
+
+.dot-3 {
+  background-color: #005cff;
+  z-index: 2;
+  animation: moveDot3 2s infinite ease;
+}
+
+.dot-4 {
+  background-color: #03007f;
+  z-index: 1;
+  animation: moveDot4 2s infinite ease;
+}
+
+@keyframes moveDot1 {
+  from {
+    transform: rotate(0deg);
+    transform-origin: -20px -20px;
+    transform-style: preserve-3D;
   }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
+  to {
+    transform: rotate(-360deg);
+    transform-origin: -20px -20px;
+    transform-style: preserve-3D;
   }
 }
 
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
+@keyframes moveDot2 {
+  from {
+    transform: rotate(0deg);
+    transform-origin: 40px -20px;
+    transform-style: preserve-3D;
   }
-  100% {
-    opacity: 1;
+  to {
+    transform: rotate(-360deg);
+    transform-origin: 40px -20px;
+    transform-style: preserve-3D;
+  }
+}
+
+@keyframes moveDot3 {
+  from {
+    transform: rotate(0deg);
+    transform-origin: -20px 40px;
+    transform-style: preserve-3D;
+  }
+  to {
+    transform: rotate(-360deg);
+    transform-origin: -20px 40px;
+    transform-style: preserve-3D;
+  }
+}
+
+@keyframes moveDot4 {
+  from {
+    transform: rotate(0deg);
+    transform-origin: 40px 40px;
+    transform-style: preserve-3D;
+  }
+  to {
+    transform: rotate(-360deg);
+    transform-origin: 40px 40px;
+    transform-style: preserve-3D;
   }
 }

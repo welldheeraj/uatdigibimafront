@@ -1,6 +1,9 @@
 const constant = {
     USER:'',
-    EMAIL_ID:''
+    EMAIL_ID:'',
+    COOKIE:{
+        HEADER:'@#$%^AZ##'
+    }
     ,ROUTES:{
         HEALTH:{
             'INDEX':'/health',
@@ -9,7 +12,12 @@ const constant = {
             'PLANS':'/health/plans',
             'CHECKOUT':'/health/checkout',
             'PROPOSAL':'/health/proposal',
+            
         } ,
+        MOTOR:{
+             'LOGIN':'/motor',
+             'SELECTVEHICLE':'/motor/common',
+        },
         USER:{
             'PROFILE':'/userpnlx'
         }
@@ -24,9 +32,14 @@ const constant = {
         'ILLNESS':'/api/illnesses',
         'SAVEILLNESS':'/api/saveillnesses',
         'PLANDATA':'/api/quoteview',
+        'FILTERPLAN':'/api/filterplan',
         'GETQUOTE':'/api/health-quotation-generate',
+        'CHECKOUT':'/api/addon',
+        'SETPREMIUM':'api/setpremium',
+        'PlANCHECKOUT':'/api/plancheckout',
        } 
     }
+
 };
 
 export default constant;

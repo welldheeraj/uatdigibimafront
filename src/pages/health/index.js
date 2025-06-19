@@ -1,4 +1,3 @@
-"use client";
 import { useForm } from "react-hook-form";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -6,8 +5,42 @@ import { showSuccess, showError } from "../../styles/js/toaster";
 import { CallApi, getUserinfo } from "../../api";
 import constant from "../../env";
 import {isNumber} from '../../styles/js/validation'
+import { getIronSession } from 'iron-session';
+import { sessionOptions } from '../lib/sessionconfig';
 
+// export async function getServerSideProps(context) {
+//   const session = await getIronSession(context.req, context.res, sessionOptions);
+//   const response = await fetch("https://stage.digibima.com/api/getuserinfo",{
+//     headers:{
+//        'Content-Type': 'application/json',
+//        'Authorization': `${session.token}`,
+//   }
+//    });  
+//   const data = await response.json();
+//   return {
+//     props: {
+//       userdata: data || null,
+//     },
+//   };
+// }
+
+// export async function getServerSideProps(context) {
+//   const session = await getIronSession(context.req, context.res, sessionOptions);
+//   const response = await fetch("https://stage.digibima.com/api/getuserinfo",{
+//     headers:{
+//        'Content-Type': 'application/json',
+//        'Authorization': `${session.token}`,
+//   }
+//    });  
+//   const data = await response.json();
+//   return {
+//     props: {
+//       userdata: data || null,
+//     },
+//   };
+// }
 export default function FormPage() {
+  //console.log('user:',userdata);
   const {
     register,
     handleSubmit,
@@ -79,9 +112,9 @@ export default function FormPage() {
       setIsOtpVerified(true)
       const fetchData = async () => {
         try {
-          const res = await getUserinfo(getToken);
-          const data = await res.json();
-          console.log(data);
+           const res = await getUserinfo(getToken);
+           const data = await res.json();
+           console.log(data);
           if (data.status === true) {
             reset({
               name: data.user.name || "",
@@ -250,11 +283,16 @@ export default function FormPage() {
     if (!stoken) {
       localStorage.setItem("token", res.token);
       setToken(res.token);
+      await fetch("/api/setsession", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ token: res.token })
+    });
       window.dispatchEvent(new Event("auth-change"));
     }
     showSuccess(res.message);
-     // Update the token state without reloading the page
-    // router.push("/health/insure");
     router.push(constant.ROUTES.HEALTH.INSURE);
   } catch (error) {
     console.error("Submission Error:", error);

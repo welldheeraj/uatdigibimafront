@@ -11,17 +11,28 @@ import HealthInsuranceLoader from './health/loader';
 import { useRouter } from "next/router"; 
 import { VerifyToken } from "../api"; // Adjust import path if needed
 import constant from "../env";
+import { CallApi, getUserinfo } from "../api";
 
 const crimson = Crimson_Text({
   subsets: ["latin"],
   weight: ["400", "600", "700"],
   display: "swap",
 });
+// export async function getServerSideProps(context) {
+//   const session = await getIronSession(context.req, context.res, sessionOptions);
 
+//   return {
+//     props: {
+//       token: session.token || null,
+//     },
+//   };
+// }
 export default function App({ Component, pageProps }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [Username, setUsername] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return; // Prevent SSR errors
@@ -73,16 +84,51 @@ export default function App({ Component, pageProps }) {
     return () => window.removeEventListener("auth-change", handleAuthChange);
   }, [router]);
 
-  if (loading) return <div><HealthInsuranceLoader/></div>;
+   useEffect(() => {
+    if (token) {
+      console.log("token:", token);
 
-  return (
-    <div className={crimson.className}>
+      const fetchData = async () => {
+        try {
+          setIsLoading(true);
+          const response = await getUserinfo(token);
+          const data = await response.json();
+          console.log(data);
+          if (data.status === true && data.user?.name) {
+            setUsername(data.user.name);
+          } else {
+            setUsername(null);
+          }
+        } catch (error) {
+          console.error("Error fetching user info:", error);
+          setUsername(null);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchData();
+    }
+  }, [token, Username]);
 
-        <Header token={token} setToken={setToken} />
+   
+
+return (
+  <div className={crimson.className}>
+    <Header token={token} setToken={setToken} username={Username} setUsername={setUsername} />
+    
+    {/* Conditional Rendering */}
+    {loading ? (
+      <div>
+        <HealthInsuranceLoader />
+      </div>
+    ) : (
+      <>
         <Toaster />
         <Component {...pageProps} />
         <Footer />
+      </>
+    )}
+  </div>
+);
 
-    </div>
-  );
 }

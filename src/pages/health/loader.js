@@ -2,10 +2,12 @@
 
 export default function HealthInsuranceLoader() {
   return (
-    <div className="loader-container">
-      <div className="loader">
-        <div className="heartbeat"></div>
-        <div className="loader-text">Loading Health Plans...</div>
+     <div id="loader">
+      <div className="loader-container">
+        <div className="dot dot-1"></div>
+        <div className="dot dot-2"></div>
+        <div className="dot dot-3"></div>
+        <div className="dot dot-4"></div>
       </div>
     </div>
   )

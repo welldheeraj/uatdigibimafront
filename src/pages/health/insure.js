@@ -8,8 +8,55 @@ import { showSuccess, showError } from "../../styles/js/toaster";
 import { CallApi, VerifyToken } from "../../api";
 import constant from "../../env";
 
+import { getIronSession } from 'iron-session';
+import { sessionOptions } from '../lib/sessionconfig';
 
+// export async function getServerSideProps(context) {
+//   const session = await getIronSession(context.req, context.res, sessionOptions);
+//   const response = await fetch("https://stage.digibima.com/api/insureview", {
+//     //method: "POST", // Required if API expects it
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Authorization': session.token || "", // Fallback to empty string
+//     },
+//     body: JSON.stringify({}) // If your API expects input; adjust as needed
+//   });
+//   //console.log(response);
+//   // const contentType = response.headers.get("content-type");
+//   // let data = null;
+  
+//   // if (response.ok && contentType?.includes("application/json")) {
+//     data = await response.json();
+//     console.log(data);
+//   // } else {
+//   //   const errorHtml = await response.text(); // For debugging
+//   //   console.error("API did not return JSON. Response:", errorHtml);
+//   // }
+
+//   return {
+//     props: {
+//       userdata: data,
+//     },
+//   };
+// }
+
+// export async function getServerSideProps(context) {
+//   const session = await getIronSession(context.req, context.res, sessionOptions);
+//   const response = await fetch("https://stage.digibima.com/api/getinsureinfo",{
+//     headers:{
+//        'Content-Type': 'application/json',
+//        'Authorization': `${session.token}`,
+//   }
+//    });  
+//   const data = await response.json();
+//   return {
+//     props: {
+//       userdata: data || null,
+//     },
+//   };
+// }
 export default function InsurePage() {
+  //console.log(userdata);
   const router = useRouter();
   const { reset } = useForm();
 
