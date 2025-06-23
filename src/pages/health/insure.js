@@ -263,15 +263,16 @@ const handleSubmit = async () => {
     <div className="bg-[#C8EDFE] px-4 py-10 min-h-screen flex items-center justify-center">
       <section
         id="slide3"
-        className="max-w-8xl rounded-[64px] bg-[#fff] text-white grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 md:p-10 gap-6"
+        className=" max-w-9xl rounded-[64px] bg-[#fff] text-white grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 md:p-10 gap-6"
       >
-        <div className="hidden lg:block sticky top-10 h-fit self-start">
+        <div className="hidden md:flex items-center justify-center">
           <img
             src="/images/health/health-two.png"
             alt="Family Health"
-            className="w-full h-auto max-w-md mx-auto"
+            className="max-w-[350px] w-full h-auto object-contain"
           />
         </div>
+
 
         <div className="w-full">
           <h2 className="text-[24px] md:text-[28px] font-bold mb-8 text-[#426D98] text-center md:text-left">
@@ -349,9 +350,9 @@ function MemberCard({ member, selectedMembers, handleToggle, ageChange }) {
       onClick={() => handleToggle(member.name)}
       className="flex items-center justify-between gap-2 bg-white px-4 py-2 rounded-xl text-black w-full relative border border-gray-400"
     >
-      {selectedMembers.includes(member.name) && (
+      {/* {selectedMembers.includes(member.name) && (
         <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping opacity-70"></span>
-      )}
+      )} */}
       <input
       type="checkbox"
       checked={selectedMembers.includes(member.name)} 
@@ -399,9 +400,9 @@ function ChildrenSection({
         onClick={toggleChildCheckbox}
         className="flex items-center justify-between gap-2 bg-white px-4 py-3 rounded-xl text-black w-full relative border border-gray-400"
       >
-        {isChildChecked && (
+        {/* {isChildChecked && (
           <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping opacity-70"></span>
-        )}
+        )} */}
         <label
           className="flex items-center space-x-2 cursor-pointer"
           onClick={(e) => e.stopPropagation()}
@@ -426,18 +427,18 @@ function ChildrenSection({
               onClick={removeChild}
               type="button"
               disabled={children.length === 0}
-              className="bg-gray-300 rounded disabled:opacity-50"
+              className="thmbtn rounded disabled:opacity-50"
             >
-              <HiMinus className="text-xl text-gray-700" />
+              <HiMinus className="text-xl text-white" />
             </button>
             <span className="font-medium text-gray-700">{children.length}</span>
             <button
               onClick={addChild}
               type="button"
               disabled={children.length >= maxChildren}
-              className="bg-gray-300 rounded disabled:opacity-50"
+              className="thmbtn rounded disabled:opacity-50"
             >
-              <HiPlus className="text-xl text-gray-700" />
+              <HiPlus className="text-xl text-white" />
             </button>
           </div>
         )}
@@ -453,16 +454,17 @@ function ChildrenSection({
               className="flex items-center gap-3 border border-gray-400 p-2 rounded-xl bg-white shadow-sm"
             >
               <select
-                className="w-1/2 border border-gray-400 px-3 py-2 rounded-md text-sm text-gray-700 focus:outline-none focus:ring focus:ring-blue-200"
+                className="w-1/2 border border-gray-400 text-sm font-medium text-gray-800 cursor-pointer px-3 py-2 rounded-md "
                 value={child.name}
                 onChange={(e) => childChange(index, "name", e.target.value)}
               >
+                
                 <option value="">Select Child</option>
                 <option value="Son">Son</option>
                 <option value="Daughter">Daughter</option>
               </select>
               <select
-                className="w-1/2 border border-gray-400 px-3 py-2 rounded-md text-sm text-gray-700 focus:outline-none focus:ring focus:ring-blue-200"
+                className="w-1/2 border border-gray-400 text-sm font-medium text-gray-800 cursor-pointer px-3 py-2 rounded-md "
                 value={child.age}
                 onChange={(e) => childChange(index, "age", e.target.value)}
               >

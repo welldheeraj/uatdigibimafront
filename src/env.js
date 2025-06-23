@@ -9,14 +9,16 @@ const constant = {
             'INDEX':'/health',
             'INSURE':'/health/insure',
             'ILLNESS':'/health/illness',
-            'PLANS':'/health/plans',
-            'CHECKOUT':'/health/checkout',
+            'PLANS':'/health/plansOne',
+            'CHECKOUT':'health/checkoutOne',
             'PROPOSAL':'/health/proposal',
             
         } ,
         MOTOR:{
-             'LOGIN':'/motor',
+             'INDEX':'/motor',
              'SELECTVEHICLE':'/motor/common',
+             'KnowCarSlide2':'/motor/car/common/knowcarslide2',
+             'KnowCarSlide3':'/motor/car/common/knowcarslide3'
         },
         USER:{
             'PROFILE':'/userpnlx'
@@ -37,7 +39,13 @@ const constant = {
         'CHECKOUT':'/api/addon',
         'SETPREMIUM':'api/setpremium',
         'PlANCHECKOUT':'/api/plancheckout',
-       } 
+        'ADDADDONS':'/api/addaddon',
+       } ,
+
+       MOTOR:{
+        'LOGIN' : '/api/motor/vehicle-type-select',
+        'VERIFYRTO' : '/api/motor/verifyrto'
+       }
     }
 
 };

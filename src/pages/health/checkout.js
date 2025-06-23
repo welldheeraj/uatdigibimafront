@@ -48,6 +48,36 @@ export default function ProposalUI() {
       .catch(console.error);
   }, []);
 
+
+
+  useEffect(() => {
+    if (coverAmount) {
+      const fetchFilteredPlans = async () => {
+        try {
+          const res = await CallApi(constant.API.HEALTH.FILTERPLAN, "POST", { coverage: coverAmount });
+          console.log("FILTERPLAN response:", res);
+
+          if (res.status) {
+            console.log("status", res.status);
+            // setPlansData(res.status);
+            // setLoadingPlans(false);
+          } else {
+            console.warn("FILTERPLAN returned no results.");
+            // Handle the failure case
+            // setPlansData([]);
+          }
+        } catch (err) {
+          console.error("Error during filtered quote fetch:", err);
+          // Handle the error case
+          // setPlansData([]);
+        }
+      };
+
+      fetchFilteredPlans();
+    }
+  }, [coverAmount]);
+
+
   // console.log(tenureOptions);
   // console.log(tenure);
 useEffect(() => {
@@ -120,7 +150,7 @@ useEffect(() => {
               remembering yearly renewals.
             </div>
 
-            <div className="flex flex-wrap gap-4">
+     <div className="flex flex-wrap gap-4">
   {tenureOptions.map((year) => (
     <label
       key={year}
@@ -137,14 +167,25 @@ useEffect(() => {
         onChange={() => setTenure(year)}
         className="form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
       />
-      <span className="text-sm text-black font-medium">
-        {year} {year === 1 ? "Year" : "Years"} 
-        {tenurePrices[year] && `- ₹${tenurePrices[year].toLocaleString()}`}
+     <span className=" text-sm text-black font-medium">
+  <b className="flex">
+    {year} {year === 1 ? "Year" : "Years"} 
+    {tenurePrices[year] ? (
+      `- ₹ ${tenurePrices[year].toLocaleString()}`
+    ) : (
+      <span className="flex justify-center items-center space-x-1 ml-3">
+        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-150"></div>
+        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-300"></div>
       </span>
-      <div className="h-6 w-20 bg-gray-300 rounded animate-pulse mx-auto"></div>
+    )}
+  </b>
+</span>
+
     </label>
   ))}
 </div>
+
 
           </div>
 

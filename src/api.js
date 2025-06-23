@@ -1,4 +1,5 @@
 export async function CallApi(url,method = 'GET',data = null){
+   // console.log(data);
    let token = localStorage.getItem('token');
    let options = {
     method,
@@ -15,7 +16,7 @@ export async function CallApi(url,method = 'GET',data = null){
    return await res.json();
 }
 
- export async function getUserinfo(token){
+ export async function getUserinfo(token=localStorage.getItem('token')){
      const response = await fetch("/api/getuserinfo",{
       headers:{
          'Content-Type': 'application/json',
@@ -25,6 +26,7 @@ export async function CallApi(url,method = 'GET',data = null){
      return response;
 }
  export async function VerifyToken(pretoken){
+   //let token = localStorage.getItem('token');
      const response = await fetch("/api/verifytoken",{
       headers:{
          'Content-Type': 'application/json',

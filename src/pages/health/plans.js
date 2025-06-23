@@ -134,8 +134,8 @@ const filterData = useMemo(() => [
 
     if (res.status ) {
        console.log("status", res.status);
-       window.location.reload();
-      
+      //  window.location.reload();
+      setPlansData(filtered);      
 
 
     } else {
@@ -152,7 +152,7 @@ const filterData = useMemo(() => [
 
   const handlePlanSubmit = (plan) => {
     console.log("Plan Submitted:", plan);
-    router.push("/health/checkout");
+    router.push("/health/checkoutOne");
   };
   return (
     <div className="bg-[#C8EDFE] min-h-screen px-4 sm:px-10 lg:px-20 py-6">

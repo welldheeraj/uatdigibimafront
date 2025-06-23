@@ -241,9 +241,11 @@ export default function FormPage() {
       return;
     }
 
+
+    
     try {
-      const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
-      console.log(res);
+      const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
+      console.log("login ka response",res);
       if (!stoken) {
         localStorage.setItem("token", res.token);
         setToken(res.token);

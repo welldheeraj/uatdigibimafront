@@ -1,10 +1,17 @@
-import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
 
-export default function VehicleSelect() {
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/router";
+import constant from "../../../env";
+import { CallApi, getUserinfo } from "../../../api";
+import { FaCar } from "react-icons/fa";
+
+export default function VehicleSelect({ mobile }) {
   const {
     register,
     watch,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -15,290 +22,486 @@ export default function VehicleSelect() {
     },
   });
 
+  const [isReadOnly, setIsReadOnly] = useState(false);
+  // const [mobile, setMobile] = useState(null)
+
+  const router = useRouter();
   const selectedVehicle = watch("vehicle");
   const carOption = watch("carOption");
   const bikeOption = watch("bikeOption");
-  //const commercialOption = watch("commercialOption");
+  const commercialOption = watch("commercialOption");
+  // var mobile = "";
 
-  const mobile = "";
+  // useEffect(() => {
+  //   //const getToken = localStorage.getItem("token");
+  //   //console.log("token:", getToken);
+  //   //if (getToken) {
 
-  const onSubmit = (data) => {
-    console.log("Form submitted:", data);
+  //   const fetchUsers = async () => {
+  //     try {
+  //       const res = await getUserinfo();
+  //       const data = await res.json();
+  //       console.log("user ka data", data);
+  //       if (data && data.user.mobile)
+  //         // mobile = data && data.user.mobile ? data.user.mobile : mobile;
+  //       setMobile(data && data.user.mobile ? data.user.mobile : mobile)
+  //       console.log('mmmm', mobile);
+  //     } catch (error) {
+  //       console.error("Error fetching user info:", error);
+  //     }
+  //   };
+  //   //console.log("i am got Token",getToken);
+  //   fetchUsers();
+  //   //}
+
+  // }, [])
+
+  const onSubmit = async (data) => {
+    // console.log('data',data);
+    const selected = data.vehicle;
+    // console.log('seeee',selected);
+    var payload = {
+      carregnumber: data.carRegNumber,
+    };
+    // console.log('seeee',selected,payload);
+    // return ;
+    if (selected === "car") {
+      payload.carOption = data.carOption;
+      if (data.carOption === "knowcar") {
+        payload.carRegNumber = data.carRegNumber;
+      } else if (data.carOption === "newcar") {
+        payload.carCity = data.carCity;
+      }
+    } else if (selected === "bike") {
+      payload.bikeOption = data.bikeOption;
+
+      if (data.bikeOption === "knowbike") {
+        payload.bikeRegNumber = data.bikeRegNumber;
+      } else if (data.bikeOption === "newbike") {
+        payload.bikeCity = data.bikeCity;
+      }
+    } else if (selected === "commercial") {
+      payload.commercialOption = data.commercialOption;
+
+      if (data.commercialOption === "knowcommercial") {
+        payload.commercialRegNumber = data.commercialRegNumber;
+      } else if (data.commercialOption === "newcommercial") {
+        payload.commercialCity = data.commercialCity;
+      }
+    }
+
+    //console.log("Filtered Submit Payload:", payload);
+    // router.push(constant.ROUTES.MOTOR.KnowCarSlide2); // or conditionally push
+
+    // var data = payload;
+    // console.log('payload', payload)
+    try {
+      const response = await CallApi(constant.API.MOTOR.VERIFYRTO, "POST", {
+        carregnumber: data.carRegNumber,
+      });
+
+      if (!response) return;
+      console.log(response);
+      router.push(constant.ROUTES.MOTOR.KnowCarSlide2);
+    } catch (error) {
+      console.error("Error", error);
+    }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="p-4 md:p-8 bg-white rounded-md shadow-md space-y-6"
-    >
-      <p className="text-base md:text-lg font-medium text-gray-700">
-        Motor insurance provides essential coverage against accidents.
-      </p>
+    <div>
+      <div className=" ">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-4 md:p-8 bg-[#F0FAFC] rounded-md shadow-md space-y-6"
+        >
+          <p className="text-[#2F4A7E] text-base md:text-3xl font-semibold  text-center">
+            Motor insurance provides essential coverage against accidents.
+          </p>
 
-      <div className="mb-6 flex justify-center">
-        <div className="w-32 h-20 bg-gray-100 flex items-center justify-center rounded">
-          <img src="#" alt="Vehicle" className="object-contain h-full" />
-        </div>
-      </div>
-
-      {/* Vehicle Selection */}
-      <div className="flex flex-wrap gap-4 justify-center">
-        {["car", "bike", "commercial"].map((type) => (
-          <label key={type} className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              value={type}
-              {...register("vehicle")}
-              className="hidden peer"
-            />
-            <div className="vehicle-box peer-checked:ring-2 peer-checked:ring-blue-500 px-4 py-2 rounded border">
-              {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
-              <i
-                className={`fa-solid ${
-                  type === "car"
-                    ? "fa-car"
-                    : type === "bike"
-                    ? "fa-motorcycle"
-                    : "fa-tractor"
-                } motoricon ml-2`}
-              ></i>
+          <div className="flex flex-col md:flex-row">
+            {/* image section */}
+            <div className="w-1/2 mb-6 flex justify-center ">
+              <div className="w-32 h-20 bg-gray-100 flex items-center justify-center rounded">
+                <img src="#" alt="Vehicle" className="object-contain h-full" />
+              </div>
             </div>
-          </label>
-        ))}
+
+            {/* form section */}
+
+            <div className="w-1/2 flex items-center justify-center">
+              <div>
+                {/* Vehicle Selection */}
+                <div className="flex flex-wrap gap-4 mb-4">
+                  {["car", "bike", "commercial"].map((type) => (
+                    <label
+                      key={type}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        value={type}
+                        {...register("vehicle")}
+                        className="hidden peer"
+                      />
+                      <div className="bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white vehicle-box peer-checked:ring-2 peer-checked:ring-blue-500 px-4 py-2 rounded border">
+                        {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
+                        <i
+                          className={`fa-solid ${
+                            type === "car"
+                              ? "FaCar"
+                              : type === "bike"
+                              ? "fa-motorcycle"
+                              : "fa-tractor"
+                          } motoricon ml-2`}
+                        ></i>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                {/* CAR FORM */}
+                {selectedVehicle === "car" && (
+                  <div className="space-y-4 ">
+                    <div className="flex gap-4">
+                      <label>
+                        <input
+                          type="radio"
+                          value="knowcar"
+                          {...register("carOption")}
+                        />
+                        Know Car No.
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="newcar"
+                          {...register("carOption")}
+                        />
+                        New Car
+                      </label>
+                    </div>
+
+                    {carOption === "knowcar" && (
+                      <>
+                        <div className="flex  gap-4 ">
+                          <div className="flex flex-col">
+                            <label>Car Registration Number</label>
+                            <input
+                              type="text"
+                              placeholder="Enter Car Registration Number"
+                              {...register("carRegNumber", {
+                                pattern: {
+                                  value: /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/,
+                                  message: "Invalid car registration number",
+                                },
+                              })}
+                              className="w-full border rounded p-2"
+                              onInput={(e) => {
+                                e.target.value = e.target.value
+                                  .toUpperCase()
+                                  .slice(0, 10);
+                              }}
+                            />
+                            {errors.carRegNumber && (
+                              <p className=" text-sm">
+                                {errors.carRegNumber.message}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col">
+                            <label>Mobile Number</label>
+                            <input
+                              type="number"
+                              value={mobile}
+                              readOnly
+                              // disabled
+                              {...register("mobile", {
+                                pattern: {
+                                  value: /^[0-9]{10}$/,
+                                  message: "Invalid Mobile Number",
+                                },
+                              })}
+                              className="w-full border rounded p-2"
+                            />
+                            {errors.mobile && (
+                              <p className="text-red-500 text-sm">
+                                {errors.mobile.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {carOption === "newcar" && (
+                      <>
+                        <div className="flex gap-4">
+                          <div className="flex flex-col">
+                            <label>City Name</label>
+                            <input
+                              type="text"
+                              placeholder="Enter City Name"
+                              {...register("carCity")}
+                              className="w-[300px] border rounded p-2"
+                            />
+                          </div>
+
+                          <div className="flex flex-col">
+                            <label>Mobile Number</label>
+                            <input
+                              type="number"
+                              value={mobile}
+                              readOnly
+                              //disabled
+                              {...register("mobile", {
+                                pattern: {
+                                  value: /^[0-9]{10}$/,
+                                  message: "Invalid Mobile Number",
+                                },
+                              })}
+                              className="w-full border rounded p-2"
+                            />
+                            {errors.mobile && (
+                              <p className="text-red-500 text-sm">
+                                {errors.mobile.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* BIKE FORM */}
+                {selectedVehicle === "bike" && (
+                  <div className="space-y-4">
+                    <div className="flex gap-4">
+                      <label>
+                        <input
+                          type="radio"
+                          value="knowbike"
+                          {...register("bikeOption")}
+                        />
+                        Know Bike No.
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="newbike"
+                          {...register("bikeOption")}
+                        />
+                        New Bike
+                      </label>
+                    </div>
+
+                    {bikeOption === "knowbike" && (
+                      <>
+                        <div className="flex gap-4">
+                          <div className="flex flex-col">
+                            <label>Bike Registration Number</label>
+                            <input
+                              type="text"
+                              placeholder="Enter Bike Registration Number"
+                              {...register("bikeRegNumber", {
+                                pattern: {
+                                  value: /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/,
+                                  message: "Invalid bike registration number",
+                                },
+                              })}
+                              className="w-full border rounded p-2"
+                            />
+                            {errors.bikeRegNumber && (
+                              <p className="text-red-500 text-sm">
+                                {errors.bikeRegNumber.message}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col">
+                            <label>Mobile Number</label>
+                            <input
+                              type="text"
+                              // value={mobile}
+                              // readOnly
+                              // disabled
+                              {...register("mobile", {
+                                pattern: {
+                                  value: /^[0-9]{10}$/,
+                                  message: "Invalid Mobile Number",
+                                },
+                              })}
+                              className="w-full border rounded p-2"
+                            />
+                            {errors.mobile && (
+                              <p className="text-red-500 text-sm">
+                                {errors.mobile.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {bikeOption === "newbike" && (
+                      <>
+                        <div className="flex gap-4">
+                          <div className="flex flex-col">
+                            <label>City Name</label>
+                            <input
+                              type="text"
+                              placeholder="Enter City Name"
+                              {...register("bikeCity")}
+                              className="w-full border rounded p-2"
+                            />
+                          </div>
+
+                          <div className="flex flex-col">
+                            <label>Mobile Number</label>
+                            <input
+                              type="text"
+                              // value={mobile}
+                              // readOnly
+                              // disabled
+                              {...register("mobile", {
+                                pattern: {
+                                  value: /^[0-9]{10}$/,
+                                  message: "Invalid Mobile Number",
+                                },
+                              })}
+                              className="w-full border rounded p-2"
+                            />
+                            {errors.mobile && (
+                              <p className="text-red-500 text-sm">
+                                {errors.mobile.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* COMMERCIAL FORM */}
+                {selectedVehicle === "commercial" && (
+                  <div className="space-y-4">
+                    <div className="flex gap-4">
+                      <label>
+                        <input
+                          type="radio"
+                          value="knowcommercial"
+                          {...register("commercialOption")}
+                        />
+                        Know Commercial No.
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="newcommercial"
+                          {...register("commercialOption")}
+                        />
+                        New Commercial
+                      </label>
+                    </div>
+
+                    {commercialOption === "knowcommercial" && (
+                      <>
+                        <div className="flex gap-4">
+                          <div className="flex flex-col">
+                            <label>Registration Number</label>
+                            <input
+                              type="text"
+                              placeholder="Enter Commercial Reg. Number"
+                              {...register("commercialRegNumber")}
+                              className="w-full border rounded p-2"
+                            />
+                          </div>
+
+                          <div>
+                            <label>Mobile Number</label>
+                            <input
+                              type="text"
+                              // value={mobile}
+                              // readOnly
+                              // disabled
+                              {...register("mobile")}
+                              className="w-full border rounded p-2"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {commercialOption === "newcommercial" && (
+                      <>
+                        <div className="flex gap-4">
+                          <div className="flex flex-col">
+                            <label>City Name</label>
+                            <input
+                              type="text"
+                              placeholder="Enter City Name"
+                              {...register("commercialCity")}
+                              className="w-full border rounded p-2"
+                            />
+                          </div>
+
+                          <div className="flex flex-col">
+                            <label>Mobile Number</label>
+                            <input
+                              type="text"
+                              // value={mobile}
+                              // readOnly
+                              // disabled
+                              {...register("mobile")}
+                              className="w-full border rounded p-2"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-3 justify-start mt-2">
+                  <button
+                    type="button"
+                    onClick={() => router.push(constant.ROUTES.MOTOR.INDEX)}
+                    className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
+                    style={{
+                      background:
+                        "linear-gradient(to bottom, #426D98, #28A7E4)",
+                    }}
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit(onSubmit)}
+                    className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
+                    style={{
+                      background:
+                        "linear-gradient(to bottom, #426D98, #28A7E4)",
+                    }}
+                  >
+                    Continue
+                  </button>
+                </div>
+
+                {/* Footer Text */}
+                <p className="mt-4 text-lg">
+                  Already bought a policy from DigiBima?{" "}
+                  <a href="#" className="text-blue-600 underline">
+                    Renew Now
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
-
-      {/* CAR FORM */}
-      {selectedVehicle === "car" && (
-        <div className="space-y-4">
-          <div className="flex gap-4">
-            <label>
-              <input type="radio" value="knowcar" {...register("carOption")} />
-              Know Car No.
-            </label>
-            <label>
-              <input type="radio" value="newcar" {...register("carOption")} />
-              New Car
-            </label>
-          </div>
-
-          {carOption === "knowcar" && (
-            <>
-              <input
-                type="text"
-                placeholder="Enter Car Registration Number"
-                {...register("carRegNumber", {
-                  pattern: {
-                    value: /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/,
-                    message: "Invalid car registration number",
-                  },
-                })}
-                className="w-full border rounded p-2"
-              />
-              {errors.carRegNumber && (
-                <p className="text-red-500 text-sm">
-                  {errors.carRegNumber.message}
-                </p>
-              )}
-              <input
-                type="text"
-                // value={mobile}
-                //readOnly
-                //disabled
-                {...register("mobile", {
-                  pattern: {
-                    value: /^[0-9]{10}$/,
-                    message: "Invalid Mobile Number",
-                  },
-                })}
-                className="w-full border rounded p-2"
-              />
-              {errors.mobile && (
-                <p className="text-red-500 text-sm">{errors.mobile.message}</p>
-              )}
-            </>
-          )}
-
-          {carOption === "newcar" && (
-            <>
-              <input
-                type="text"
-                placeholder="Enter City Name"
-                {...register("carCity")}
-                className="w-full border rounded p-2"
-              />
-              <input
-                type="text"
-                // value={mobile}
-                //readOnly
-                //disabled
-                {...register("mobile", {
-                  pattern: {
-                    value: /^[0-9]{10}$/,
-                    message: "Invalid Mobile Number",
-                  },
-                })}
-                className="w-full border rounded p-2"
-              />
-              {errors.mobile && (
-                <p className="text-red-500 text-sm">{errors.mobile.message}</p>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* BIKE FORM */}
-      {selectedVehicle === "bike" && (
-        <div className="space-y-4">
-          <div className="flex gap-4">
-            <label>
-              <input
-                type="radio"
-                value="knowbike"
-                {...register("bikeOption")}
-              />
-              Know Bike No.
-            </label>
-            <label>
-              <input type="radio" value="newbike" {...register("bikeOption")} />
-              New Bike
-            </label>
-          </div>
-
-          {bikeOption === "knowbike" && (
-            <>
-              <input
-                type="text"
-                placeholder="Enter Bike Registration Number"
-                {...register("bikeRegNumber", {
-                  pattern: {
-                    value: /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/,
-                    message: "Invalid bike registration number",
-                  },
-                })}
-                className="w-full border rounded p-2"
-              />
-              {errors.bikeRegNumber && (
-                <p className="text-red-500 text-sm">
-                  {errors.bikeRegNumber.message}
-                </p>
-              )}
-              <input
-                type="text"
-                // value={mobile}
-                // readOnly
-                // disabled
-                {...register("mobile", {
-                  pattern: {
-                    value: /^[0-9]{10}$/,
-                    message: "Invalid Mobile Number",
-                  },
-                })}
-                className="w-full border rounded p-2"
-              />
-              {errors.mobile && (
-                <p className="text-red-500 text-sm">{errors.mobile.message}</p>
-              )}
-            </>
-          )}
-
-          {bikeOption === "newbike" && (
-            <>
-              <input
-                type="text"
-                placeholder="Enter City Name"
-                {...register("bikeCity")}
-                className="w-full border rounded p-2"
-              />
-              <input
-                type="text"
-                // value={mobile}
-                // readOnly
-                // disabled
-                {...register("mobile", {
-                  pattern: {
-                    value: /^[0-9]{10}$/,
-                    message: "Invalid Mobile Number",
-                  },
-                })}
-                className="w-full border rounded p-2"
-              />
-              {errors.mobile && (
-                <p className="text-red-500 text-sm">{errors.mobile.message}</p>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* COMMERCIAL FORM */}
-      {/* {selectedVehicle === "commercial" && (
-        <div className="space-y-4">
-          <div className="flex gap-4">
-            <label>
-              <input
-                type="radio"
-                value="knowcommercial"
-                {...register("commercialOption")}
-              />
-              Know Commercial No.
-            </label>
-            <label>
-              <input
-                type="radio"
-                value="newcommercial"
-                {...register("commercialOption")}
-              />
-              New Commercial
-            </label>
-          </div>
-
-          {commercialOption === "knowcommercial" && (
-            <>
-              <input
-                type="text"
-                placeholder="Enter Commercial Reg. Number"
-                {...register("commercialRegNumber")}
-                className="w-full border rounded p-2"
-              />
-              <input
-                type="text"
-                value={mobile}
-                readOnly
-                disabled
-                {...register("mobile")}
-                className="w-full border rounded p-2"
-              />
-            </>
-          )}
-
-          {commercialOption === "newcommercial" && (
-            <>
-              <input
-                type="text"
-                placeholder="Enter City Name"
-                {...register("commercialCity")}
-                className="w-full border rounded p-2"
-              />
-              <input
-                type="text"
-                value={mobile}
-                readOnly
-                disabled
-                {...register("mobile")}
-                className="w-full border rounded p-2"
-              />
-            </>
-          )}
-        </div>
-      )} */}
-
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded mt-6"
-      >
-        Submit
-      </button>
-    </form>
+    </div>
   );
 }
