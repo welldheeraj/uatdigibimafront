@@ -1,4 +1,4 @@
-export async function CallApi(url,method = 'GET',data = null){
+export async function CallApi(url,method = 'POST',data = null){
    // console.log(data);
    let token = localStorage.getItem('token');
    let options = {

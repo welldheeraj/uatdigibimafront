@@ -69,7 +69,9 @@ export default function StepThreeForm({ step3Form, onSubmitStep }) {
             {...step3Form.register("agreeTnC", { required: true })}
           />
           <span>
-            I hereby agree to the <a className="text-blue-600 underline">Terms & Conditions</a> of the purchase of this policy. *
+            I hereby agree to the{" "}
+            <a className="text-blue-600 underline">Terms & Conditions</a> of the
+            purchase of this policy. *
           </span>
         </label>
 
@@ -79,27 +81,24 @@ export default function StepThreeForm({ step3Form, onSubmitStep }) {
             {...step3Form.register("standingInstruction")}
           />
           <span>
-            I would also like to add Standing Instruction on my credit card for automatic future renewal premiums.
+            I would also like to add Standing Instruction on my credit card for
+            automatic future renewal premiums.
           </span>
         </label>
 
         <label className="flex gap-2 items-start">
-          <input
-            type="checkbox"
-            {...step3Form.register("optForEMI")}
-          />
+          <input type="checkbox" {...step3Form.register("optForEMI")} />
           <span>
-            I would like to opt for the EMI (Equated Monthly Installment) option for payment of premiums.
+            I would like to opt for the EMI (Equated Monthly Installment) option
+            for payment of premiums.
           </span>
         </label>
 
         <label className="flex gap-2 items-start">
-          <input
-            type="checkbox"
-            {...step3Form.register("autoDebitBank")}
-          />
+          <input type="checkbox" {...step3Form.register("autoDebitBank")} />
           <span>
-            I authorize the auto-debit of premiums from my bank account for automatic payment.
+            I authorize the auto-debit of premiums from my bank account for
+            automatic payment.
           </span>
         </label>
       </div>

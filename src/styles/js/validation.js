@@ -3,6 +3,13 @@ import { showSuccess, showError } from "../../styles/js/toaster";
 export const isNumber = (event) => {
   event.target.value = event.target.value.replace(/[^0-9]/g, "");
 };
+export const isAlpha = (e, setValue, fieldName, allowSpace = true) => {
+  const cleaned = e.target.value.replace(
+    allowSpace ? /[^A-Za-z\s]/g : /[^A-Za-z]/g,
+    ""
+  );
+  setValue(fieldName, cleaned);
+}
 
 
 export const validateFields = async (form, excluded = [], only = null) => {

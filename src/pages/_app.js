@@ -6,44 +6,36 @@ import Header from "./partial/header";
 import Footer from "./partial/footer";
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect, React } from "react";
-import { Poppins  } from "next/font/google";
-import HealthInsuranceLoader from './health/loader';
+import { Poppins } from "next/font/google";
+import HealthInsuranceLoader from "./health/loader";
 import { useRouter } from "next/router";
 import { VerifyToken } from "../api"; // Adjust import path if needed
 import constant from "../env";
 import { CallApi, getUserinfo } from "../api";
 
 const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'], // optional
-  variable: '--font-poppins',
+  subsets: ["latin"],
+  weight: ["400", "500", "600"], // optional
+  variable: "--font-poppins",
 });
-// export async function getServerSideProps(context) {
-//   const session = await getIronSession(context.req, context.res, sessionOptions);
 
-//   return {
-//     props: {
-//       token: session.token || null,
-//     },
-//   };
-// }
 export default function App({ Component, pageProps }) {
   const [token, setToken] = useState(null);
+  const [cookie, setCookie] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const route=router.pathname;
-  const splitRoute = route.trim().split('/');
-  console.log(router,splitRoute);
+  const route = router.pathname;
+  const splitRoute = route.trim().split("/");
+  // console.log(router,splitRoute);
   const [Username, setUsername] = useState(null);
   const [userMobile, setUserMobile] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
     if (typeof window === "undefined") return; // Prevent SSR errors
     const verifyAuth = async () => {
       const storedToken = localStorage.getItem("token");
-
       if (!storedToken) {
         setToken(null);
         setLoading(false);
@@ -96,39 +88,72 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     if (token) {
-      console.log("token:", token);
+      // console.log("token:", token);
 
       const fetchData = async () => {
+        
         try {
           setIsLoading(true);
           const response = await getUserinfo(token);
           const data = await response.json();
-          console.log(data);
-
+        console.log(data);
           if (data.status === true && data.user?.name) {
+            setUserData(data.user);
             setUsername(data.user.name);
-            setUserMobile(data.user.mobile)
           } else {
+            setUserData(null);
             setUsername(null);
-            setUserMobile(null)
           }
         } catch (error) {
           console.error("Error fetching user info:", error);
           setUsername(null);
-          setUserMobile(null)
+          setUserData(null);
         } finally {
           setIsLoading(false);
         }
       };
       fetchData();
     }
+    //console.log("uss", userData);
   }, [token, Username]);
 
+  useEffect(() => {
+    if (!token) return;
 
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getUserinfo(token);
+        const data = await response.json();
+
+        if (data.status === true && data.user?.name) {
+          setUserData(data.user);
+          setUsername(data.user.name);
+          //console.log("userData fetched:", data.user);
+        } else {
+          setUserData(null);
+          setUsername(null);
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+        setUserData(null);
+        setUsername(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [token]);
 
   return (
     <div className={poppins.className}>
-      <Header token={token} setToken={setToken} username={Username} setUsername={setUsername} />
+      <Header
+        token={token}
+        setToken={setToken}
+        username={Username}
+        setUsername={setUsername}
+      />
 
       {/* Conditional Rendering */}
       {loading ? (
@@ -138,11 +163,33 @@ export default function App({ Component, pageProps }) {
       ) : (
         <>
           <Toaster />
-          <Component mobile={userMobile} {...pageProps} />
+          <Component {...pageProps} usersData={userData} />
           <Footer />
         </>
       )}
     </div>
   );
-
 }
+
+// const responseSession = await fetch("/api/setsession", {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify({ token: "456" }),
+//         });
+//         const sessionData = await responseSession.json();
+//         console.log("Session Data:", sessionData);
+
+//         // Fetch token data
+//         const responseToken = await fetch("/api/getsession");
+//         const tokenData = await responseToken.json();
+//         console.log("Token Data:", tokenData);
+// export async function getServerSideProps(context) {
+
+//   return {
+//     props: {
+//       userinfo:'ffgfg'
+//     },
+//   };
+// }

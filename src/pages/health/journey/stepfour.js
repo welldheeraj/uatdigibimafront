@@ -10,7 +10,9 @@ export default function StepFourForm({ step4Form, onSubmitStep }) {
       </h2>
 
       {/* Placeholder content - this step can be extended */}
-      <p className="text-sm text-gray-600">No additional information required at this step currently.</p>
+      <p className="text-sm text-gray-600">
+        No additional information required at this step currently.
+      </p>
 
       <button
         type="button"

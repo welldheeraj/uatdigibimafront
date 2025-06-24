@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-
+import { showSuccess, showError } from "../../../styles/js/toaster";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import constant from "../../../env";
-import { CallApi, getUserinfo } from "../../../api";
-import { FaCar } from "react-icons/fa";
+import { CallApi } from "../../../api";
+import { FaCar, FaMotorcycle, FaTractor } from "react-icons/fa6";
 
-export default function VehicleSelect({ mobile }) {
+export default function VehicleSelect({ usersData }) {
+  const [carnumber, setCarnumber] = useState();
   const {
     register,
     watch,
@@ -22,44 +23,49 @@ export default function VehicleSelect({ mobile }) {
     },
   });
 
-  const [isReadOnly, setIsReadOnly] = useState(false);
-  // const [mobile, setMobile] = useState(null)
+  useEffect(() => {
+    reset({
+      vehicle: "car",
+      carOption: "knowcar",
+      bikeOption: "knowbike",
+      commercialOption: "knowcommercial",
+      mobile: usersData?.mobile,
+    });
+  }, [usersData]);
 
+  useEffect(() => {
+    async function getSavedResponse() {
+      try {
+        const response = await CallApi(
+          constant.API.MOTOR.CAR.SAVESTEPONE,
+          "GET"
+        );
+        setCarnumber(response.data);
+        console.log("Saved response", response);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    getSavedResponse();
+  }, []);
+
+  useEffect(() => {
+    console.log('carnumber',carnumber?.carregnumber);
+    reset({
+      carRegNumber:carnumber?.carregnumber
+    });
+    console.log('carnumbererer',watch("carRegNumber"));
+  }, [carnumber,reset]);
   const router = useRouter();
   const selectedVehicle = watch("vehicle");
   const carOption = watch("carOption");
   const bikeOption = watch("bikeOption");
   const commercialOption = watch("commercialOption");
-  // var mobile = "";
-
-  // useEffect(() => {
-  //   //const getToken = localStorage.getItem("token");
-  //   //console.log("token:", getToken);
-  //   //if (getToken) {
-
-  //   const fetchUsers = async () => {
-  //     try {
-  //       const res = await getUserinfo();
-  //       const data = await res.json();
-  //       console.log("user ka data", data);
-  //       if (data && data.user.mobile)
-  //         // mobile = data && data.user.mobile ? data.user.mobile : mobile;
-  //       setMobile(data && data.user.mobile ? data.user.mobile : mobile)
-  //       console.log('mmmm', mobile);
-  //     } catch (error) {
-  //       console.error("Error fetching user info:", error);
-  //     }
-  //   };
-  //   //console.log("i am got Token",getToken);
-  //   fetchUsers();
-  //   //}
-
-  // }, [])
 
   const onSubmit = async (data) => {
-    // console.log('data',data);
+    console.log("abc data", data);
     const selected = data.vehicle;
-    // console.log('seeee',selected);
+    console.log("Vaahan", selected);
     var payload = {
       carregnumber: data.carRegNumber,
     };
@@ -68,7 +74,7 @@ export default function VehicleSelect({ mobile }) {
     if (selected === "car") {
       payload.carOption = data.carOption;
       if (data.carOption === "knowcar") {
-        payload.carRegNumber = data.carRegNumber;
+        payload.carregnumber = data.carRegNumber;
       } else if (data.carOption === "newcar") {
         payload.carCity = data.carCity;
       }
@@ -91,20 +97,34 @@ export default function VehicleSelect({ mobile }) {
     }
 
     //console.log("Filtered Submit Payload:", payload);
-    // router.push(constant.ROUTES.MOTOR.KnowCarSlide2); // or conditionally push
+    // router.push(constant.ROUTES.MOTOR.KnowCarSlide2); /
 
-    // var data = payload;
-    // console.log('payload', payload)
     try {
       const response = await CallApi(constant.API.MOTOR.VERIFYRTO, "POST", {
         carregnumber: data.carRegNumber,
       });
-
-      if (!response) return;
-      console.log(response);
-      router.push(constant.ROUTES.MOTOR.KnowCarSlide2);
+      var saveresponse;
+      if (response) {
+        saveresponse = await CallApi(
+          constant.API.MOTOR.CAR.SAVESTEPONE,
+          "POST",
+          {
+            carregnumber: data.carRegNumber,
+          }
+        );
+        console.log(saveresponse);
+      }
+      if (saveresponse) {
+        router.push(constant.ROUTES.MOTOR.KnowCarSlide2);
+      }
+      showSuccess("Detail verified");
+      // router.push({
+      //   pathname: "/constant.ROUTES.MOTOR.KnowCarSlide2",
+      //   state: { vehicle: selected },
+      // });
     } catch (error) {
       console.error("Error", error);
+      showError("Error");
     }
   };
 
@@ -146,15 +166,14 @@ export default function VehicleSelect({ mobile }) {
                       />
                       <div className="bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white vehicle-box peer-checked:ring-2 peer-checked:ring-blue-500 px-4 py-2 rounded border">
                         {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
-                        <i
-                          className={`fa-solid ${
-                            type === "car"
-                              ? "FaCar"
-                              : type === "bike"
-                              ? "fa-motorcycle"
-                              : "fa-tractor"
-                          } motoricon ml-2`}
-                        ></i>
+                        {type === "car" && <FaCar className="inline ml-2" />}
+                        {type === "bike" && (
+                          <FaMotorcycle className="inline ml-2" />
+                        )}
+
+                        {type === "commercial" && (
+                          <FaTractor className="inline ml-2" />
+                        )}
                       </div>
                     </label>
                   ))}
@@ -191,6 +210,10 @@ export default function VehicleSelect({ mobile }) {
                               type="text"
                               placeholder="Enter Car Registration Number"
                               {...register("carRegNumber", {
+                                required:
+                                  carOption === "knowcar"
+                                    ? "Car Registration Number is required"
+                                    : false,
                                 pattern: {
                                   value: /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/,
                                   message: "Invalid car registration number",
@@ -204,7 +227,7 @@ export default function VehicleSelect({ mobile }) {
                               }}
                             />
                             {errors.carRegNumber && (
-                              <p className=" text-sm">
+                              <p className="text-red-500 text-sm">
                                 {errors.carRegNumber.message}
                               </p>
                             )}
@@ -214,10 +237,13 @@ export default function VehicleSelect({ mobile }) {
                             <label>Mobile Number</label>
                             <input
                               type="number"
-                              value={mobile}
-                              readOnly
+                              // readOnly
                               // disabled
                               {...register("mobile", {
+                                 required:
+                                  carOption === "knowcar"
+                                    ? "Mobile Number is required"
+                                    : false,
                                 pattern: {
                                   value: /^[0-9]{10}$/,
                                   message: "Invalid Mobile Number",
@@ -243,19 +269,32 @@ export default function VehicleSelect({ mobile }) {
                             <input
                               type="text"
                               placeholder="Enter City Name"
-                              {...register("carCity")}
-                              className="w-[300px] border rounded p-2"
+                              {...register("carCity", {
+                                required:
+                                  carOption === "newcar"
+                                    ? "City name is required"
+                                    : false,
+                              })}
+                              className="w-[full] border rounded p-2"
                             />
+                            {errors.carCity && (
+                              <p className="text-red-500 text-sm">
+                                {errors.carCity.message}
+                              </p>
+                            )}
                           </div>
 
                           <div className="flex flex-col">
                             <label>Mobile Number</label>
                             <input
                               type="number"
-                              value={mobile}
                               readOnly
                               //disabled
                               {...register("mobile", {
+                                  required:
+                                  carOption === "newcar"
+                                    ? "Mobile number is required"
+                                    : false,
                                 pattern: {
                                   value: /^[0-9]{10}$/,
                                   message: "Invalid Mobile Number",
@@ -420,7 +459,7 @@ export default function VehicleSelect({ mobile }) {
                             />
                           </div>
 
-                          <div>
+                          <div className="flex flex-col">
                             <label>Mobile Number</label>
                             <input
                               type="text"

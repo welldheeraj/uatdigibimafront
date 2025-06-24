@@ -1,8 +1,13 @@
+"use client"
+
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import constant from "../../../../env";
+import { CallApi } from "../../../../api";
+import UniversalDatePicker from "../../../datepicker/index";
+import { format } from "date-fns";
 
 export default function KnowCarSlideTwo() {
   const {
@@ -10,26 +15,130 @@ export default function KnowCarSlideTwo() {
     handleSubmit,
     watch,
     formState: { errors },
+    setValue,
+    reset
   } = useForm();
   const [under, setUnder] = useState("individual");
   const [brands, setBrands] = useState([]);
+  const [selectedBrand, setSelectedBrand] = useState(null);
   const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState(null);
+  const [dates, setDates] = useState({ regDate: "", regDateRaw: null });
   const router = useRouter();
+
+const [savedPageData, setSavedPageData] = useState(null)
+
+  // const { vehicle } = router.state;
+  // const [vahan, setVahan] = useState(vehicle);
 
   const registerDate = watch("carregdate");
 
-  const manufactYearOpt = () => {
-    if (!registerDate) return [];
-    const year = new Date(registerDate).getFullYear();
-    return [year, year - 1];
-  };
-  const onSubmit = (data) => {
-    console.log("Submitted Data:", data);
-    router.push(constant.ROUTES.MOTOR.KnowCarSlide3)
+const manufactYearOpt = () => {
+  if (!dates.regDateRaw) return [];
+  const year = dates.regDateRaw.getFullYear();
+  return [year, year - 1];
+};
+
+    useEffect(() => {
+      async function getSavedResponse() {
+        try {
+          const response = await CallApi(
+            constant.API.MOTOR.CAR.SAVESTEPTWO,
+            "GET"
+          );
+          console.log("Saved response of page 2", response);
+          setSavedPageData(response.data)
+        } catch (error) {
+          console.error(error);
+        }
+      }
+  
+      getSavedResponse();
+    },[]);
+
+
+
+useEffect(() => {
+  if (savedPageData) {
+    reset({
+      brand: savedPageData.brand,
+      model: savedPageData.model,
+      carregdate: savedPageData.carregdate, 
+      brandyear: savedPageData.brandyear
+        });
+
+  }
+
+}, [savedPageData]);
+
+
+
+  const handleDateChange = (key) => (date) => {
+  if (!date || isNaN(date.getTime())) {
+    return;
+  }
+
+  const formatted = format(date, "dd-MM-yyyy");
+  setDates({ [key]: formatted, [`${key}Raw`]: date });
+  setValue("carregdate", formatted);
+};
+
+  const handleGetBrands = async () => {
+    try {
+      const brand = {
+        brand: "CAR",
+      };
+      const response = await CallApi(constant.API.MOTOR.BRANDS, "POST", brand);
+      console.log("Brands ka res", response);
+      setBrands(response.brand);
+      console.log("mai hoo", brands);
+    } catch (error) {
+      console.error("error fetching in brands", error);
+    }
   };
 
+  const handleGetModels = async () => {
+    try {
+      const data = {
+        brand: selectedBrand,
+        type: "TW",
+      };
+
+      const response = await CallApi(constant.API.MOTOR.MODELS, "POST", data);
+      console.log("i'm Model", response);
+      setModels(response);
+    } catch (error) {
+      console.error("error fetching in models",error);
+    }
+  };
+
+  const onSubmit = async (data) => {
+    console.log("Submitted Data:", data);
+
+    try {
+      const response = await CallApi(constant.API.MOTOR.CARDETAILSTWO, "POST", data);
+      console.log(response)
+
+      var savepagedata;
+      if(response){
+        savepagedata = await CallApi(constant.API.MOTOR.CAR.SAVESTEPTWO,"POST",data)
+
+        console.log(savepagedata)
+      }
+
+      if(savepagedata){
+
+        router.push(constant.ROUTES.MOTOR.KnowCarSlide3);
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  };
+
+  
+
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 ">
       <div className="text-center text-lg font-semibold mb-6">
         Motor insurance provides essential coverage against accidents.
       </div>
@@ -87,7 +196,7 @@ export default function KnowCarSlideTwo() {
               )}
             </div>
 
-            {/* Manufacture */}
+            {/* Manufacturer */}
             <div>
               <label className="block font-medium mb-1">Manufacture</label>
               <input
@@ -95,12 +204,27 @@ export default function KnowCarSlideTwo() {
                 {...register("brand", { required: true })}
                 className="w-full border rounded px-3 py-2"
                 placeholder="Select or type brand"
+                onClick={handleGetBrands}
+                value={selectedBrand}
               />
-              <datalist id="brand-options">
-                {brands.map((brand, idx) => (
-                  <option key={idx} value={brand} />
-                ))}
-              </datalist>
+
+              {
+                <ul className="absolute z-10 bg-white border max-h-60 overflow-y-auto rounded shadow-md mt-1">
+                  {brands.map((brand, idx) => (
+                    <li
+                      key={idx}
+                      onClick={() => {
+                        setSelectedBrand(brand.MANUFACTURER);
+                        setValue("brand", brand.MANUFACTURER);
+                        setBrands([]);
+                      }}
+                      className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                    >
+                      {brand.MANUFACTURER}
+                    </li>
+                  ))}
+                </ul>
+              }
 
               {errors.brand && (
                 <span className="text-red-600 text-sm">Brand is required</span>
@@ -115,12 +239,27 @@ export default function KnowCarSlideTwo() {
                 {...register("model", { required: true })}
                 className="w-full border rounded px-3 py-2"
                 placeholder="Select or type model"
+                onClick={handleGetModels}
+                value={selectedModel}
               />
-              <datalist id="model-options">
-                {models.map((model, idx) => (
-                  <option key={idx} value={model} />
-                ))}
-              </datalist>
+
+              {
+                <ul className="absolute z-10 bg-white border max-h-60 overflow-y-auto rounded shadow-md mt-1">
+                  {models.map((model, idx) => (
+                    <li
+                      key={idx}
+                      onClick={() => {
+                        setSelectedModel(model.model);
+                        setValue("model", model.model);
+                        setModels([]);
+                      }}
+                      className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                    >
+                      {model.model}
+                    </li>
+                  ))}
+                </ul>
+              }
 
               {errors.model && (
                 <span className="text-red-600 text-sm">Model is required</span>
@@ -130,13 +269,15 @@ export default function KnowCarSlideTwo() {
             {/* Register Date */}
             <div>
               <label className="block font-medium mb-1">Register Date</label>
-              <input
-                type="date"
-                {...register("carregdate", { required: true })}
-                className="w-full border rounded px-3 py-2"
-                placeholder="YYYY-MM-DD"
-                pattern="\d{4}-\d{2}-\d{2}" // Optional: HTML5 pattern, not enforced by all browsers
-                max={new Date().toISOString().split("T")[0]} // Prevent future date
+
+              <UniversalDatePicker
+                id="regDate"
+                name="regDate"
+                value={dates.regDateRaw} 
+                onChange={handleDateChange("regDate")}
+                placeholder="Pick a start date"
+                error={!dates.regDate}
+                errorText="Please select a valid date"
               />
             </div>
 
@@ -147,7 +288,7 @@ export default function KnowCarSlideTwo() {
                   Year Of Manufacture
                 </label>
                 <select
-                  {...register("brandyear")}
+                  {...register("brandyear", { required: true })}
                   className="w-full border rounded px-3 py-2"
                 >
                   <option value="">Select Year</option>
