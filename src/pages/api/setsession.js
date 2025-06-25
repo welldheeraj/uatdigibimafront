@@ -1,5 +1,5 @@
 import { setCookie } from 'nookies';
-import { encryptData, decryptData } from './crypt'; // Example encryption utility functions
+import { encryptData} from './crypt'; // Example encryption utility functions
 
 export default async function handler(req, res) {
   const {token} = req.body;

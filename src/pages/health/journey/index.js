@@ -26,6 +26,7 @@ export default function StepperForm() {
   const [isPanVerified, setIsPanVerified] = useState(false);
   const [verifieddata, setVerifiedData] = useState([]);
   const [steponedata, setStepOneData] = useState([]);
+  const [steptwodata, setStepTwoData] = useState([]);
 
   const step1Form = useForm();
   const step2Form = useForm();
@@ -58,7 +59,6 @@ export default function StepperForm() {
     const fieldsValid = await validateFields(step1Form);
     if (!fieldsValid) return false;
 
-    // 🛠 Transform keys as per API expectation
     const values = {
       ...rawValues,
       customerpancardDob: rawValues.panDob,
@@ -85,8 +85,42 @@ export default function StepperForm() {
     }
   };
 
-  const validateFormStepTwo = async () =>
-    await validateFields(step2Form, ["address2"]);
+ const validateFormStepTwo = async () => {
+  const fieldsValid = await validateFields(step2Form);
+  if (!fieldsValid) return false;
+
+  const rawValues = step2Form.getValues();
+
+  const values = {
+    ...rawValues,
+  };
+
+  console.log("Step 2 values", values);
+
+  try {
+    const res = await CallApi(constant.API.HEALTH.SAVESTEPTWO, "POST", values);
+    console.log("Step 2 API Response", res);
+
+    if (res === 1 || res?.status) {
+      setStepTwoData(res); // Optional: agar step 2 ka data store karna ho
+      return true;
+    } else {
+      console.error("Step 2 API failed or returned unexpected value:", res);
+      return false;
+    }
+  } catch (error) {
+    console.error("Step 2 API call error:", error);
+    return false;
+  }
+};
+
+
+
+  
+
+
+
+    
   const validateFormStepThree = async () => await validateFields(step3Form);
   const validateFormStepFour = async () => true;
 

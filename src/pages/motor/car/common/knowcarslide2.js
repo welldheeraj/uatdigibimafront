@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import constant from "../../../../env";
@@ -16,7 +16,7 @@ export default function KnowCarSlideTwo() {
     watch,
     formState: { errors },
     setValue,
-    reset
+    reset,
   } = useForm();
   const [under, setUnder] = useState("individual");
   const [brands, setBrands] = useState([]);
@@ -26,62 +26,59 @@ export default function KnowCarSlideTwo() {
   const [dates, setDates] = useState({ regDate: "", regDateRaw: null });
   const router = useRouter();
 
-const [savedPageData, setSavedPageData] = useState(null)
+  const [savedPageData, setSavedPageData] = useState(null);
+
+  const brandDropdownRef = useRef(null);
+  const modelDropdownRef = useRef(null);
 
   // const { vehicle } = router.state;
   // const [vahan, setVahan] = useState(vehicle);
 
   const registerDate = watch("carregdate");
 
-const manufactYearOpt = () => {
-  if (!dates.regDateRaw) return [];
-  const year = dates.regDateRaw.getFullYear();
-  return [year, year - 1];
-};
+  const manufactYearOpt = () => {
+    if (!dates.regDateRaw) return [];
+    const year = dates.regDateRaw.getFullYear();
+    return [year, year - 1];
+  };
 
-    useEffect(() => {
-      async function getSavedResponse() {
-        try {
-          const response = await CallApi(
-            constant.API.MOTOR.CAR.SAVESTEPTWO,
-            "GET"
-          );
-          console.log("Saved response of page 2", response);
-          setSavedPageData(response.data)
-        } catch (error) {
-          console.error(error);
-        }
+  useEffect(() => {
+    async function getSavedResponse() {
+      try {
+        const response = await CallApi(
+          constant.API.MOTOR.CAR.SAVESTEPTWO,
+          "GET"
+        );
+        console.log("Saved response of page 2", response);
+        setSavedPageData(response.data);
+      } catch (error) {
+        console.error(error);
       }
-  
-      getSavedResponse();
-    },[]);
+    }
 
+    getSavedResponse();
+  }, []);
 
-
-useEffect(() => {
-  if (savedPageData) {
-    reset({
-      brand: savedPageData.brand,
-      model: savedPageData.model,
-      carregdate: savedPageData.carregdate, 
-      brandyear: savedPageData.brandyear
-        });
-
-  }
-
-}, [savedPageData]);
-
-
+  useEffect(() => {
+    if (savedPageData) {
+      reset({
+        brand: savedPageData.brand,
+        model: savedPageData.model,
+        carregdate: savedPageData.carregdate,
+        brandyear: savedPageData.brandyear,
+      });
+    }
+  }, [savedPageData]);
 
   const handleDateChange = (key) => (date) => {
-  if (!date || isNaN(date.getTime())) {
-    return;
-  }
+    if (!date || isNaN(date.getTime())) {
+      return;
+    }
 
-  const formatted = format(date, "dd-MM-yyyy");
-  setDates({ [key]: formatted, [`${key}Raw`]: date });
-  setValue("carregdate", formatted);
-};
+    const formatted = format(date, "dd-MM-yyyy");
+    setDates({ [key]: formatted, [`${key}Raw`]: date });
+    setValue("carregdate", formatted);
+  };
 
   const handleGetBrands = async () => {
     try {
@@ -91,6 +88,7 @@ useEffect(() => {
       const response = await CallApi(constant.API.MOTOR.BRANDS, "POST", brand);
       console.log("Brands ka res", response);
       setBrands(response.brand);
+   
       console.log("mai hoo", brands);
     } catch (error) {
       console.error("error fetching in brands", error);
@@ -108,34 +106,65 @@ useEffect(() => {
       console.log("i'm Model", response);
       setModels(response);
     } catch (error) {
-      console.error("error fetching in models",error);
+      console.error("error fetching in models", error);
     }
   };
+
+//   useEffect(() => {
+//   if (selectedBrand) {
+//     handleGetModels(); 
+//   }
+// }, [selectedBrand]);
 
   const onSubmit = async (data) => {
     console.log("Submitted Data:", data);
 
     try {
-      const response = await CallApi(constant.API.MOTOR.CARDETAILSTWO, "POST", data);
-      console.log(response)
+      const response = await CallApi(
+        constant.API.MOTOR.CARDETAILSTWO,
+        "POST",
+        data
+      );
+      console.log(response);
 
       var savepagedata;
-      if(response){
-        savepagedata = await CallApi(constant.API.MOTOR.CAR.SAVESTEPTWO,"POST",data)
+      if (response) {
+        savepagedata = await CallApi(
+          constant.API.MOTOR.CAR.SAVESTEPTWO,
+          "POST",
+          data
+        );
 
-        console.log(savepagedata)
+        console.log(savepagedata);
       }
 
-      if(savepagedata){
-
+      if (savepagedata) {
         router.push(constant.ROUTES.MOTOR.KnowCarSlide3);
       }
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   };
 
-  
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        brandDropdownRef.current &&
+        !brandDropdownRef.current.contains(event.target) &&
+        modelDropdownRef.current &&
+        !modelDropdownRef.current.contains(event.target)
+      ) {
+        setBrands([]);
+        setModels([]);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-6 ">
@@ -209,14 +238,21 @@ useEffect(() => {
               />
 
               {
-                <ul className="absolute z-10 bg-white border max-h-60 overflow-y-auto rounded shadow-md mt-1">
+                <ul
+                  ref={brandDropdownRef}
+                  className="absolute z-10 bg-white border max-h-60 overflow-y-auto rounded shadow-md mt-1"
+                >
                   {brands.map((brand, idx) => (
                     <li
                       key={idx}
                       onClick={() => {
+                      
                         setSelectedBrand(brand.MANUFACTURER);
                         setValue("brand", brand.MANUFACTURER);
-                        setBrands([]);
+                        setBrands([]); 
+                        setSelectedModel(null); 
+                        setModels([]); 
+                        // handleGetModels(); 
                       }}
                       className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
                     >
@@ -240,11 +276,14 @@ useEffect(() => {
                 className="w-full border rounded px-3 py-2"
                 placeholder="Select or type model"
                 onClick={handleGetModels}
-                value={selectedModel}
+                // value={selectedModel}
               />
 
               {
-                <ul className="absolute z-10 bg-white border max-h-60 overflow-y-auto rounded shadow-md mt-1">
+                <ul
+                  ref={modelDropdownRef}
+                  className="absolute z-10 bg-white border max-h-60 overflow-y-auto rounded shadow-md mt-1"
+                >
                   {models.map((model, idx) => (
                     <li
                       key={idx}
@@ -273,7 +312,7 @@ useEffect(() => {
               <UniversalDatePicker
                 id="regDate"
                 name="regDate"
-                value={dates.regDateRaw} 
+                value={dates.regDateRaw}
                 onChange={handleDateChange("regDate")}
                 placeholder="Pick a start date"
                 error={!dates.regDate}

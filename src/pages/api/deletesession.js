@@ -1,5 +1,11 @@
-import { withSessionRoute  } from '../lib/session'; 
-export default withSessionRoute(async function logoutRoute(req, res) {
-  await req.session.destroy(); 
-    res.json({ status: true,message:"Token deleted" })
-});
+import { destroyCookie  } from 'nookies';
+
+export default async function handler(req, res) {
+  
+  if (parseCookies({ req })) {
+    destroyCookie(null, 'unused');
+    res.status(200).json({ message: 'logout success' });
+  } else {
+    res.status(404).json({ message: 'logout already' });
+  }
+}

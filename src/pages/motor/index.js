@@ -76,16 +76,21 @@ export default function FormPage() {
         try {
           const res = await getUserinfo(getToken);
           const data = await res.json();
-          console.log(data);
+          console.log("Login page ka data",data);
           if (data.status === true) {
             reset({
               name: data.user.name || "",
               mobile: data.user.mobile || "",
               pincode: data.user.pincode || "",
               gender: data.user.gender || "",
-              gender: data.user.email || "",
+              email: data.user.email || "",
             });
+            // setIsReadOnly(true);
+            if (data.user.email) {
             setIsReadOnly(true);
+          } else {
+            setIsReadOnly(false);
+          }
           } else {
             setIsReadOnly(false);
           }
@@ -335,6 +340,8 @@ export default function FormPage() {
                 type="text"
                 placeholder="Enter Email"
                 className="w-full border border-gray-400 px-4 py-2 rounded-md text-sm"
+                defaultValue={email} 
+    readOnly={isReadOnly}
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">

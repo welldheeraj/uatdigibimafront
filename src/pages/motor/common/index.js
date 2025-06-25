@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { showSuccess, showError } from "../../../styles/js/toaster";
 import { useForm } from "react-hook-form";
@@ -13,6 +15,7 @@ export default function VehicleSelect({ usersData }) {
     watch,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -30,8 +33,9 @@ export default function VehicleSelect({ usersData }) {
       bikeOption: "knowbike",
       commercialOption: "knowcommercial",
       mobile: usersData?.mobile,
+      carRegNumber: carnumber
     });
-  }, [usersData]);
+  }, [usersData ,carnumber]);
 
   useEffect(() => {
     async function getSavedResponse() {
@@ -40,22 +44,21 @@ export default function VehicleSelect({ usersData }) {
           constant.API.MOTOR.CAR.SAVESTEPONE,
           "GET"
         );
-        setCarnumber(response.data);
+        setCarnumber(response.data.carregnumber);
         console.log("Saved response", response);
+        // if (response.data.carregnumber) {
+        //   // setValue("carRegNumber", response.data.carregnumber);
+
+        //   reset({
+        //     carRegNumber: response.data.carregnumber,
+        //   });
+        // }
       } catch (error) {
         console.error(error);
       }
     }
     getSavedResponse();
   }, []);
-
-  useEffect(() => {
-    console.log('carnumber',carnumber?.carregnumber);
-    reset({
-      carRegNumber:carnumber?.carregnumber
-    });
-    console.log('carnumbererer',watch("carRegNumber"));
-  }, [carnumber,reset]);
   const router = useRouter();
   const selectedVehicle = watch("vehicle");
   const carOption = watch("carOption");
@@ -69,7 +72,7 @@ export default function VehicleSelect({ usersData }) {
     var payload = {
       carregnumber: data.carRegNumber,
     };
-    // console.log('seeee',selected,payload);
+    // console.log('im pay',payload);
     // return ;
     if (selected === "car") {
       payload.carOption = data.carOption;
@@ -170,7 +173,6 @@ export default function VehicleSelect({ usersData }) {
                         {type === "bike" && (
                           <FaMotorcycle className="inline ml-2" />
                         )}
-
                         {type === "commercial" && (
                           <FaTractor className="inline ml-2" />
                         )}
@@ -240,7 +242,7 @@ export default function VehicleSelect({ usersData }) {
                               // readOnly
                               // disabled
                               {...register("mobile", {
-                                 required:
+                                required:
                                   carOption === "knowcar"
                                     ? "Mobile Number is required"
                                     : false,
@@ -291,7 +293,7 @@ export default function VehicleSelect({ usersData }) {
                               readOnly
                               //disabled
                               {...register("mobile", {
-                                  required:
+                                required:
                                   carOption === "newcar"
                                     ? "Mobile number is required"
                                     : false,
