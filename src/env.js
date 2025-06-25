@@ -21,7 +21,10 @@ const constant = {
              'KnowCarSlide3':'/motor/car/common/knowcarslide3'
         },
         USER:{
-            'PROFILE':'/userpnlx'
+            'INDEX':'/userpnlx',
+            'CLAIM':'/userpnlx/claim',
+            'POLICY':'/userpnlx/policy',
+            'PROFILE':'/userpnlx/profile'
         }
     },
     API:{
