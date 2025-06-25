@@ -11,7 +11,7 @@ const constant = {
             'ILLNESS':'/health/illness',
             'PLANS':'/health/plansOne',
             'CHECKOUT':'health/checkoutOne',
-            'PROPOSAL':'/health/proposal',
+            'PROPOSAL':'/health/journey',
             
         } ,
         MOTOR:{
@@ -40,18 +40,22 @@ const constant = {
         'SETPREMIUM':'api/setpremium',
         'PlANCHECKOUT':'/api/plancheckout',
         'ADDADDONS':'/api/addaddon',
-
         'PANVERIFY':'/api/verifypan',
         'AADHARVERIFY':'/api/verifyadhar',
         'SAVESTEPONE':'/api/proposalStepOne',
-        'SAVESTEPTWO':'/api/proposalStepTwo',
+        'SAVESTEPTWo':'/api/proposalStepTwo',
        } ,
 
        MOTOR:{
         'LOGIN' : '/api/motor/vehicle-type-select',
         'VERIFYRTO' : '/api/motor/verifyrto',
         'BRANDS' : '/api/motor/getbrand',
-        'MODELS' : '/api/motor/getmodel'
+        'MODELS' : '/api/motor/getmodel',
+        CAR:{
+            'SAVESTEPONE':'/api/motor-car/kn-car-details',
+            'SAVESTEPTWO':'/api/motor-car/kn-car-detailstwo'
+        },
+        'CARDETAILSTWO' : '/api/motor-car/kn-car-detailstwo'
        },
        USER:{
             'PROFILEUPDATE':'/api/userpnlx/user-profile-update'
