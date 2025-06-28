@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import UniversalDatePicker from "../../datepicker/index";
 import { format, parse } from "date-fns";
-import { isAlpha, isNumber } from "../../../styles/js/validation";
+import { isNumber } from "../../../styles/js/validation";
 
 export default function StepTwoForm({
   step2Form,
@@ -12,20 +12,17 @@ export default function StepTwoForm({
 }) {
   const [dates, setDates] = useState({});
 
-  const handleDateChange = (key, field) => (date) => {
+  const handleDateChange = (key, fieldNameInForm) => (date) => {
     if (!date || isNaN(date)) return;
 
     const formatted = format(date, "dd-MM-yyyy");
 
     setDates((prev) => ({
       ...prev,
-      [key]: {
-        ...prev[key],
-        [field]: date,
-      },
+      [key]: { ...prev[key], dob: date },
     }));
 
-    step2Form.setValue(field, formatted, {
+    step2Form.setValue(fieldNameInForm, formatted, {
       shouldValidate: true,
     });
   };
@@ -76,14 +73,15 @@ export default function StepTwoForm({
   }, [steponedata]);
 
   let childCounter = 1;
-  
 
   return (
     <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
       <h2 className="text-xl font-bold text-gray-800">Self:</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <input
-          {...step2Form.register("proposername", { required: "Name is required" })}
+          {...step2Form.register("proposername", {
+            required: "Name is required",
+          })}
           placeholder="Proposer Name"
           className={inputClass}
         />
@@ -112,11 +110,10 @@ export default function StepTwoForm({
         <div className="flex gap-2">
           <input
             {...step2Form.register("proposerheight", {
-              
               required: "Height (Feet) is required",
             })}
-              onChange={(e) => isNumber(e, step2Form.setValue, "proposerheight")}
-               maxLength={1}
+            onChange={(e) => isNumber(e, step2Form.setValue, "proposerheight")}
+            maxLength={1}
             placeholder="Height (Feet)"
             className={`${inputClass} w-1/2`}
           />
@@ -125,16 +122,18 @@ export default function StepTwoForm({
               required: "Height (Inches) is required",
             })}
             onChange={(e) => isNumber(e, step2Form.setValue, "proposerinches")}
-               maxLength={2}
+            maxLength={2}
             placeholder="Height (Inches)"
             className={`${inputClass} w-1/2`}
           />
         </div>
 
         <input
-          {...step2Form.register("proposerweight", { required: "Weight is required" })}
-            onChange={(e) => isNumber(e, step2Form.setValue, "proposerweight")}
-               maxLength={3}
+          {...step2Form.register("proposerweight", {
+            required: "Weight is required",
+          })}
+          onChange={(e) => isNumber(e, step2Form.setValue, "proposerweight")}
+          maxLength={3}
           placeholder="Weight (KG)"
           className={inputClass}
         />
@@ -142,7 +141,6 @@ export default function StepTwoForm({
           {...step2Form.register("proposarbankaccount", {
             required: "Bank Account is required",
           })}
-          
           placeholder="Bank Account"
           className={inputClass}
         />
@@ -155,152 +153,147 @@ export default function StepTwoForm({
         />
       </div>
 
- 
+      {members.map((member, index) => {
+        const name = member.name?.toLowerCase();
+        let isChild = name === "son" || name === "daughter";
+        let isWife = name === "wife";
 
-{members.map((member, index) => {
-  const name = member.name?.toLowerCase();
-  let isChild = name === "son" || name === "daughter";
-  let isWife = name === "wife";
+        let fieldPrefix = "";
+        let suffix = "";
 
-  let fieldPrefix = "";
-  let suffix = "";
+        if (isChild) {
+          fieldPrefix = "child";
+          suffix = childCounter++;
+        } else if (isWife) {
+          fieldPrefix = "spouse";
+        } else {
+          fieldPrefix = name;
+        }
 
-  if (isChild) {
-    fieldPrefix = "child";
-    suffix = childCounter++;
-  } else if (isWife) {
-    fieldPrefix = "spouse";
-  } else {
-    fieldPrefix = name; // e.g., father, mother
-  }
+        const dobFieldName = isChild
+          ? `${fieldPrefix}dob${suffix}`
+          : `${fieldPrefix}dob`;
 
-  return (
-    <div key={index} className="mt-6">
-      <h2 className="font-semibold text-lg capitalize mb-4">
-        {isWife ? "Spouse" : member.name} Details:
-      </h2>
+        return (
+          <div key={index} className="mt-6">
+            <h2 className="font-semibold text-lg capitalize mb-4">
+              {isWife ? "Spouse" : member.name} Details:
+            </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                {...step2Form.register(
+                  isChild
+                    ? `${fieldPrefix}name${suffix}`
+                    : `${fieldPrefix}name`,
+                  { required: "Name is required" }
+                )}
+                placeholder={`Enter ${member.name}'s Full Name`}
+                className={inputClass}
+              />
 
-        {/* Name */}
-        <input
-          {...step2Form.register(
-            isChild ? `${fieldPrefix}name${suffix}` : `${fieldPrefix}name`,
-            { required: "Name is required" }
-          )}
-          placeholder={`Enter ${member.name}'s Full Name`}
-          className={inputClass}
-        />
+              <UniversalDatePicker
+                id={dobFieldName}
+                name={dobFieldName}
+                value={dates?.[`${fieldPrefix}${suffix}`]?.dob || null}
+                onChange={handleDateChange(
+                  `${fieldPrefix}${suffix}`,
+                  dobFieldName
+                )}
+                placeholder="Pick a date"
+                error={!dates?.[`${fieldPrefix}${suffix}`]?.dob}
+                errorText="Please select a valid date"
+              />
 
-        {/* DOB */}
-        <UniversalDatePicker
-          id={
-            isChild
-              ? `${fieldPrefix}dob${suffix}`
-              : `${fieldPrefix}dob`
-          }
-          name={
-            isChild
-              ? `${fieldPrefix}dob${suffix}`
-              : `${fieldPrefix}dob`
-          }
-          value={
-            dates?.[`${fieldPrefix}${isChild ? suffix : ""}`]?.dob || null
-          }
-          onChange={handleDateChange(
-            `${fieldPrefix}${isChild ? suffix : ""}`,
-            "dob"
-          )}
-          placeholder="Pick a date"
-          error={
-            !dates?.[`${fieldPrefix}${isChild ? suffix : ""}`]?.dob
-          }
-          errorText="Please select a valid date"
-        />
-
-        {/* Relation (for children) or Occupation */}
-        {isChild ? (
-          <input
-            {...step2Form.register(`${fieldPrefix}relation${suffix}`, {
-              required: "Relation is required",
-            })}
-            placeholder="Relation (e.g., Son/Daughter)"
-            className={inputClass}
-          />
-        ) : (
-          <select
-            {...step2Form.register(`${fieldPrefix}occupation`, {
-              required: "Please select an occupation",
-            })}
-            className={inputClass}
-          >
-            <option value="">Select Occupation</option>
-            <option value="Salaried">Salaried</option>
-            <option value="Self Employed">Self Employed</option>
-            <option value="Unemployed">Unemployed</option>
-          </select>
-        )}
-
-        {/* Height & Weight */}
-        <div className="flex gap-2">
-          <input
-            {...step2Form.register(
-              isChild
-                ? `${fieldPrefix}height${suffix}`
-                : `${fieldPrefix}height`,
-              { required: "Height (Feet) is required" }
-            )}
-             onChange={(e) => isNumber(e,step2Form.setValue,
-                isChild ? `${fieldPrefix}height${suffix}` : `${fieldPrefix}height`
-              )
-            }
-               maxLength={1}
-            placeholder="Height (Feet)"
-            className={`${inputClass} w-1/2`}
-          />
-         <input
-              {...step2Form.register(
-                isChild
-                  ? `${fieldPrefix}inches${suffix}`
-                  : `${fieldPrefix}inches`,
-                { required: "Height (Inches) is required" }
+              {isChild ? (
+                <input
+                  {...step2Form.register(`${fieldPrefix}relation${suffix}`, {
+                    required: "Relation is required",
+                  })}
+                  placeholder="Relation (e.g., Son/Daughter)"
+                  className={inputClass}
+                />
+              ) : (
+                <select
+                  {...step2Form.register(`${fieldPrefix}occupation`, {
+                    required: "Please select an occupation",
+                  })}
+                  className={inputClass}
+                >
+                  <option value="">Select Occupation</option>
+                  <option value="Salaried">Salaried</option>
+                  <option value="Self Employed">Self Employed</option>
+                  <option value="Unemployed">Unemployed</option>
+                </select>
               )}
-              onChange={(e) =>
-                isNumber(
-                  e,
-                  step2Form.setValue,
-                  isChild ? `${fieldPrefix}inches${suffix}` : `${fieldPrefix}inches`
-                )
-              }
-              maxLength={2}
-              placeholder="Height (Inches)"
-              className={`${inputClass} w-1/2`}
-            />
-        </div>
 
-       <input
-            {...step2Form.register(
-              isChild
-                ? `${fieldPrefix}weight${suffix}`
-                : `${fieldPrefix}weight`,
-              { required: "Weight is required" }
-            )}
-            onChange={(e) =>
-              isNumber(
-                e,
-                step2Form.setValue,
-                isChild ? `${fieldPrefix}weight${suffix}` : `${fieldPrefix}weight`
-              )
-            }
-            maxLength={3}
-            placeholder="Weight (KG)"
-            className={inputClass}
-          />
-      </div>
-    </div>
-  );
-})}
+              <div className="flex gap-2">
+                <input
+                  {...step2Form.register(
+                    isChild
+                      ? `${fieldPrefix}height${suffix}`
+                      : `${fieldPrefix}height`,
+                    { required: "Height (Feet) is required" }
+                  )}
+                  onChange={(e) =>
+                    isNumber(
+                      e,
+                      step2Form.setValue,
+                      isChild
+                        ? `${fieldPrefix}height${suffix}`
+                        : `${fieldPrefix}height`
+                    )
+                  }
+                  maxLength={1}
+                  placeholder="Height (Feet)"
+                  className={`${inputClass} w-1/2`}
+                />
+                <input
+                  {...step2Form.register(
+                    isChild
+                      ? `${fieldPrefix}inches${suffix}`
+                      : `${fieldPrefix}inches`,
+                    { required: "Height (Inches) is required" }
+                  )}
+                  onChange={(e) =>
+                    isNumber(
+                      e,
+                      step2Form.setValue,
+                      isChild
+                        ? `${fieldPrefix}inches${suffix}`
+                        : `${fieldPrefix}inches`
+                    )
+                  }
+                  maxLength={2}
+                  placeholder="Height (Inches)"
+                  className={`${inputClass} w-1/2`}
+                />
+              </div>
 
+              <input
+                {...step2Form.register(
+                  isChild
+                    ? `${fieldPrefix}weight${suffix}`
+                    : `${fieldPrefix}weight`,
+                  { required: "Weight is required" }
+                )}
+                onChange={(e) =>
+                  isNumber(
+                    e,
+                    step2Form.setValue,
+                    isChild
+                      ? `${fieldPrefix}weight${suffix}`
+                      : `${fieldPrefix}weight`
+                  )
+                }
+                maxLength={3}
+                placeholder="Weight (KG)"
+                className={inputClass}
+              />
+            </div>
+          </div>
+        );
+      })}
 
       <h2 className="text-xl font-bold text-gray-800 mt-8">Nominee:</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -311,16 +304,15 @@ export default function StepTwoForm({
           placeholder="Enter Nominee Full Name"
           className={inputClass}
         />
-       <UniversalDatePicker
+        <UniversalDatePicker
           id="nomineedob"
           name="nomineedob"
           value={dates?.nominee?.dob || null}
-          onChange={handleDateChange("nominee", "dob")}
+          onChange={handleDateChange("nominee", "nomineedob")}
           placeholder="Pick a date"
           error={!dates?.nominee?.dob}
           errorText="Please select a valid date"
         />
-
         <select
           {...step2Form.register("nomineerelation", {
             required: "Please select the nominee relation",

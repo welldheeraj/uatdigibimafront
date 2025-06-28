@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { FaChevronLeft, FaCheck } from "react-icons/fa";
 import StepOneForm from "./stepone.js";
 import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
 import StepFourForm from "./stepfour.js";
-import { showSuccess, showError } from "../../../styles/js/toaster";
+import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "../../../styles/js/validation.js";
 import constant from "../../../env";
 import validateKycStep from "./kycvalidation.js";
@@ -27,6 +27,7 @@ export default function StepperForm() {
   const [verifieddata, setVerifiedData] = useState([]);
   const [steponedata, setStepOneData] = useState([]);
   const [steptwodata, setStepTwoData] = useState([]);
+  const [stepthreedata, setStepThreeData] = useState([]);
 
   const step1Form = useForm();
   const step2Form = useForm();
@@ -61,21 +62,28 @@ export default function StepperForm() {
 
     const values = {
       ...rawValues,
-      customerpancardDob: rawValues.panDob,
+      // customerpancardDob: rawValues.panDob,
+      customerpancardDob: rawValues.customerpancardDob,
       sameAddress: sameAddress ? "1" : "0",
     };
     delete values.panDob;
 
     console.log(values);
+    console.log("pandob", values.customerpancardDob);
     try {
-      const res = await CallApi(constant.API.HEALTH.SAVESTEPONE, "POST", values);
+      const res = await CallApi(
+        constant.API.HEALTH.SAVESTEPONE,
+        "POST",
+        values
+      );
       console.log(res);
 
       if (res === 1 || res?.status) {
-        setStepOneData(res)
+        setStepOneData(res);
         return true;
       } else {
         console.error("API failed or returned unexpected value:", res);
+        showError(res.error);
         return false;
       }
     } catch (error) {
@@ -85,44 +93,263 @@ export default function StepperForm() {
     }
   };
 
- const validateFormStepTwo = async () => {
-  const fieldsValid = await validateFields(step2Form);
-  if (!fieldsValid) return false;
+  const validateFormStepTwo = async () => {
+    const fieldsValid = await validateFields(step2Form);
+    if (!fieldsValid) return false;
 
-  const rawValues = step2Form.getValues();
+    const rawValues = step2Form.getValues();
 
-  const values = {
-    ...rawValues,
-  };
+    const values = {
+      ...rawValues,
+    };
 
-  console.log("Step 2 values", values);
+    console.log("Step 2 values", values);
+    console.log("Nominee DOB: ", values.nomineedob);
 
-  try {
-    const res = await CallApi(constant.API.HEALTH.SAVESTEPTWO, "POST", values);
-    console.log("Step 2 API Response", res);
+    try {
+      const res = await CallApi(
+        constant.API.HEALTH.SAVESTEPTWO,
+        "POST",
+        values
+      );
+      console.log("Step 2 API Response", res);
 
-    if (res === 1 || res?.status) {
-      setStepTwoData(res); // Optional: agar step 2 ka data store karna ho
-      return true;
-    } else {
-      console.error("Step 2 API failed or returned unexpected value:", res);
+      if (res === 1 || res?.status) {
+        setStepTwoData(res); // Optional: agar step 2 ka data store karna ho
+        return true;
+      } else {
+        console.error("Step 2 API failed or returned unexpected value:", res);
+        return false;
+      }
+    } catch (error) {
+      console.error("Step 2 API call error:", error);
       return false;
     }
-  } catch (error) {
-    console.error("Step 2 API call error:", error);
-    return false;
-  }
-};
+  };
 
+  const validateFormStepThree = async (step3Form, steptwodata) => {
+    const isValid = await step3Form.trigger();
+    if (!isValid) return false;
 
+    const data = step3Form.getValues();
+    const members = steptwodata?.member || [];
 
-  
+    let hasError = false;
+    let firstInvalidInput = null;
+    let dobErrorShown = false;
 
+    const sectionMap = {
+      1: [
+        "cancer",
+        "heart",
+        "hypertension",
+        "breathing",
+        "endocrine",
+        "diabetes",
+        "muscles",
+        "liver",
+        "kidney",
+        "auto",
+        "congenital",
+        "hivaids",
+        "any",
+        "has",
+        "hasany",
+      ],
+      2: ["insurer", "premium", "insurance", "diagnosed"],
+      3: ["cigarettes"],
+    };
 
+    Object.values(sectionMap)
+      .flat()
+      .forEach((key) => {
+        members.forEach((m, index) => {
+          const checkKey = `${key}main${index + 1}`;
+          const dateKey = `${checkKey}date`;
 
-    
-  const validateFormStepThree = async () => await validateFields(step3Form);
-  const validateFormStepFour = async () => true;
+          const isChecked = data[checkKey];
+          const dateValue = data[dateKey];
+          const input = document.querySelector(`input[name="${dateKey}"]`);
+          const trimmed = dateValue?.trim() || "";
+
+          if (isChecked) {
+            if (!trimmed) {
+              if (input) {
+                input.classList.add("border-red-500");
+                if (!firstInvalidInput) firstInvalidInput = input;
+              }
+              hasError = true;
+              return;
+            }
+
+            const [mm, yyyy] = trimmed.split("/");
+            const month = parseInt(mm, 10);
+            const year = parseInt(yyyy, 10);
+
+            if (!month || month < 1 || month > 12) {
+              if (input) {
+                input.classList.add("border-red-500");
+                if (!firstInvalidInput) firstInvalidInput = input;
+              }
+              hasError = true;
+              return;
+            }
+
+            const inputDOB = input?.getAttribute("data-dob");
+            if (inputDOB) {
+              const [day, dobMM, dobYYYY] = inputDOB.split("-");
+              const dobDate = new Date(
+                Number(dobYYYY),
+                Number(dobMM) - 1,
+                Number(day)
+              );
+              const inputDate = new Date(year, month - 1);
+
+              const dobMonth = dobDate.getMonth();
+              const dobYear = dobDate.getFullYear();
+              const inputMonth = inputDate.getMonth();
+              const inputYear = inputDate.getFullYear();
+
+              const today = new Date();
+              const currentMonth = today.getMonth();
+              const currentYear = today.getFullYear();
+
+              const isBeforeDOB =
+                inputYear < dobYear ||
+                (inputYear === dobYear && inputMonth < dobMonth);
+
+              const isInFuture =
+                inputYear > currentYear ||
+                (inputYear === currentYear && inputMonth > currentMonth);
+
+              if (isBeforeDOB || isInFuture) {
+                input.classList.add("border-red-500");
+                if (!firstInvalidInput) firstInvalidInput = input;
+                hasError = true;
+
+                if (!dobErrorShown) {
+                  showError(
+                    isBeforeDOB
+                      ? "Date cannot be before member's Date of Birth (MM/YYYY)."
+                      : "Date cannot be in the future (MM/YYYY)."
+                  );
+                  dobErrorShown = true;
+                }
+                return;
+              }
+            }
+
+            input?.classList.remove("border-red-500");
+          } else {
+            input?.classList.remove("border-red-500");
+          }
+        });
+      });
+
+    if (hasError) {
+      if (firstInvalidInput) {
+        firstInvalidInput.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        firstInvalidInput.focus();
+      }
+      showError(
+        "Please fill valid MM/YYYY (month ≤ 12, not before DOB or future) for all selected members."
+      );
+      return false;
+    }
+
+    const getExtraFields = (keyPrefix) => ({
+      des: data[`${keyPrefix}desc`] || "",
+      quantity: data[`${keyPrefix}qty`] || 0,
+    });
+
+    const result = [];
+
+    members.forEach((m, index) => {
+      const memberData = {
+        id: m.id,
+        age: m.age,
+        dob: m.dob,
+        data: [],
+      };
+
+      Object.entries(sectionMap).forEach(([section, keys]) => {
+        keys.forEach((key, keyIndex) => {
+          const checkKey = `${key}main${index + 1}`;
+          const dateKey = `${checkKey}date`;
+
+          if (data[checkKey] && data[dateKey]) {
+            const extra = getExtraFields(checkKey);
+
+            memberData.data.push({
+              did: `${section}.${keyIndex + 1}`,
+              date: data[dateKey],
+              des: extra.des,
+              quantity: section === "3" ? extra.quantity : 0,
+            });
+          }
+        });
+      });
+
+      if (memberData.data.length > 0) {
+        result.push(memberData);
+      }
+    });
+
+    console.log(result);
+
+    try {
+      const res = await CallApi(
+        constant.API.HEALTH.SAVESTEPTHREE,
+        "POST",
+        result
+      );
+      console.log("Step 3 API Response", res);
+
+      if (res === 1 || res?.status) {
+        setStepThreeData(res);
+        return true;
+      } else {
+        console.error("Step 3 API failed or returned unexpected value:", res);
+        return false;
+      }
+    } catch (error) {
+      console.error("Step 3 API call error:", error);
+      return false;
+    }
+    return result;
+  };
+
+  const GoToPayment = async () => {
+    setLoading(true);
+    try {
+      console.log("ram");
+      const res = await CallApi(constant.API.HEALTH.CREATEPOLICY, "POST");
+      console.log("create policy API Response", res);
+
+      if (res === 1 || res?.status) {
+        const response = await CallApi(constant.API.HEALTH.GETPROPOSAL, "POST");
+        console.log("payment", response);
+
+        if (response.proposalNumber) {
+          console.log("navigating...");
+          router.push(
+            `/health/payment?proposalNumber=${response.proposalNumber}`
+          );
+        } else {
+          console.error("Missing proposalNumber");
+        }
+      } else {
+        console.error("Create policy failed", res);
+      }
+    } catch (error) {
+      console.error("API Error", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const goNext = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
 
@@ -130,8 +357,9 @@ export default function StepperForm() {
     let isValid = false;
     if (currentStep === 1) isValid = await validateFormStepOne();
     else if (currentStep === 2) isValid = await validateFormStepTwo();
-    else if (currentStep === 3) isValid = await validateFormStepThree();
-    else if (currentStep === 4) isValid = await validateFormStepFour();
+    else if (currentStep === 3)
+      isValid = await validateFormStepThree(step3Form, steptwodata);
+    else if (currentStep === 4) isValid = await GoToPayment();
 
     if (!isValid) return;
     const formToUse =
@@ -261,7 +489,6 @@ export default function StepperForm() {
                 setKycVerified={setKycVerified}
                 isPanVerified={isPanVerified}
                 verifieddata={verifieddata}
-                
               />
             )}
             {currentStep === 2 && (
@@ -275,11 +502,17 @@ export default function StepperForm() {
             {currentStep === 3 && (
               <StepThreeForm
                 step3Form={step3Form}
+                steptwodata={steptwodata}
+                inputClass={inputClass}
                 onSubmitStep={onSubmitStep}
               />
             )}
             {currentStep === 4 && (
-              <StepFourForm step4Form={step4Form} onSubmitStep={onSubmitStep} />
+              <StepFourForm
+                step4Form={step4Form}
+                stepthreedata={stepthreedata}
+                onSubmitStep={onSubmitStep}
+              />
             )}
           </div>
         </div>

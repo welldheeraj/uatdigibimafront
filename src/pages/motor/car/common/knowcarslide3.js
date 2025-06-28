@@ -31,10 +31,17 @@ export default function KnowCarStepTwo() {
   const prePolicyType = watch("prepolitype");
   // console.log("Policy Type:", prePolicyType);
   console.log(ownershipToggle, policyToggle);
-  const onSubmit = (data) => {
-    console.log("Form submitted:", data);
+
+
+  const onSubmit = () => {
+    // console.log("Form submitted:", data);
     // You can POST to your API here
+
+   router.push(constant.ROUTES.MOTOR.PLANS); 
   };
+
+
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="text-center text-lg font-semibold mb-6">
@@ -371,6 +378,7 @@ export default function KnowCarStepTwo() {
             <button
               type="button"
               onClick={handleSubmit(onSubmit)}
+              
               className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
               style={{
                 background: "linear-gradient(to bottom, #426D98, #28A7E4)",

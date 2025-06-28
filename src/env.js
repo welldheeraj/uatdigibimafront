@@ -6,19 +6,21 @@ const constant = {
     }
     ,ROUTES:{
         HEALTH:{
-            'INDEX':'/health',
+               'INDEX':'/health',
             'INSURE':'/health/insure',
             'ILLNESS':'/health/illness',
             'PLANS':'/health/plansOne',
             'CHECKOUT':'health/checkoutOne',
             'PROPOSAL':'/health/journey',
+            'PAYMENT':'/health/payment',
             
         } ,
         MOTOR:{
              'INDEX':'/motor',
              'SELECTVEHICLE':'/motor/common',
              'KnowCarSlide2':'/motor/car/common/knowcarslide2',
-             'KnowCarSlide3':'/motor/car/common/knowcarslide3'
+             'KnowCarSlide3':'/motor/car/common/knowcarslide3',
+             'PLANS' : '/motor/car/common/plans'
         },
         USER:{
             'INDEX':'/userpnlx',
@@ -29,7 +31,7 @@ const constant = {
     },
     API:{
        HEALTH:{
-        'SENDOTP':'/api/sendotp',
+       'SENDOTP':'/api/sendotp',
         'VERIFYOTP':'/api/verifyotp',
         'PINCODE':'/api/acpincode',
         'INSUREVIEW':'/api/insureview',
@@ -44,9 +46,13 @@ const constant = {
         'PlANCHECKOUT':'/api/plancheckout',
         'ADDADDONS':'/api/addaddon',
         'PANVERIFY':'/api/verifypan',
+        'UPLOADDOCUMENT':'/api/uploadfile',
         'AADHARVERIFY':'/api/verifyadhar',
         'SAVESTEPONE':'/api/proposalStepOne',
-        'SAVESTEPTWo':'/api/proposalStepTwo',
+        'SAVESTEPTWO':'/api/proposalStepTwo',
+        'SAVESTEPTHREE':'/api/proposalStepThree',
+        'CREATEPOLICY':'/api/createpolicy',
+         'GETPROPOSAL':'/api/carepayment',
        } ,
 
        MOTOR:{

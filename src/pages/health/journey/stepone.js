@@ -25,9 +25,13 @@ export default function StepOneForm({
   onSubmitStep,
   isPanVerified,
   verifieddata,
-  setStepOneData
+  setStepOneData,
 }) {
-  const [dates, setDates] = useState({ customerpancardno: "", aadhar: "", proposal: "" });
+  const [dates, setDates] = useState({
+    customerpancardno: "",
+    aadhar: "",
+    proposal: "",
+  });
 
   const handleDateChange = (key, field) => (date) => {
     const formatted = format(date, "dd-MM-yyyy");
@@ -35,73 +39,108 @@ export default function StepOneForm({
     step1Form.setValue(field, formatted, { shouldValidate: true });
   };
 
-useEffect(() => {
-  if (!verifieddata || Object.keys(verifieddata).length === 0) return;
-  const set = step1Form.setValue;
+  useEffect(() => {
+    if (!verifieddata || Object.keys(verifieddata).length === 0) return;
+    const set = step1Form.setValue;
 
-  const map = {
-    pan: "customerpancardno",
-    dob: "customerpancardDob",
-    gender: "mr_ms_gender",
-    proposalname: "proposername",
-    proposaldob: "proposerdob1",
-    permLine1: "house",
-    permLine2: "colony",
-     permLine3: "Landmark",
-    permCity: "City",
-    permState: "State",
-    permPin: "Pincode",
-    email: "contactemail",
-  };
+    const map = {
+      pan: "customerpancardno",
+      dob: "customerpancardDob",
+      gender: "mr_ms_gender",
+      proposalname: "proposername",
+      proposaldob: "proposerdob1",
+      permLine1: "house",
+      permLine2: "colony",
+      permLine3: "Landmark",
+      permCity: "City",
+      permState: "State",
+      permPin: "Pincode",
+      email: "contactemail",
+    };
 
-  Object.entries(map).forEach(([apiKey, formKey]) => {
-    if (verifieddata[apiKey]) {
-      if (apiKey === "dob") {
-        const [dd, mm, yyyy] = verifieddata.dob.split("-");
-        handleDateChange("proposal", "proposerdob1")(new Date(`${yyyy}-${mm}-${dd}`));
-      } else if (apiKey === "gender") {
-        const g = verifieddata.gender?.toUpperCase();
-        set(formKey, g === "M" ? "Mr" : g === "F" ? "Ms" : "");
-      } else {
-        set(formKey, verifieddata[apiKey]);
+    Object.entries(map).forEach(([apiKey, formKey]) => {
+      if (verifieddata[apiKey]) {
+        if (apiKey === "dob") {
+          const [dd, mm, yyyy] = verifieddata.dob.split("-");
+          handleDateChange(
+            "proposal",
+            "proposerdob1"
+          )(new Date(`${yyyy}-${mm}-${dd}`));
+        } else if (apiKey === "gender") {
+          const g = verifieddata.gender?.toUpperCase();
+          set(formKey, g === "M" ? "Mr" : g === "F" ? "Ms" : "");
+        } else {
+          set(formKey, verifieddata[apiKey]);
+        }
       }
-    }
-  });
-
-  // 🆕 Set full name using firstName + lastName
-  const fullName = `${verifieddata.firstName || ""} ${verifieddata.lastName || ""}`.trim();
-  if (fullName) {
-    set("proposername", fullName);              
-    set("customerAadharName", fullName);         
-  }
-
-  if (verifieddata.permCorresSameflag === "Y") {
-    setSameAddress(true);
-    ["house", "colony", "Landmark", "City", "State", "Pincode"].forEach((key) => {
-      set(`commcurrent${key}`, step1Form.getValues(key));
     });
-  }
-}, [verifieddata]);
+
+    
+    const fullName = `${verifieddata.firstName || ""} ${
+      verifieddata.lastName || ""
+    }`.trim();
+    if (fullName) {
+      set("proposername", fullName);
+      set("customerAadharName", fullName);
+    }
+
+    if (verifieddata.permCorresSameflag === "Y") {
+      setSameAddress(true);
+      ["house", "colony", "Landmark", "City", "State", "Pincode"].forEach(
+        (key) => {
+          set(`commcurrent${key}`, step1Form.getValues(key));
+        }
+      );
+    }
+  }, [verifieddata]);
 
   useEffect(() => {
-    if (sameAddress) {
+    if (!sameAddress) return;
+
+    const get = step1Form.getValues;
+    const set = step1Form.setValue;
+
+    const syncFields = () => {
       [
-        "commcurrenthouse",
-        "commcurrentcolony",
-        "commcurrentLandmark",
-        "commcurrentCity",
-        "commcurrentState",
-        "commcurrentPincode",
-      ].forEach((field) => step1Form.unregister(field));
-    }
+        ["house", "commcurrenthouse"],
+        ["colony", "commcurrentcolony"],
+        ["Landmark", "commcurrentLandmark"],
+        ["City", "commcurrentCity"],
+        ["State", "commcurrentState"],
+        ["Pincode", "commcurrentPincode"],
+      ].forEach(([permanent, communication]) => {
+        set(communication, get(permanent));
+      });
+    };
+
+    const subscription = step1Form.watch((values, { name }) => {
+      const permKeys = [
+        "house",
+        "colony",
+        "Landmark",
+        "City",
+        "State",
+        "Pincode",
+      ];
+      if (permKeys.includes(name)) {
+        syncFields();
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [sameAddress]);
 
   const fields = {
-    identity: ["AADHAR", "PAN", "PASSPORT", "VOTER ID", "DRIVING LICENSE"],
-    address: ["UTILITY BILL", "BANK STATEMENT", "RENT AGREEMENT", "RATION CARD"],
+    identity: [
+      "AADHAR",
+      "PAN",
+      "PASSPORT",
+      "VOTER ID",
+      "DRIVING LICENSE",
+      "FORM 60",
+    ],
+    address: ["AADHAR", "PASSPORT", "VOTER ID", "DRIVING LICENSE", "FORM 60"],
   };
-
-
 
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -164,7 +203,6 @@ useEffect(() => {
           </label>
 
           <div className="flex flex-col md:flex-row gap-4">
-            {/* PAN Number Input */}
             <input
               {...step1Form.register("customerpancardno")}
               maxLength={10}
@@ -178,18 +216,21 @@ useEffect(() => {
               }}
             />
 
-            {/* Date of Birth DatePicker */}
+ 
             <UniversalDatePicker
               id="customerpancardDob"
               name="customerpancardDob"
               value={dates.customerpancardno}
-              onChange={handleDateChange("customerpancardno", "customerpancardDob")}
+              onChange={handleDateChange(
+                "customerpancardno",
+                "customerpancardDob"
+              )}
               placeholder="Pick a start date"
               error={!dates.pan}
               errorText="Please select a valid date"
             />
 
-            {/* VERIFY Button */}
+     
             <button
               type="button"
               onClick={handleVerifyPan}
@@ -363,7 +404,7 @@ useEffect(() => {
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-            {/* Mr/Ms */}
+     
             <select
               {...step1Form.register("mr_ms_gender")}
               className="border border-gray-300 px-3 py-2 rounded text-sm md:col-span-2"
@@ -374,14 +415,14 @@ useEffect(() => {
               <option value="Mrs">Mrs</option>
             </select>
 
-            {/* Name */}
+       
             <input
               {...step1Form.register("proposername")}
               placeholder="Full Name as per your ID Card"
               className="border border-gray-300 px-3 py-2 rounded text-sm w-full md:col-span-6"
             />
 
-            {/* D.O.B */}
+         
             <div className="md:col-span-4">
               <UniversalDatePicker
                 id="proposerdob1"
@@ -428,19 +469,34 @@ useEffect(() => {
           onChange={(e) => {
             const same = e.target.checked;
             setSameAddress(same);
+
             const get = step1Form.getValues;
             const set = step1Form.setValue;
-            [
+
+            if (same) {
+              [
                 ["house", "commcurrenthouse"],
                 ["colony", "commcurrentcolony"],
                 ["Landmark", "commcurrentLandmark"],
                 ["City", "commcurrentCity"],
                 ["State", "commcurrentState"],
                 ["Pincode", "commcurrentPincode"],
-              ].forEach(([permanent, communication]) =>
-                set(communication, same ? get(permanent) : "")
-              );
-
+              ].forEach(([permanent, communication]) => {
+                const value = get(permanent) || "";
+                set(communication, value, { shouldValidate: true });
+              });
+            } else {
+              [
+                "commcurrenthouse",
+                "commcurrentcolony",
+                "commcurrentLandmark",
+                "commcurrentCity",
+                "commcurrentState",
+                "commcurrentPincode",
+              ].forEach((communication) => {
+                set(communication, "", { shouldValidate: true });
+              });
+            }
           }}
         />
         <span className="ml-2">Same As Permanent Address</span>
@@ -458,12 +514,7 @@ useEffect(() => {
           ].map((field) => (
             <input
               key={field}
-              {...step1Form.register(field, {
-                onChange:
-                  field === "commcurrentPincode"
-                    ? (e) => isNumber(e, step1Form.setValue, "commcurrentPincode")
-                    : undefined,
-              })}
+              {...step1Form.register(field)}
               placeholder={field
                 .replace("comm", "")
                 .replace(/([A-Z])/g, " $1")

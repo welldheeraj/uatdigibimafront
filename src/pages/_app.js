@@ -9,9 +9,11 @@ import { useState, useEffect, React } from "react";
 import { Poppins } from "next/font/google";
 import HealthInsuranceLoader from "./health/loader";
 import { useRouter } from "next/router";
-import { VerifyToken } from "../api"; // Adjust import path if needed
+import { VerifyToken } from "../api";
 import constant from "../env";
 import { CallApi, getUserinfo } from "../api";
+import { CallNextApi } from "./utils/helper";
+import { PrimeReactProvider } from 'primereact/api';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -21,29 +23,44 @@ const poppins = Poppins({
 
 export default function App({ Component, pageProps }) {
   const [token, setToken] = useState(null);
-  const [cookie, setCookie] = useState(null);
+  const [authkey, setAuthkey] = useState(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  const route = router.pathname;
-  const splitRoute = route.trim().split("/");
-  // console.log(router,splitRoute);
   const [Username, setUsername] = useState(null);
   const [userMobile, setUserMobile] = useState(null);
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const route = router.pathname;
+  const splitRoute = route.trim().split("/").filter(segment => segment !== "")[0];
+  async function getSession() {
+    let status = false;
+    let tokenresponse = await CallNextApi("/api/getsession",
+      "GET"
+      );
+    // tokenresponse= await tokenresponse.json();
+    //setAuthkey(tokenresponse.authkey);
+    if(tokenresponse.authkey && localStorage.getItem("token") && tokenresponse.authkey == localStorage.getItem("token") )
+    {
+      console.log('tkn',true);
+      status=true;
+    }
+    else{console.log('tkn',false);
+    }
+    return status;
+  }
   useEffect(() => {
-    if (typeof window === "undefined") return; // Prevent SSR errors
     const verifyAuth = async () => {
       const storedToken = localStorage.getItem("token");
-      if (!storedToken) {
+      var storedCookie = await getSession();
+      console.log('gettokenresponse',storedCookie);
+      if (!storedCookie) {
         setToken(null);
+        //setAuthkey(null);
         setLoading(false);
-
-        if (router == constant.ROUTES.HEALTH.INDEX) {
+        if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
           router.push(constant.ROUTES.HEALTH.INDEX);
         }
-        if (router == constant.ROUTES.MOTOR.INDEX) {
+        if ('/' + splitRoute === constant.ROUTES.MOTOR.INDEX) {
           router.push(constant.ROUTES.MOTOR.INDEX);
         }
         return;
@@ -56,57 +73,55 @@ export default function App({ Component, pageProps }) {
         } else {
           localStorage.removeItem("token");
           setToken(null);
-          if (router == constant.ROUTES.HEALTH.INDEX) {
+          if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
             router.push(constant.ROUTES.HEALTH.INDEX);
           }
-          if (router == constant.ROUTES.MOTOR.INDEX) {
+          if ('/' + splitRoute === constant.ROUTES.MOTOR.INDEX) {
             router.push(constant.ROUTES.MOTOR.INDEX);
           }
         }
       } catch (error) {
         console.error("Token verification failed:", error);
         localStorage.removeItem("token");
+        setAuthkey(null);
         setToken(null);
-        if (router.pathname !== constant.ROUTES.HEALTH.INDEX) {
+        if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
           router.push(constant.ROUTES.HEALTH.INDEX);
+        }
+        if ('/' + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+          router.push(constant.ROUTES.MOTOR.INDEX);
         }
       } finally {
         setLoading(false);
       }
     };
-
     verifyAuth();
-
     const handleAuthChange = () => {
       const updatedToken = localStorage.getItem("token");
+      //const updatedCookie = getSession().status ? getSession().authkey : null;
       setToken(updatedToken);
+      //setAuthkey(updatedCookie);
     };
-
     window.addEventListener("auth-change", handleAuthChange);
     return () => window.removeEventListener("auth-change", handleAuthChange);
-  }, [router]);
+  }, []);
 
   useEffect(() => {
+    //console.log('session',authkey);
     if (token) {
-      // console.log("token:", token);
-
       const fetchData = async () => {
-        
         try {
           setIsLoading(true);
           const response = await getUserinfo(token);
           const data = await response.json();
-        console.log(data);
-          if (data.status === true && data.user?.name) {
+          //console.log('ghgh',data);
+          if (data.status && data.user?.name) {
             setUserData(data.user);
-            setUsername(data.user.name);
           } else {
             setUserData(null);
-            setUsername(null);
           }
         } catch (error) {
           console.error("Error fetching user info:", error);
-          setUsername(null);
           setUserData(null);
         } finally {
           setIsLoading(false);
@@ -114,45 +129,15 @@ export default function App({ Component, pageProps }) {
       };
       fetchData();
     }
-    //console.log("uss", userData);
-  }, [token, Username]);
-
-  useEffect(() => {
-    if (!token) return;
-
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await getUserinfo(token);
-        const data = await response.json();
-
-        if (data.status === true && data.user?.name) {
-          setUserData(data.user);
-          setUsername(data.user.name);
-          //console.log("userData fetched:", data.user);
-        } else {
-          setUserData(null);
-          setUsername(null);
-        }
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-        setUserData(null);
-        setUsername(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
   }, [token]);
-
+  // useEffect(() => {
+  //   console.log('uuuatttu1', authkey,userData);
+  // }, [userData,authkey])
   return (
     <div className={poppins.className}>
       <Header
-        token={token}
-        setToken={setToken}
-        username={Username}
-        setUsername={setUsername}
+        username={userData?.name}
+        setUsername={setUserData}
       />
 
       {/* Conditional Rendering */}
@@ -162,8 +147,9 @@ export default function App({ Component, pageProps }) {
         </div>
       ) : (
         <>
+          < PrimeReactProvider />
           <Toaster />
-          <Component {...pageProps} usersData={userData} />
+          <Component {...pageProps} usersData={userData} token={token} />
           <Footer />
         </>
       )}

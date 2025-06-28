@@ -1,11 +1,17 @@
-import { destroyCookie  } from 'nookies';
+import { parseCookies, destroyCookie } from 'nookies';
 
 export default async function handler(req, res) {
-  
-  if (parseCookies({ req })) {
-    destroyCookie(null, 'unused');
-    res.status(200).json({ message: 'logout success' });
-  } else {
-    res.status(404).json({ message: 'logout already' });
+  try {
+    const cookies = parseCookies({ req });
+
+    if (cookies.unused) {
+      destroyCookie({ res }, 'unused', { path: '/' });
+
+      res.json({ status: true, message: 'Logout successfully' });
+    } else {
+      res.json({ status: false, message: 'Already logged out' });
+    }
+  } catch (error) {
+    res.status(500).json({ status: false, message: 'Logout failed', error: error.message });
   }
 }

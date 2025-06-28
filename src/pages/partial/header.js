@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CallNextApi } from "../utils/helper";
 import {
   FaEnvelope,
   FaSignOutAlt,
@@ -10,36 +11,35 @@ import {
   FaChevronDown,
   FaChevronUp,
 } from "react-icons/fa";
-import { CallApi, getUserinfo } from "../../api";
+import { CallApi } from "../../api";
 import constant from "../../env";
-import { useRouter, usePathname } from "next/navigation";
-import { showSuccess } from "../../styles/js/toaster";
-import { getIronSession } from "iron-session";
-import { sessionOptions } from "../lib/sessionconfig";
+import { useRouter } from "next/router";
+import { showSuccess } from "@/layouts/toaster";
 
-export default function Header({ token, setToken, username,setUsername }) {
+//setUsername={Username}
+export default function Header({ username, setUsername }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const route = router.pathname;
+  const splitRoute = route.split("/").filter(segment => segment !== "")[0];
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // useEffect(() => {
+  //   console.log('uuuu', username);
+  // }, [username])
   const logout = async () => {
     const response = await CallApi("/api/logout", "POST", "");
     if (response.status) {
       localStorage.removeItem("token");
-      const res = await fetch("/api/deletesession", { method: "POST" });
-      console.log(res.json());
+      setUsername("");
+      await CallNextApi("/api/deletesession");
+      // console.log('deletesession', await res.json());
       window.dispatchEvent(new Event("auth-change"));
       setIsDropdownOpen(false);
       showSuccess(response.message);
-      setToken(null);
-      setUsername("");
-      // if (pathname === constant.ROUTES.HEALTH.INDEX) {
-      //   router.replace(pathname);
-      // } else {
-      //   router.push(constant.ROUTES.HEALTH.INDEX);
-      // }
-
-      if (pathname !== constant.ROUTES.HEALTH.INDEX) {
+      if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
         router.push(constant.ROUTES.HEALTH.INDEX);
+      }
+      if ('/' + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+        router.push(constant.ROUTES.MOTOR.INDEX);
       } else {
         window.dispatchEvent(new Event("auth-change"));
       }
@@ -88,7 +88,7 @@ export default function Header({ token, setToken, username,setUsername }) {
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
               <ul className="divide-y divide-gray-100 text-sm text-gray-700">
-                {!token ? (
+                {!username ? (
                   <li
                     onClick={() => {
                       setIsDropdownOpen(false);
@@ -103,9 +103,9 @@ export default function Header({ token, setToken, username,setUsername }) {
                   <>
                     <li
                       onClick={() => {
-                      setIsDropdownOpen(false);
-                      router.push(constant.ROUTES.USER.PROFILE);
-                    }}
+                        setIsDropdownOpen(false);
+                        router.push(constant.ROUTES.USER.PROFILE);
+                      }}
                       className="px-5 py-3 hover:bg-blue-50 hover:text-blue-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2"
                     >
                       <FaUser className="text-blue-400 w-4 h-4" />
@@ -113,7 +113,7 @@ export default function Header({ token, setToken, username,setUsername }) {
                     </li>
 
                     <li
-                    onClick={() => {
+                      onClick={() => {
                         setIsDropdownOpen(false);
                         logout();
                       }}

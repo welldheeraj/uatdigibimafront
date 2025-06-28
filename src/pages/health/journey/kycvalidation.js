@@ -2,7 +2,7 @@
 
 import { CallApi } from "../../../api";
 import constant from "../../../env";
-import { showError, showSuccess } from "../../../styles/js/toaster";
+import { showSuccess, showError } from "@/layouts/toaster";
 
 export default async function validateKycStep(
   step1Form,
@@ -27,7 +27,9 @@ export default async function validateKycStep(
       if (!customerpancardno || !customerpancardDob)
         return showError("PAN Number and DOB are required."), false;
 
-      if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(customerpancardno.trim().toUpperCase()))
+      if (
+        !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(customerpancardno.trim().toUpperCase())
+      )
         return showError("Invalid PAN number (e.g., ABCDE1234F)."), false;
 
       payload = {
@@ -44,7 +46,8 @@ export default async function validateKycStep(
         setIsPanVerified?.(true);
 
         const pd =
-          res?.pandata?.getCkycEkycInputIO?.kycDetails?.personalIdentifiableData?.personalDetails;
+          res?.pandata?.getCkycEkycInputIO?.kycDetails?.personalIdentifiableData
+            ?.personalDetails;
         if (pd) {
           console.log("Auto-filling from KYC data:", pd);
           setVerifiedData(pd);
@@ -66,7 +69,12 @@ export default async function validateKycStep(
         customerAadharDob,
       } = values;
 
-      if (!customerAadharGender || !customerAadharno || !customerAadharName || !customerAadharDob)
+      if (
+        !customerAadharGender ||
+        !customerAadharno ||
+        !customerAadharName ||
+        !customerAadharDob
+      )
         return showError("All Aadhar fields are required."), false;
 
       if (!/^\d{4}$/.test(customerAadharno))
@@ -89,14 +97,21 @@ export default async function validateKycStep(
         return true;
       }
 
-      showError(res?.responseData?.message || res?.message || "Aadhar verification failed");
+      showError(
+        res?.responseData?.message ||
+          res?.message ||
+          "Aadhar verification failed"
+      );
     }
 
     // Others Verification
     else if (kycType === "Others") {
+      console.log("Ram");
       const { identity, address } = proofs;
-      const identityFile = document.getElementById(`identity-${identity}`)?.files?.[0];
-      const addressFile = document.getElementById(`address-${address}`)?.files?.[0];
+      const identityFile = document.getElementById(`identity-${identity}`)
+        ?.files?.[0];
+      const addressFile = document.getElementById(`address-${address}`)
+        ?.files?.[0];
 
       if (!identity || !address)
         return showError("Select both proof types."), false;
@@ -110,7 +125,9 @@ export default async function validateKycStep(
       formData.append("identityType", identity);
       formData.append("addressType", address);
 
-      res = await CallApi.verifyOther(formData);
+      console.log(formData);
+      res = await CallApi(constant.API.HEALTH.UPLOADDOCUMENT, "POST", formData);
+      console.log(res);
       if (res?.status) {
         showSuccess("Documents verified");
         setKycVerified(true);

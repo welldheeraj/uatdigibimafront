@@ -4,12 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { HiPlus, HiMinus } from "react-icons/hi";
-import { showSuccess, showError } from "../../styles/js/toaster";
+import { showSuccess, showError } from "../../layouts/toaster";
 import { CallApi, VerifyToken } from "../../api";
 import constant from "../../env";
 
-import { getIronSession } from 'iron-session';
-import { sessionOptions } from '../lib/sessionconfig';
 
 // export async function getServerSideProps(context) {
 //   const session = await getIronSession(context.req, context.res, sessionOptions);

@@ -2,13 +2,17 @@ import { parseCookies } from 'nookies';
 import { decryptData } from './crypt';
 
 export default async function handler(req, res) {
+  try {
   const cookies = parseCookies({ req });
   const encryptedToken = cookies.unused || null;
   if (encryptedToken) {
-    const decryptedToken = decryptData(encryptedToken); 
-    console.log('Decrypted Token:', decryptedToken);
-    res.status(200).json({ cookie: decryptedToken });
+    // let decryptedToken = await decryptData(encryptedToken); 
+    let decryptedToken = encryptedToken; 
+    res.json({ status:true,authkey: decryptedToken });
   } else {
-    res.status(404).json({ error: 'Token not found' });
+    res.json({status:false, authkey:'',error: 'Token not found' });
   }
+} catch (error) {
+  res.json({ status: false, authkey:'',error: error.message});
+}
 }

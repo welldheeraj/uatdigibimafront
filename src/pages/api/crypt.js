@@ -1,7 +1,5 @@
-// Example encryption/decryption utility functions (for demonstration purposes)
-import CryptoJS from 'crypto-js';
 
-// Replace with your actual encryption key and algorithm
+import CryptoJS from 'crypto-js';
 const encryptionKey = '1qaz2wsx3edc4rfv5tgb6yhn7ujm8ik,';
 const algorithm = 'AES';
 

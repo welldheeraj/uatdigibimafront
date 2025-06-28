@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { showSuccess, showError } from "../../../styles/js/toaster";
+import { showSuccess, showError } from "../../../layouts/toaster";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import constant from "../../../env";
@@ -33,9 +33,9 @@ export default function VehicleSelect({ usersData }) {
       bikeOption: "knowbike",
       commercialOption: "knowcommercial",
       mobile: usersData?.mobile,
-      carRegNumber: carnumber
+      carRegNumber: carnumber,
     });
-  }, [usersData ,carnumber]);
+  }, [usersData, carnumber]);
 
   useEffect(() => {
     async function getSavedResponse() {
@@ -144,7 +144,7 @@ export default function VehicleSelect({ usersData }) {
 
           <div className="flex flex-col md:flex-row">
             {/* image section */}
-            <div className="w-1/2 mb-6 flex justify-center ">
+            <div className="w-full md:w-1/2 mb-6 flex justify-center ">
               <div className="w-32 h-20 bg-gray-100 flex items-center justify-center rounded">
                 <img src="#" alt="Vehicle" className="object-contain h-full" />
               </div>
@@ -152,7 +152,7 @@ export default function VehicleSelect({ usersData }) {
 
             {/* form section */}
 
-            <div className="w-1/2 flex items-center justify-center">
+            <div className="w-full md:w-1/2 flex items-center justify-center">
               <div>
                 {/* Vehicle Selection */}
                 <div className="flex flex-wrap gap-4 mb-4">
@@ -167,8 +167,16 @@ export default function VehicleSelect({ usersData }) {
                         {...register("vehicle")}
                         className="hidden peer"
                       />
-                      <div className="bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white vehicle-box peer-checked:ring-2 peer-checked:ring-blue-500 px-4 py-2 rounded border">
-                        {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
+                      <div
+                        className="px-4 py-2 rounded border 
+                      bg-white text-black 
+                      peer-checked:bg-gradient-to-r 
+                      peer-checked:from-[#28A7E4] 
+                      peer-checked:to-[#426D98] 
+                      peer-checked:text-white 
+                      transition-colors duration-200"
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
                         {type === "car" && <FaCar className="inline ml-2" />}
                         {type === "bike" && (
                           <FaMotorcycle className="inline ml-2" />
@@ -205,9 +213,11 @@ export default function VehicleSelect({ usersData }) {
 
                     {carOption === "knowcar" && (
                       <>
-                        <div className="flex  gap-4 ">
+                        <div className="flex flex-col md:flex-row gap-4 ">
                           <div className="flex flex-col">
-                            <label>Car Registration Number</label>
+                            <label className="text-base md:text-base ">
+                              Car Registration Number
+                            </label>
                             <input
                               type="text"
                               placeholder="Enter Car Registration Number"
@@ -221,7 +231,7 @@ export default function VehicleSelect({ usersData }) {
                                   message: "Invalid car registration number",
                                 },
                               })}
-                              className="w-full border rounded p-2"
+                              className="w-full border rounded p-2 mt-1"
                               onInput={(e) => {
                                 e.target.value = e.target.value
                                   .toUpperCase()
@@ -235,8 +245,10 @@ export default function VehicleSelect({ usersData }) {
                             )}
                           </div>
 
-                          <div className="flex flex-col">
-                            <label>Mobile Number</label>
+                          <div className="flex flex-col ">
+                            <label className="text-base md:text-base">
+                              Mobile Number
+                            </label>
                             <input
                               type="number"
                               // readOnly
@@ -251,7 +263,7 @@ export default function VehicleSelect({ usersData }) {
                                   message: "Invalid Mobile Number",
                                 },
                               })}
-                              className="w-full border rounded p-2"
+                              className="w-full border rounded p-2 mt-1"
                             />
                             {errors.mobile && (
                               <p className="text-red-500 text-sm">
@@ -265,9 +277,11 @@ export default function VehicleSelect({ usersData }) {
 
                     {carOption === "newcar" && (
                       <>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col md:flex-row gap-4">
                           <div className="flex flex-col">
-                            <label>City Name</label>
+                            <label className="text-base md:text-base">
+                              City Name
+                            </label>
                             <input
                               type="text"
                               placeholder="Enter City Name"
@@ -277,7 +291,7 @@ export default function VehicleSelect({ usersData }) {
                                     ? "City name is required"
                                     : false,
                               })}
-                              className="w-[full] border rounded p-2"
+                              className="w-[full] border rounded p-2 mt-1"
                             />
                             {errors.carCity && (
                               <p className="text-red-500 text-sm">
@@ -287,7 +301,9 @@ export default function VehicleSelect({ usersData }) {
                           </div>
 
                           <div className="flex flex-col">
-                            <label>Mobile Number</label>
+                            <label className="text-base md:text-base">
+                              Mobile Number
+                            </label>
                             <input
                               type="number"
                               readOnly
@@ -302,7 +318,7 @@ export default function VehicleSelect({ usersData }) {
                                   message: "Invalid Mobile Number",
                                 },
                               })}
-                              className="w-full border rounded p-2"
+                              className="w-full border rounded p-2 mt-1"
                             />
                             {errors.mobile && (
                               <p className="text-red-500 text-sm">
@@ -340,9 +356,11 @@ export default function VehicleSelect({ usersData }) {
 
                     {bikeOption === "knowbike" && (
                       <>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col md:flex-row gap-4">
                           <div className="flex flex-col">
-                            <label>Bike Registration Number</label>
+                            <label className="text-base md:text-base ">
+                              Bike Registration Number
+                            </label>
                             <input
                               type="text"
                               placeholder="Enter Bike Registration Number"
@@ -352,7 +370,7 @@ export default function VehicleSelect({ usersData }) {
                                   message: "Invalid bike registration number",
                                 },
                               })}
-                              className="w-full border rounded p-2"
+                              className="w-full border rounded p-2 mt-1"
                             />
                             {errors.bikeRegNumber && (
                               <p className="text-red-500 text-sm">
@@ -362,7 +380,9 @@ export default function VehicleSelect({ usersData }) {
                           </div>
 
                           <div className="flex flex-col">
-                            <label>Mobile Number</label>
+                            <label className="text-base md:text-base">
+                              Mobile Number
+                            </label>
                             <input
                               type="text"
                               // value={mobile}
@@ -374,7 +394,7 @@ export default function VehicleSelect({ usersData }) {
                                   message: "Invalid Mobile Number",
                                 },
                               })}
-                              className="w-full border rounded p-2"
+                              className="w-full border rounded p-2 mt-1"
                             />
                             {errors.mobile && (
                               <p className="text-red-500 text-sm">
@@ -388,19 +408,23 @@ export default function VehicleSelect({ usersData }) {
 
                     {bikeOption === "newbike" && (
                       <>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col md:flex-row  gap-4">
                           <div className="flex flex-col">
-                            <label>City Name</label>
+                            <label className="text-base md:text-base">
+                              City Name
+                            </label>
                             <input
                               type="text"
                               placeholder="Enter City Name"
                               {...register("bikeCity")}
-                              className="w-full border rounded p-2"
+                              className="w-full border rounded p-2 mt-1"
                             />
                           </div>
 
                           <div className="flex flex-col">
-                            <label>Mobile Number</label>
+                            <label className="text-base md:text-base">
+                              Mobile Number
+                            </label>
                             <input
                               type="text"
                               // value={mobile}
@@ -412,7 +436,7 @@ export default function VehicleSelect({ usersData }) {
                                   message: "Invalid Mobile Number",
                                 },
                               })}
-                              className="w-full border rounded p-2"
+                              className="w-full border rounded p-2 mt-1"
                             />
                             {errors.mobile && (
                               <p className="text-red-500 text-sm">
@@ -429,7 +453,7 @@ export default function VehicleSelect({ usersData }) {
                 {/* COMMERCIAL FORM */}
                 {selectedVehicle === "commercial" && (
                   <div className="space-y-4">
-                    <div className="flex gap-4">
+                    <div className="flex flex-col md:flex-row gap-4">
                       <label>
                         <input
                           type="radio"
@@ -450,7 +474,9 @@ export default function VehicleSelect({ usersData }) {
 
                     {commercialOption === "knowcommercial" && (
                       <>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col md:flex-row gap-4 bg-amber-400">
+                        
+                          <div className="flex flex-col gap-2">
                           <div className="flex flex-col">
                             <label>Registration Number</label>
                             <input
@@ -460,6 +486,16 @@ export default function VehicleSelect({ usersData }) {
                               className="w-full border rounded p-2"
                             />
                           </div>
+
+                           <div className="flex flex-col">
+                              <label>Vehicle Type</label>
+                              <select name="commercialVehicle" id="comVehicle" className="p-1">
+                                <option>Vehicle Type</option>
+                                <option value="">Passenger Carrying Commercial Vehicle</option>
+                                <option value="">Goods Carrying Commercial Vehicles</option>
+                              </select>
+                            </div>
+                            </div>
 
                           <div className="flex flex-col">
                             <label>Mobile Number</label>
@@ -506,11 +542,11 @@ export default function VehicleSelect({ usersData }) {
                   </div>
                 )}
 
-                <div className="flex flex-wrap gap-3 justify-start mt-2">
+                <div className="flex flex-wrap gap-3 justify-start mt-4">
                   <button
                     type="button"
                     onClick={() => router.push(constant.ROUTES.MOTOR.INDEX)}
-                    className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
+                    className="px-6 py-2 text-white rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                     style={{
                       background:
                         "linear-gradient(to bottom, #426D98, #28A7E4)",
@@ -521,7 +557,7 @@ export default function VehicleSelect({ usersData }) {
                   <button
                     type="button"
                     onClick={handleSubmit(onSubmit)}
-                    className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
+                    className="px-6 py-2 text-white rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                     style={{
                       background:
                         "linear-gradient(to bottom, #426D98, #28A7E4)",
@@ -532,7 +568,7 @@ export default function VehicleSelect({ usersData }) {
                 </div>
 
                 {/* Footer Text */}
-                <p className="mt-4 text-lg">
+                <p className="mt-4 text-base md:text-lg">
                   Already bought a policy from DigiBima?{" "}
                   <a href="#" className="text-blue-600 underline">
                     Renew Now

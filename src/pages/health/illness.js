@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { showSuccess, showError } from "../../styles/js/toaster";
+import { showSuccess, showError } from "../../layouts/toaster";
 import { CallApi, getUserinfo } from "../../api";
 import constant from "../../env";
 

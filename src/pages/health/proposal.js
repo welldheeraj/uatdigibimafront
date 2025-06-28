@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { FaChevronLeft, FaCheck } from "react-icons/fa";
 import { FiLoader } from "react-icons/fi";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
-import { showSuccess, showError } from "../../styles/js/toaster";
+import { showSuccess, showError } from "../../layouts/toaster";
 import { validateFields } from "../../styles/js/validation.js";
 import constant from "../../env";
 

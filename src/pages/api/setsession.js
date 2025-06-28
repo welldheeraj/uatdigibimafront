@@ -1,16 +1,24 @@
 import { setCookie } from 'nookies';
-import { encryptData} from './crypt'; // Example encryption utility functions
+import { encryptData } from './crypt'; // Example encryption utility functions
 
 export default async function handler(req, res) {
-  const {token} = req.body;
-  const encryptedToken = encryptData(token);
-  setCookie({ res }, 'unused', encryptedToken, {
-    httpOnly: true,      // Prevents cookie access from JavaScript
-    secure: true,        // Ensures cookie is sent over HTTPS only
-    path: '/',           // Adjust path as per your requirements
-    sameSite: 'strict',  // Adjust sameSite policy as per your security needs
-    maxAge: 60 * 60 * 24 * 7, // Max age of the cookie in seconds (e.g., 7 days)
-  });
+  const { token } = req.body;
+  console.log('body',req.body);
+  // const encryptedToken = await encryptData(token);
+  const encryptedToken = token;
+  if (encryptedToken) {
+    setCookie({ res }, 'unused', encryptedToken, {
+      httpOnly: true,     
+      secure: true,       
+      path: '/',          
+      sameSite: 'none',  
+      maxAge: 60 * 60 * 24 * 30, 
+    });
+    res.json({ status: true, message: 'Session set successfully',cookie:encryptedToken });
+  }else{
+    res.json({ status: false, message: 'Session not set successfully' });
+  }
 
-  res.status(200).json({ message: 'Cookie set successfully' });
+
+  
 }

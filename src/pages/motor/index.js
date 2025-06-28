@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { showSuccess, showError } from "../../styles/js/toaster";
+import { showSuccess, showError } from "../../layouts/toaster";
 import { CallApi, getUserinfo } from "../../api";
 import constant from "../../env";
 import { isNumber } from "../../styles/js/validation";
@@ -256,7 +256,8 @@ export default function FormPage() {
         setToken(res.token);
         window.dispatchEvent(new Event("auth-change"));
       }
-      showSuccess(res.message);
+      // showSuccess(res.message);
+      showSuccess("Login successfully")
       router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
     } catch (error) {
       console.error("Submission Error:", error);

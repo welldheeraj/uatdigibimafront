@@ -1,5 +1,5 @@
 "use client";
-import { showSuccess, showError } from "../../styles/js/toaster";
+import { showSuccess, showError } from "../../layouts/toaster";
 export const isNumber = (event) => {
   event.target.value = event.target.value.replace(/[^0-9]/g, "");
 };

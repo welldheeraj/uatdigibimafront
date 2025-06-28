@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import Layout from "./component/layout";
 import constant from "@/env";
 import { CallApi } from "@/api";
+import { showSuccess } from "@/layouts/toaster";
 export function Input({
   label,
   name,
@@ -28,12 +29,12 @@ export function Input({
 const Profile = ({ usersData }) => {
   const { register, handleSubmit, reset } = useForm();
   const onSubmit = async (data) => {
-    //console.log("Form Data:", data,constant.API.USER.PROFILEUPDATE);
     let response = await CallApi(
       constant.API.USER.PROFILEUPDATE,
       "POST",
       data
     );
+    showSuccess(response.message);
   };
 
   useEffect(() => {

@@ -1,13 +1,16 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import constant from "../../../../env";
 import { CallApi } from "../../../../api";
 import UniversalDatePicker from "../../../datepicker/index";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
+
+// import DropdownWithSearch from "@/DropdownWithSearch";
+import DropdownWithSearch from "../../../lib/DropdownWithSearch";
 
 export default function KnowCarSlideTwo() {
   const {
@@ -16,23 +19,20 @@ export default function KnowCarSlideTwo() {
     watch,
     formState: { errors },
     setValue,
-    reset,
+    reset
+  
   } = useForm();
   const [under, setUnder] = useState("individual");
   const [brands, setBrands] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [models, setModels] = useState([]);
+  const [parsedDate, setParsedDate] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
   const [dates, setDates] = useState({ regDate: "", regDateRaw: null });
+
   const router = useRouter();
 
   const [savedPageData, setSavedPageData] = useState(null);
-
-  const brandDropdownRef = useRef(null);
-  const modelDropdownRef = useRef(null);
-
-  // const { vehicle } = router.state;
-  // const [vahan, setVahan] = useState(vehicle);
 
   const registerDate = watch("carregdate");
 
@@ -60,6 +60,25 @@ export default function KnowCarSlideTwo() {
   }, []);
 
   useEffect(() => {
+    console.log("datesegff", dates);
+    //console.log("datesegff", parsedDate);
+  }, [dates, parsedDate]);
+
+  useEffect(() => {
+    if (savedPageData && brands.length > 0) {
+      setSelectedBrand(savedPageData.brand || null);
+      setValue("brand", savedPageData.brand);
+    }
+  }, [savedPageData, brands, setValue]);
+
+  useEffect(() => {
+    if (savedPageData && models.length > 0) {
+      setSelectedModel(savedPageData.model || null);
+      setValue("model", savedPageData.model);
+    }
+  }, [savedPageData, models, setValue]);
+
+  useEffect(() => {
     if (savedPageData) {
       reset({
         brand: savedPageData.brand,
@@ -67,6 +86,23 @@ export default function KnowCarSlideTwo() {
         carregdate: savedPageData.carregdate,
         brandyear: savedPageData.brandyear,
       });
+
+      console.log("savedPageData", savedPageData);
+
+      if (savedPageData?.carregdate) {
+        setDates((prev) => {
+          const updated = {
+            ...prev,
+            regDateRaw: parse(
+              savedPageData.carregdate,
+              "dd-MM-yyyy",
+              new Date()
+            ),
+          };
+          return updated;
+        });
+      }
+      setParsedDate();
     }
   }, [savedPageData]);
 
@@ -74,10 +110,12 @@ export default function KnowCarSlideTwo() {
     if (!date || isNaN(date.getTime())) {
       return;
     }
-
+    console.log("date2", date);
     const formatted = format(date, "dd-MM-yyyy");
     setDates({ [key]: formatted, [`${key}Raw`]: date });
     setValue("carregdate", formatted);
+    console.log("date2dfd", formatted);
+    //setParsedDate(formatted);
   };
 
   const handleGetBrands = async () => {
@@ -88,33 +126,32 @@ export default function KnowCarSlideTwo() {
       const response = await CallApi(constant.API.MOTOR.BRANDS, "POST", brand);
       console.log("Brands ka res", response);
       setBrands(response.brand);
-   
+
       console.log("mai hoo", brands);
     } catch (error) {
       console.error("error fetching in brands", error);
     }
   };
 
-  const handleGetModels = async () => {
-    try {
-      const data = {
-        brand: selectedBrand,
-        type: "TW",
-      };
-
-      const response = await CallApi(constant.API.MOTOR.MODELS, "POST", data);
-      console.log("i'm Model", response);
-      setModels(response);
-    } catch (error) {
-      console.error("error fetching in models", error);
-    }
-  };
-
-//   useEffect(() => {
-//   if (selectedBrand) {
-//     handleGetModels(); 
-//   }
-// }, [selectedBrand]);
+  useEffect(() => {
+    const handleGetModels = async () => {
+      try {
+        const data = {
+          brand: selectedBrand,
+          type: "TW",
+        };
+        const response = await CallApi(constant.API.MOTOR.MODELS, "POST", data);
+        console.log("i'm Model", response);
+        setModels(response);
+        reset({
+          model: "",
+        });
+      } catch (error) {
+        console.error("error fetching in models", error);
+      }
+    };
+    handleGetModels();
+  }, [selectedBrand]);
 
   const onSubmit = async (data) => {
     console.log("Submitted Data:", data);
@@ -147,23 +184,7 @@ export default function KnowCarSlideTwo() {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        brandDropdownRef.current &&
-        !brandDropdownRef.current.contains(event.target) &&
-        modelDropdownRef.current &&
-        !modelDropdownRef.current.contains(event.target)
-      ) {
-        setBrands([]);
-        setModels([]);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    handleGetBrands();
   }, []);
 
   return (
@@ -228,39 +249,25 @@ export default function KnowCarSlideTwo() {
             {/* Manufacturer */}
             <div>
               <label className="block font-medium mb-1">Manufacture</label>
-              <input
-                list="brand-options"
+
+              <DropdownWithSearch
+                id="brandsDropdown"
+                name="brand"
                 {...register("brand", { required: true })}
-                className="w-full border rounded px-3 py-2"
-                placeholder="Select or type brand"
-                onClick={handleGetBrands}
+                options={brands.map((brand) => ({
+                  value: brand.MANUFACTURER,
+                  label: brand.MANUFACTURER,
+                }))}
                 value={selectedBrand}
+                onChange={(value) => {
+                  setSelectedBrand(value);
+                  // setSelectedModel(null);
+                  setValue("brand", value);
+                }}
+                placeholder="Select or type brand"
               />
 
-              {
-                <ul
-                  ref={brandDropdownRef}
-                  className="absolute z-10 bg-white border max-h-60 overflow-y-auto rounded shadow-md mt-1"
-                >
-                  {brands.map((brand, idx) => (
-                    <li
-                      key={idx}
-                      onClick={() => {
-                      
-                        setSelectedBrand(brand.MANUFACTURER);
-                        setValue("brand", brand.MANUFACTURER);
-                        setBrands([]); 
-                        setSelectedModel(null); 
-                        setModels([]); 
-                        // handleGetModels(); 
-                      }}
-                      className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
-                    >
-                      {brand.MANUFACTURER}
-                    </li>
-                  ))}
-                </ul>
-              }
+          
 
               {errors.brand && (
                 <span className="text-red-600 text-sm">Brand is required</span>
@@ -270,35 +277,22 @@ export default function KnowCarSlideTwo() {
             {/* Model & Variant */}
             <div>
               <label className="block font-medium mb-1">Model & Variant</label>
-              <input
-                list="model-options"
-                {...register("model", { required: true })}
-                className="w-full border rounded px-3 py-2"
-                placeholder="Select or type model"
-                onClick={handleGetModels}
-                // value={selectedModel}
-              />
 
-              {
-                <ul
-                  ref={modelDropdownRef}
-                  className="absolute z-10 bg-white border max-h-60 overflow-y-auto rounded shadow-md mt-1"
-                >
-                  {models.map((model, idx) => (
-                    <li
-                      key={idx}
-                      onClick={() => {
-                        setSelectedModel(model.model);
-                        setValue("model", model.model);
-                        setModels([]);
-                      }}
-                      className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
-                    >
-                      {model.model}
-                    </li>
-                  ))}
-                </ul>
-              }
+              <DropdownWithSearch
+                id="modelsDropdown"
+                name="model"
+                {...register("model", { required: true })}
+                options={models.map((model) => ({
+                  value: model.model,
+                  label: model.model,
+                }))}
+                value={selectedModel}
+                onChange={(value) => {
+                  setSelectedModel(value);
+                  setValue("model", value);
+                }}
+                placeholder="Select or type Model"
+              />
 
               {errors.model && (
                 <span className="text-red-600 text-sm">Model is required</span>
