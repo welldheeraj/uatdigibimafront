@@ -11,6 +11,44 @@ export default function StepTwoForm({
   onSubmitStep,
 }) {
   const [dates, setDates] = useState({});
+//   useEffect(() => {
+//   const values = step2Form.getValues();
+//   const updatedDates = {};
+
+//   if (values.proposerdob2) {
+//     const parsed = parse(values.proposerdob2, "dd-MM-yyyy", new Date());
+//     updatedDates.self = { dob: parsed };
+//   }
+
+//   if (values.nomineedob) {
+//     const parsed = parse(values.nomineedob, "dd-MM-yyyy", new Date());
+//     updatedDates.nominee = { dob: parsed };
+//   }
+
+//   let childCounter = 1;
+
+//   (steponedata?.members || []).forEach((m) => {
+//     const name = m.name?.toLowerCase();
+//     let key = "";
+
+//     if (name === "wife") key = "spousedob";
+//     else if (name === "father") key = "fatherdob";
+//     else if (name === "mother") key = "motherdob";
+//     else if (name === "grandfather") key = "grandfatherdob";
+//     else if (name === "grandmother") key = "grandmotherdob";
+//     else if (name === "fatherinlaw") key = "fatherlawdob";
+//     else if (name === "motherinlaw") key = "motherlawdob";
+//     else if (name === "son" || name === "daughter") key = `childdob${childCounter++}`;
+
+//     if (values[key]) {
+//       const parsed = parse(values[key], "dd-MM-yyyy", new Date());
+//       updatedDates[key.replace("dob", "")] = { dob: parsed };
+//     }
+//   });
+
+//   setDates(updatedDates);
+// }, []);
+
 
   const handleDateChange = (key, fieldNameInForm) => (date) => {
     if (!date || isNaN(date)) return;
@@ -88,7 +126,9 @@ export default function StepTwoForm({
         <UniversalDatePicker
           id="dobproposerdob2"
           name="proposerdob2"
+          className={`proposerdob2 ...`}
           value={dates?.self?.dob || null}
+          data-age={steponedata?.members?.find(m => m.name?.toLowerCase() === "self")?.age || ""}
           onChange={handleDateChange("self", "proposerdob2")}
           placeholder="Pick a date"
           error={!dates?.self?.dob}
@@ -195,7 +235,9 @@ export default function StepTwoForm({
               <UniversalDatePicker
                 id={dobFieldName}
                 name={dobFieldName}
+                className={`${dobFieldName} ...`}
                 value={dates?.[`${fieldPrefix}${suffix}`]?.dob || null}
+                data-age={member.age}
                 onChange={handleDateChange(
                   `${fieldPrefix}${suffix}`,
                   dobFieldName
@@ -307,11 +349,13 @@ export default function StepTwoForm({
         <UniversalDatePicker
           id="nomineedob"
           name="nomineedob"
+          className={`nomineedob ...`}
           value={dates?.nominee?.dob || null}
+          data-age=""
           onChange={handleDateChange("nominee", "nomineedob")}
           placeholder="Pick a date"
-          error={!dates?.nominee?.dob}
-          errorText="Please select a valid date"
+          // error={!dates?.nominee?.dob || invalidFields.includes("nomineedob")}
+          error={!dates?.nominee?.dob }
         />
         <select
           {...step2Form.register("nomineerelation", {
@@ -321,11 +365,12 @@ export default function StepTwoForm({
         >
           <option value="">Relation</option>
           <option value="Spouse">Spouse</option>
-          <option value="Child">Child</option>
-          <option value="Parent">Parent</option>
-          <option value="Sibling">Sibling</option>
-          <option value="Friend">Friend</option>
-          <option value="Other">Other</option>
+          <option value="Father">Father</option>
+          <option value="Mother">Mother</option>
+          <option value="Brother">Brother</option>
+          <option value="Sister">Sister</option>
+          <option value="Son">Son</option>
+          <option value="Daughter">Daughter</option>
         </select>
       </div>
 

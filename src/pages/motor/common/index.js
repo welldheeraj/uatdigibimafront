@@ -334,7 +334,7 @@ export default function VehicleSelect({ usersData }) {
 
                 {/* BIKE FORM */}
                 {selectedVehicle === "bike" && (
-                  <div className="space-y-4">
+                  <div className="space-y-4 ">
                     <div className="flex gap-4">
                       <label>
                         <input
@@ -356,7 +356,7 @@ export default function VehicleSelect({ usersData }) {
 
                     {bikeOption === "knowbike" && (
                       <>
-                        <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex flex-col md:flex-row gap-4 ">
                           <div className="flex flex-col">
                             <label className="text-base md:text-base ">
                               Bike Registration Number
@@ -452,8 +452,9 @@ export default function VehicleSelect({ usersData }) {
 
                 {/* COMMERCIAL FORM */}
                 {selectedVehicle === "commercial" && (
-                  <div className="space-y-4">
+                  <div className="space-y-4 ">
                     <div className="flex flex-col md:flex-row gap-4">
+                     <div className="flex gap-4">
                       <label>
                         <input
                           type="radio"
@@ -470,11 +471,12 @@ export default function VehicleSelect({ usersData }) {
                         />
                         New Commercial
                       </label>
+                     </div>
                     </div>
 
                     {commercialOption === "knowcommercial" && (
                       <>
-                        <div className="flex flex-col md:flex-row gap-4 bg-amber-400">
+                        <div className="flex flex-col md:flex-row gap-4 ">
                         
                           <div className="flex flex-col gap-2">
                           <div className="flex flex-col">

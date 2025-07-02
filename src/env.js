@@ -53,6 +53,7 @@ const constant = {
         'SAVESTEPTHREE':'/api/proposalStepThree',
         'CREATEPOLICY':'/api/createpolicy',
          'GETPROPOSAL':'/api/carepayment',
+         'ACPINCODE':'/api/acdetails',
        } ,
 
        MOTOR:{
@@ -67,7 +68,8 @@ const constant = {
         'CARDETAILSTWO' : '/api/motor-car/kn-car-detailstwo'
        },
        USER:{
-            'PROFILEUPDATE':'/api/userpnlx/user-profile-update'
+            'PROFILEUPDATE':'/api/userpnlx/user-profile-update',
+            'POLICY' : '/api/userpnlx/user-policy'
        }
     },
      QUESTION: {

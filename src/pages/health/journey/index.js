@@ -8,11 +8,16 @@ import StepOneForm from "./stepone.js";
 import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
 import StepFourForm from "./stepfour.js";
-import { showSuccess, showError } from "@/layouts/toaster";
+import SummaryCard from "../checkoutOne/rightsection.js";
+import { showSuccess, showError }  from "@/layouts/toaster";
 import { validateFields } from "../../../styles/js/validation.js";
+import { validateStepTwoData } from "./validatesteptwoagedata.js";
 import constant from "../../../env";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "../../../api";
+import HealthInsuranceLoader from "../loader";
+import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 
 export default function StepperForm() {
   const [loading, setLoading] = useState(false);
@@ -28,6 +33,31 @@ export default function StepperForm() {
   const [steponedata, setStepOneData] = useState([]);
   const [steptwodata, setStepTwoData] = useState([]);
   const [stepthreedata, setStepThreeData] = useState([]);
+    const searchParams = useSearchParams();
+
+  const summaryData = useMemo(() => {
+    const getParsed = (key) => {
+      try {
+        return JSON.parse(searchParams.get(key) || "[]");
+      } catch {
+        return [];
+      }
+    };
+console.log('hello World',searchParams);
+    return {
+      tenure: searchParams.get("tenure") || "",
+      coverAmount: searchParams.get("coverAmount") || "",
+      totalPremium: Number(searchParams.get("totalPremium") || 0),
+      selectedAddons: getParsed("selectedAddons"),
+      compulsoryAddons: getParsed("compulsoryAddons"),
+      tenurePrices: getParsed("tenurePrices"),
+      addons: getParsed("addons"),
+      fullAddonsName: getParsed("fullAddonsName"),
+      
+    };
+    
+  }, [searchParams]);
+  
 
   const step1Form = useForm();
   const step2Form = useForm();
@@ -37,10 +67,16 @@ export default function StepperForm() {
   const inputClass = "border border-gray-400 rounded px-3 py-2 text-sm w-full";
   const steps = ["Step", "Step", "Step", ""];
 
-  const back = () =>
-    currentStep === 1
-      ? router.push(constant.ROUTES.HEALTH.CHECKOUT)
-      : setCurrentStep((prev) => prev - 1);
+ const back = async () => {
+  if (currentStep === 1) {
+    router.push(constant.ROUTES.HEALTH.CHECKOUT);
+  } else {
+    setLoading(true);
+    setCurrentStep((prev) => prev - 1);
+    setLoading(false);
+  }
+};
+
 
   const validateFormStepOne = async () => {
     const rawValues = step1Form.getValues();
@@ -62,7 +98,6 @@ export default function StepperForm() {
 
     const values = {
       ...rawValues,
-      // customerpancardDob: rawValues.panDob,
       customerpancardDob: rawValues.customerpancardDob,
       sameAddress: sameAddress ? "1" : "0",
     };
@@ -71,13 +106,13 @@ export default function StepperForm() {
     console.log(values);
     console.log("pandob", values.customerpancardDob);
     try {
+      setLoading(true);
       const res = await CallApi(
         constant.API.HEALTH.SAVESTEPONE,
         "POST",
         values
       );
       console.log(res);
-
       if (res === 1 || res?.status) {
         setStepOneData(res);
         return true;
@@ -89,54 +124,71 @@ export default function StepperForm() {
     } catch (error) {
       console.error("API call error:", error);
       return false;
-      // return true;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const validateFormStepTwo = async () => {
-    const fieldsValid = await validateFields(step2Form);
-    if (!fieldsValid) return false;
 
-    const rawValues = step2Form.getValues();
 
-    const values = {
-      ...rawValues,
-    };
+const validateFormStepTwo = async () => {
+  const fieldsValid = await validateFields(step2Form);
+  if (!fieldsValid) return false;
 
-    console.log("Step 2 values", values);
-    console.log("Nominee DOB: ", values.nomineedob);
+  const rawValues = step2Form.getValues();
 
-    try {
-      const res = await CallApi(
-        constant.API.HEALTH.SAVESTEPTWO,
-        "POST",
-        values
-      );
-      console.log("Step 2 API Response", res);
+   const values = step2Form.getValues();
+  const validAge = validateStepTwoData(values, steponedata);
+  if (!validAge) return false;
 
-      if (res === 1 || res?.status) {
-        setStepTwoData(res); // Optional: agar step 2 ka data store karna ho
-        return true;
-      } else {
-        console.error("Step 2 API failed or returned unexpected value:", res);
-        return false;
-      }
-    } catch (error) {
-      console.error("Step 2 API call error:", error);
+  try {
+    setLoading(true);
+    const res = await CallApi(
+      constant.API.HEALTH.SAVESTEPTWO,
+      "POST",
+      values
+    );
+    if (res === 1 || res?.status) {
+      setStepTwoData(res);
+      return true;
+    } else {
+      console.error("Step 2 API failed or returned unexpected value:", res);
       return false;
     }
-  };
+  } catch (error) {
+    console.error("Step 2 API call error:", error);
+    return false;
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
 
   const validateFormStepThree = async (step3Form, steptwodata) => {
-    const isValid = await step3Form.trigger();
-    if (!isValid) return false;
+    // const isValid = await step3Form.trigger();
+    // if (!isValid) return false;
 
     const data = step3Form.getValues();
     const members = steptwodata?.member || [];
-
+    const agreeTnC = data.agreeTnC;
+    const standingInstruction = data.standingInstruction;
+    console.log("ram", agreeTnC, standingInstruction);
     let hasError = false;
     let firstInvalidInput = null;
     let dobErrorShown = false;
+
+    if (!agreeTnC || !standingInstruction) {
+      // Optional: Focus on the first missing field
+      if (!agreeTnC) step3Form.setFocus("agreeTnC");
+      else if (!standingInstruction) step3Form.setFocus("standingInstruction");
+
+      showError(
+        "Please agree to Terms & Conditions and Standing Instruction to continue."
+      );
+      return false;
+    }
 
     const sectionMap = {
       1: [
@@ -325,24 +377,14 @@ export default function StepperForm() {
   const GoToPayment = async () => {
     setLoading(true);
     try {
-      console.log("ram");
       const res = await CallApi(constant.API.HEALTH.CREATEPOLICY, "POST");
-      console.log("create policy API Response", res);
-
       if (res === 1 || res?.status) {
         const response = await CallApi(constant.API.HEALTH.GETPROPOSAL, "POST");
-        console.log("payment", response);
-
         if (response.proposalNumber) {
-          console.log("navigating...");
           router.push(
             `/health/payment?proposalNumber=${response.proposalNumber}`
           );
-        } else {
-          console.error("Missing proposalNumber");
         }
-      } else {
-        console.error("Create policy failed", res);
       }
     } catch (error) {
       console.error("API Error", error);
@@ -355,13 +397,17 @@ export default function StepperForm() {
 
   const onSubmitStep = async () => {
     let isValid = false;
+     setLoading(true); 
     if (currentStep === 1) isValid = await validateFormStepOne();
     else if (currentStep === 2) isValid = await validateFormStepTwo();
     else if (currentStep === 3)
       isValid = await validateFormStepThree(step3Form, steptwodata);
     else if (currentStep === 4) isValid = await GoToPayment();
 
-    if (!isValid) return;
+     if (!isValid) {
+    setLoading(false); 
+    return;
+  }
     const formToUse =
       currentStep === 1
         ? step1Form
@@ -373,6 +419,7 @@ export default function StepperForm() {
 
     console.log(`Step ${currentStep} Data:`, formToUse.getValues());
     goNext();
+    setLoading(false); 
   };
 
   const handleVerifyPan = async () => {
@@ -417,8 +464,10 @@ export default function StepperForm() {
     );
   };
 
+
   return (
     <div className="min-h-screen bg-[#C8EDFE] p-4 sm:p-8">
+      {/* {loading && <HealthInsuranceLoader />} */}
       <button
         onClick={back}
         className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
@@ -512,23 +561,25 @@ export default function StepperForm() {
                 step4Form={step4Form}
                 stepthreedata={stepthreedata}
                 onSubmitStep={onSubmitStep}
+                currentStep={currentStep}
+                onGoToPayment={GoToPayment}
               />
             )}
           </div>
         </div>
 
-        <div className="w-full lg:w-[360px] sticky top-4 self-start bg-white p-6 rounded-xl shadow">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">
-            Plan Summary
-          </h3>
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>💠 Base Premium: ₹14,537</li>
-            <li>💠 Add-Ons: ₹3,820</li>
-            <li>💠 Total: ₹18,357</li>
-            <li>💠 Cover: 10 Lac</li>
-            <li>💠 Policy: 2 Years</li>
-          </ul>
-        </div>
+        <SummaryCard
+          tenure={summaryData.tenure}
+          coverAmount={summaryData.coverAmount}
+          totalPremium={summaryData.totalPremium}
+          selectedAddons={summaryData.selectedAddons}
+          compulsoryAddons={summaryData.compulsoryAddons}
+          tenurePrices={summaryData.tenurePrices}
+          addons={summaryData.addons}
+          fullAddonsName={summaryData.fullAddonsName}
+          currentStep={currentStep}
+          onGoToPayment={GoToPayment}  
+        />
       </div>
     </div>
   );

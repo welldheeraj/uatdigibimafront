@@ -4,6 +4,8 @@ import { isAlpha, isNumber } from "../../../styles/js/validation";
 import { FiLoader } from "react-icons/fi";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import UniversalDatePicker from "../../datepicker/index";
+import { CallApi } from "../../../api";
+import constant from "../../../env";
 import { format } from "date-fns";
 
 export default function StepOneForm({
@@ -141,6 +143,33 @@ export default function StepOneForm({
     ],
     address: ["AADHAR", "PASSPORT", "VOTER ID", "DRIVING LICENSE", "FORM 60"],
   };
+const handlePincodeInput = async (e) => {
+  const value = e.target.value;
+  const fieldId = e.target.name || e.target.id;
+
+  if (value.length === 6) {
+    try {
+      const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {'pincode':value});
+
+      if (res?.length > 0) {
+        const { state, district } = res[0];
+        console.log(res);
+
+        if (fieldId == "Pincode") {
+          console.log(fieldId,district,state)
+          step1Form.setValue("City", district);
+          step1Form.setValue("State", state);
+        } else if (fieldId === "commcurrentPincode") {
+          step1Form.setValue("commcurrentCity", district);
+          step1Form.setValue("commcurrentState", state);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching pincode info:", error);
+    }
+  }
+};
+
 
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -159,10 +188,7 @@ export default function StepOneForm({
           })}
           className={inputClass}
         >
-          <option value="">Select</option>
           <option value="SELF">SELF</option>
-          <option value="SPOUSE">SPOUSE</option>
-          <option value="PARENT">PARENT</option>
         </select>
       </div>
 
@@ -441,24 +467,30 @@ export default function StepOneForm({
       <label className="block font-semibold cursor-pointer">
         Contact Details
       </label>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {["house", "colony", "Landmark", "City", "State", "Pincode"].map(
-          (field) => (
-            <input
-              key={field}
-              {...step1Form.register(field, {
-                onChange:
-                  field === "Pincode"
-                    ? (e) => isNumber(e, step1Form.setValue, "Pincode")
-                    : undefined,
-              })}
-              placeholder={field.replace(/^[a-z]/, (c) => c.toUpperCase())}
-              className={inputClass}
-              maxLength={field === "Pincode" ? 6 : undefined}
-            />
-          )
-        )}
+     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {["house", "colony", "Landmark", "City", "State", "Pincode"].map((field) => (
+          <input
+            key={field}
+            {...step1Form.register(field, {
+              onChange:
+                field === "Pincode"
+                  ? (e) => isNumber(e, step1Form.setValue, "Pincode")
+                  : undefined,
+            })}
+            onInput={
+              field === "Pincode"
+                ? (e) => {
+                    handlePincodeInput(e); // 👉 custom function
+                  }
+                : undefined
+            }
+            placeholder={field.replace(/^[a-z]/, (c) => c.toUpperCase())}
+            className={inputClass}
+            maxLength={field === "Pincode" ? 6 : undefined}
+          />
+        ))}
       </div>
+
 
       <label className="block font-semibold cursor-pointer">
         Communication Address
@@ -513,15 +545,21 @@ export default function StepOneForm({
             "commcurrentPincode",
           ].map((field) => (
             <input
-              key={field}
-              {...step1Form.register(field)}
-              placeholder={field
-                .replace("comm", "")
-                .replace(/([A-Z])/g, " $1")
-                .trim()}
-              className={inputClass}
-              maxLength={field === "commcurrentPincode" ? 6 : undefined}
-            />
+                key={field}
+                {...step1Form.register(field, {
+                  onChange:
+                    field === "commcurrentPincode"
+                      ? (e) => isNumber(e, step1Form.setValue, "commcurrentPincode")
+                      : undefined,
+                })}
+                onInput={field === "commcurrentPincode" ? handlePincodeInput : undefined}
+                placeholder={field
+                  .replace("comm", "")
+                  .replace(/([A-Z])/g, " $1")
+                  .trim()}
+                className={inputClass}
+                maxLength={field === "commcurrentPincode" ? 6 : undefined}
+              />
           ))}
         </div>
       )}

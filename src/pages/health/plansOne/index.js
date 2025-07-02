@@ -9,7 +9,7 @@ import constant from "../../../env";
 
 import FilterForm from "./filter";
 import PlanCard from "./plancard";
-import SlidePanel from "./sidebar";
+import SlidePanel from "../sidebar/index";
 import HealthInsuranceLoader from "../loader";
 
 export default function HealthPlan() {

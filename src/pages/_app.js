@@ -1,5 +1,5 @@
 // pages/_app.js
-
+// import '@mui/x-data-grid/index.css';
 import "@/styles/globals.css";
 import "@/styles/css/digibima.css";
 import Header from "./partial/header";
@@ -51,9 +51,9 @@ export default function App({ Component, pageProps }) {
   useEffect(() => {
     const verifyAuth = async () => {
       const storedToken = localStorage.getItem("token");
-      var storedCookie = await getSession();
-      console.log('gettokenresponse',storedCookie);
-      if (!storedCookie) {
+      // var storedCookie = await getSession();
+      // console.log('gettokenresponse',storedCookie);
+      if (!storedToken) {
         setToken(null);
         //setAuthkey(null);
         setLoading(false);

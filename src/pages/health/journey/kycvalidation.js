@@ -2,7 +2,7 @@
 
 import { CallApi } from "../../../api";
 import constant from "../../../env";
-import { showSuccess, showError } from "@/layouts/toaster";
+import { showSuccess, showError }  from "@/layouts/toaster";
 
 export default async function validateKycStep(
   step1Form,

@@ -1,9 +1,9 @@
 "use client";
-
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form"; 
 import { useState } from "react";
 import { CallApi } from "../../../api";
 import constant from "../../../env";
+import { showSuccess, showError }  from "@/layouts/toaster";
 
 export default function AddOnSelection({
   addons = {},
@@ -11,28 +11,53 @@ export default function AddOnSelection({
   selectedAddons = [],
   fullAddonsName = {},
   getCheckoutData,
+  setApplyClicked,
+  setIsAddOnsModified,
 }) {
-
-  // console.log("selectedAddons:", selectedAddons); 
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, control } = useForm(); 
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (data) => {
-    const selectedKeys = Object.entries(data.addons || {})
-      .filter(([_, checked]) => checked)
-      .map(([key]) => key);
+  const isPedSelected = useWatch({ name: "addons.ped", control }); 
 
-    console.log("Selected Optional Add-Ons:", selectedKeys);
+  const onSubmit = async (data) => {
+    let selectedKeys = [];
+    const addonsData = data.addons || {};
+    const isPedChecked = addonsData.ped;
+    const pedValue = data.pedaddonvalue;
+
+    Object.entries(addonsData).forEach(([key, checked]) => {
+      if (checked && key !== "ped") {
+        selectedKeys.push(key);
+      }
+    });
+
+    if (isPedChecked) {
+      if (!pedValue) {
+        showError("Please select a value for PED Wait Period Modification.");
+        return;
+      }
+
+      if (["1", "2"].includes(pedValue)) {
+        selectedKeys.push("ped", pedValue);
+      }
+    } else {
+      selectedKeys = selectedKeys.filter((val) => val !== "1" && val !== "2");
+    }
 
     try {
       setLoading(true);
       const payload = { addon: selectedKeys };
       const response = await CallApi(constant.API.HEALTH.ADDADDONS, "POST", payload);
-      console.log("API Success:", response);
+      console.log("AddOns Applied:", response);
+
+      if (typeof setApplyClicked === "function") setApplyClicked(true);
+      if (typeof setIsAddOnsModified === "function") setIsAddOnsModified(false);
 
       if (getCheckoutData) getCheckoutData();
+      showSuccess("Add-Ons applied successfully.");
     } catch (error) {
-      console.error("API Error:", error);
+      console.error("Apply failed:", error);
+      showError("Failed to apply add-ons.");
     } finally {
       setLoading(false);
     }
@@ -53,7 +78,6 @@ export default function AddOnSelection({
   return (
     <div className="bg-white rounded-xl p-4 px-6 mb-6">
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-semibold text-base mb-2">Add-On</h2>
@@ -61,24 +85,22 @@ export default function AddOnSelection({
               You should get these additional benefits to enhance your current plan.
             </p>
           </div>
-          <button
-            type="submit"
-            className="px-6 py-1 thmbtn"
-            disabled={loading}
-          >
+          <button type="submit" className="px-6 py-1 thmbtn" disabled={loading}>
             {loading ? "Applying..." : "Apply"}
           </button>
         </div>
 
-        {/* Add-on Cards */}
         {optionalAddOns.map(([key, price]) => {
-          const selectedNames = Object.values(selectedAddons).map(v => v.toLowerCase().trim());
+          const selectedNames = Object.values(selectedAddons).map((v) =>
+            v.toLowerCase().trim()
+          );
           const isChecked = selectedNames.includes(key.toLowerCase().trim());
+          const isPED = key.toLowerCase() === "ped";
 
           return (
             <div
               key={key}
-              className="border rounded-2xl p-4 mb-4 flex justify-between items-center"
+              className="border rounded-2xl p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center"
             >
               <div className="flex-1 pr-4">
                 <p className="font-semibold text-sm text-black mb-1">
@@ -89,29 +111,50 @@ export default function AddOnSelection({
                 </p>
               </div>
 
-              <label className="flex items-center gap-2 px-4 py-3 border border-gray-400 rounded-xl min-w-[120px] cursor-pointer">
-                <div className="text-center leading-tight text-sm text-gray-800">
-                  <p className="font-medium">Premium</p>
-                  <p className="font-bold">₹{Number(price).toLocaleString()}</p>
-                </div>
-                <input
-                  type="checkbox"
-                  {...register(`addons.${key}`)}
-                  defaultChecked={isChecked}
-                  className="accent-purple-500 w-4 h-4"
-                />
-              </label>
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-4 md:mt-0">
+                <label className="flex items-center gap-2 px-4 py-3 border border-gray-400 rounded-xl min-w-[120px] cursor-pointer">
+                  {!isPED && (
+                    <div className="text-center leading-tight text-sm text-gray-800">
+                      <p className="font-medium">Premium</p>
+                      <p className="font-bold">₹{Number(price).toLocaleString()}</p>
+                    </div>
+                  )}
+
+                  <input
+                    type="checkbox"
+                    {...register(`addons.${key}`)}
+                    defaultChecked={isChecked}
+                    className="accent-purple-500 w-4 h-4"
+                    onChange={() => {
+                      if (typeof setIsAddOnsModified === "function") setIsAddOnsModified(true);
+                      if (typeof setApplyClicked === "function") setApplyClicked(false);
+                    }}
+                  />
+
+                  {isPED && (
+                    <select
+                      {...register("pedaddonvalue")}
+                      className="border rounded-md text-sm"
+                      defaultValue=""
+                      // disabled={!isPedSelected} 
+                      onChange={() => {
+                        if (typeof setIsAddOnsModified === "function") setIsAddOnsModified(true);
+                        if (typeof setApplyClicked === "function") setApplyClicked(false);
+                      }}
+                    >
+                      <option value="" disabled>Select</option>
+                      <option value="1">1 Years</option>
+                      <option value="2">2 Years</option>
+                    </select>
+                  )}
+                </label>
+              </div>
             </div>
           );
         })}
 
-        {/* Bottom Submit */}
         <div className="flex justify-end">
-          <button
-            type="submit"
-            className="px-6 py-1 thmbtn"
-            disabled={loading}
-          >
+          <button type="submit" className="px-6 py-1 thmbtn" disabled={loading}>
             {loading ? "Applying..." : "Apply"}
           </button>
         </div>

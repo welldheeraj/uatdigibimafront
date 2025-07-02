@@ -1,9 +1,11 @@
-import React, { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Layout from "./component/layout";
 import constant from "@/env";
 import { CallApi } from "@/api";
 import { showSuccess } from "@/layouts/toaster";
+
+
 export function Input({
   label,
   name,
@@ -13,12 +15,12 @@ export function Input({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      {label && <label className="font-medium">{label}</label>}
+      {label && <label className="font-medium text-blue-800">{label}</label>}
       <input
         type={type}
         placeholder={placeholder}
         {...register(name)}
-        className="border border-black rounded px-3 py-2"
+        className="border border-gray-400 rounded px-3 py-2"
       />
     </div>
   );
@@ -28,12 +30,9 @@ export function Input({
 
 const Profile = ({ usersData }) => {
   const { register, handleSubmit, reset } = useForm();
+
   const onSubmit = async (data) => {
-    let response = await CallApi(
-      constant.API.USER.PROFILEUPDATE,
-      "POST",
-      data
-    );
+    let response = await CallApi(constant.API.USER.PROFILEUPDATE, "POST", data);
     showSuccess(response.message);
   };
 
@@ -50,38 +49,63 @@ const Profile = ({ usersData }) => {
     });
     //console.log("udata", usersData);
   }, [usersData]);
-  return (
-    <Layout>
-      <form onSubmit={handleSubmit(onSubmit)} className="m-auto space-y-4">
-        <p className="w-fit border-b text-lg font-semibold">Personal Details</p>
 
-        <div className="flex gap-6 border border-red-600 rounded-md p-3">
-          <label className="flex items-center gap-2">
+  return (
+    <Layout >
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="mx-auto space-y-4 bg-[#f4f4fa] "
+      >
+
+        <div className="flex items-center justify-center ">
+       <div className="bg-white p-4 mt-4 w-[85%] rounded-xl shadow-md">
+ {/* Profile Card */}
+        <div className="flex items-center gap-3 p-4 bg-[#f8f9fd] rounded-xl shadow-sm w-fit mt-4">
+          <div className="bg-blue-100 p-2 rounded-full">
+            <img src="" alt="icon" className="w-6 h-6" />
+          </div>
+          <span className="text-gray-800 font-semibold text-md">
+            Personal details
+          </span>
+        </div>
+
+        {/* Gender Selector */}
+        <div className="flex gap-6 rounded-md mt-4">
+          <label className="cursor-pointer">
             <input
               type="radio"
               value="male"
               {...register("gender")}
-              className="accent-red-600"
-            />{" "}
-            Male
+              name="gender"
+              className="hidden peer"
+            />
+            <div className="flex items-center gap-2 px-4 py-1 rounded bg-white text-gray-500 border border-gray-400 peer-checked:bg-gradient-to-b peer-checked:from-[#426D98] peer-checked:to-[#28A7E4] peer-checked:text-white transition-colors duration-200">
+              Male
+            </div>
           </label>
-          <label className="flex items-center gap-2">
+
+          <label className="cursor-pointer">
             <input
               type="radio"
               value="female"
               {...register("gender")}
-              className="accent-red-600"
-            />{" "}
-            Female
+              name="gender"
+              className="hidden peer"
+            />
+            <div className="flex items-center gap-2 px-4 py-1 rounded bg-white text-gray-500 border border-gray-400 peer-checked:bg-gradient-to-b peer-checked:from-[#426D98] peer-checked:to-[#28A7E4] peer-checked:text-white transition-colors duration-200">
+              Female
+            </div>
           </label>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4">
           <Input
             label="Full Name"
             name="name"
             placeholder="Enter Full Name"
             register={register}
+           
           />
           <Input
             label="Mobile Number"
@@ -116,12 +140,16 @@ const Profile = ({ usersData }) => {
           <Input label="City" name="city" placeholder="" register={register} />
         </div>
 
-        <button
-          type="submit"
-          className="px-6 py-2 bg-blue-600 text-white rounded"
-        >
-          Submit
-        </button>
+        <div className="flex items-center justify-center mt-2">
+          <button
+            type="submit"
+            className="px-6 py-2 bg-blue-600 text-white rounded"
+          >
+            Submit
+          </button>
+        </div>
+       </div>
+</div>
       </form>
     </Layout>
   );

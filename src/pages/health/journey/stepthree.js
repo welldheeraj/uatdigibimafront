@@ -115,7 +115,6 @@ export default function StepThreeForm({
                             {...step3Form.register(
                               medicalonetoggleillness[index]
                             )}
-                             
                             className="sr-only peer "
                           />
                           <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-all duration-300"></div>
@@ -127,7 +126,7 @@ export default function StepThreeForm({
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                           {steptwodata?.member?.map((m, memberIndex) => {
                             const memberKey = `${questionKey}_member_${m.id}`;
-                            const illnessKey = medicalonetoggleillness[index]; 
+                            const illnessKey = medicalonetoggleillness[index];
                             return (
                               <div
                                 key={m.id}
@@ -140,58 +139,69 @@ export default function StepThreeForm({
                                       ...step3Form.register(
                                         `${illnessKey}main${memberIndex + 1}`
                                       ),
-                                      
+
                                       name: `${illnessKey}main${
                                         memberIndex + 1
                                       }`,
                                     }}
                                     data-id={`${index + 1}`}
                                     srno={`${1}`}
-                                     user-id={m.id}
+                                    user-id={m.id}
                                     className="cursor-pointer accent-pink-500 h-4 w-4"
                                   />
                                   {m.name?.split(" ")[0].toUpperCase()}
                                 </label>
 
-                              {step3Form.watch(`${illnessKey}main${memberIndex + 1}`) && (
-  <>
-    <input
-      type="text"
-      inputMode="numeric"
-      maxLength={7}
-      placeholder="MM/YYYY"
-      data-id={`${index + 1}`}
-      srno={`${1}`}
-      data-age={m.age}
-      data-dob={m.dob}
-      user-id={m.id}
-      {...step3Form.register(`${illnessKey}main${memberIndex + 1}date`)}
-      onInput={(e) => {
-        e.target.value = e.target.value
-          .replace(/[^\d]/g, "")
-          .replace(/^(\d{2})(\d{1,4})?$/, (_, mm, yyyy) =>
-            yyyy ? `${mm}/${yyyy}` : mm
-          );
-      }}
-      className="border px-2 py-1 rounded-md text-sm"
-    />
+                                {step3Form.watch(
+                                  `${illnessKey}main${memberIndex + 1}`
+                                ) && (
+                                  <>
+                                    <input
+                                      type="text"
+                                      inputMode="numeric"
+                                      maxLength={7}
+                                      placeholder="MM/YYYY"
+                                      data-id={`${index + 1}`}
+                                      srno={`${1}`}
+                                      data-age={m.age}
+                                      data-dob={m.dob}
+                                      user-id={m.id}
+                                      {...step3Form.register(
+                                        `${illnessKey}main${
+                                          memberIndex + 1
+                                        }date`
+                                      )}
+                                      onInput={(e) => {
+                                        e.target.value = e.target.value
+                                          .replace(/[^\d]/g, "")
+                                          .replace(
+                                            /^(\d{2})(\d{1,4})?$/,
+                                            (_, mm, yyyy) =>
+                                              yyyy ? `${mm}/${yyyy}` : mm
+                                          );
+                                      }}
+                                      className="border px-2 py-1 rounded-md text-sm"
+                                    />
 
-    {key === "113" && (
-      <textarea
-        placeholder="Enter description"
-        rows={2}
-        className="border px-2 py-1 rounded-md text-sm"
-        data-id={`${index + 1}`}
-      srno={`${1}`}
-      data-age={m.age}
-      data-dob={m.dob}
-      user-id={m.id}
-        {...step3Form.register(`${illnessKey}main${memberIndex + 1}desc`)}
-      />
-    )}
-  </>
-)}
-
+                                    {key === "113" && (
+                                      <textarea
+                                        placeholder="Enter description"
+                                        rows={2}
+                                        className="border px-2 py-1 rounded-md text-sm"
+                                        data-id={`${index + 1}`}
+                                        srno={`${1}`}
+                                        data-age={m.age}
+                                        data-dob={m.dob}
+                                        user-id={m.id}
+                                        {...step3Form.register(
+                                          `${illnessKey}main${
+                                            memberIndex + 1
+                                          }desc`
+                                        )}
+                                      />
+                                    )}
+                                  </>
+                                )}
                               </div>
                             );
                           })}
@@ -270,7 +280,7 @@ export default function StepThreeForm({
                                     className="cursor-pointer accent-pink-500 h-4 w-4"
                                     data-id={`${index + 1}`}
                                     srno={`${2}`}
-                                     user-id={m.id}
+                                    user-id={m.id}
                                   />
                                   {m.name?.split(" ")[0].toUpperCase()}
                                 </label>
@@ -281,7 +291,7 @@ export default function StepThreeForm({
                                     inputMode="numeric"
                                     maxLength={7}
                                     placeholder="MM/YYYY"
-                                     data-id={`${index + 1}`}
+                                    data-id={`${index + 1}`}
                                     srno={`${2}`}
                                     data-age={m.age}
                                     data-dob={m.dob}
@@ -317,106 +327,118 @@ export default function StepThreeForm({
         <h3 className="font-semibold text-gray-700 mb-2">Lifestyle History:</h3>
 
         <div className="space-y-3 mt-2">
-  {Object.entries(constant.QUESTION.LIFESTYLE)
-    .sort(([a], [b]) => parseInt(a) - parseInt(b))
-    .map(([key, question], index) => {
-      const number = `3.${index + 1}`;
-      const lifestyleKey = "cigarettes"; 
-      const isChecked = step3Form.watch("lifestyletoggletwo");
+          {Object.entries(constant.QUESTION.LIFESTYLE)
+            .sort(([a], [b]) => parseInt(a) - parseInt(b))
+            .map(([key, question], index) => {
+              const number = `3.${index + 1}`;
+              const lifestyleKey = "cigarettes";
+              const isChecked = step3Form.watch("lifestyletoggletwo");
 
-      return (
-        <div key={key} className="space-y-2">
-          {/* Toggle switch */}
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">{`${number} ${question}`}</label>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                {...step3Form.register("lifestyletoggletwo")}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-all duration-300"></div>
-              <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md peer-checked:translate-x-full transition-transform duration-300"></div>
-            </label>
-          </div>
-
-          {/* Member checkboxes + inputs */}
-          {isChecked && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {steptwodata?.member?.map((m, memberIndex) => {
-                const checkboxName = `${lifestyleKey}main${memberIndex + 1}`;
-                const dateName = `${lifestyleKey}main${memberIndex + 1}date`;
-
-                return (
-                  <div
-                    key={m.id}
-                    className="flex flex-col border rounded-lg cursor-pointer p-3 gap-2"
-                  >
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
+              return (
+                <div key={key} className="space-y-2">
+                  {/* Toggle switch */}
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">{`${number} ${question}`}</label>
+                    <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        {...step3Form.register(checkboxName)}
-                        className="cursor-pointer accent-pink-500 h-4 w-4"
-                        data-id={`${index + 1}`}
-                                    srno={`${3}`}
-                                     user-id={m.id}
+                        {...step3Form.register("lifestyletoggletwo")}
+                        className="sr-only peer"
                       />
-                      {m.name?.split(" ")[0].toUpperCase()}
+                      <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-all duration-300"></div>
+                      <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md peer-checked:translate-x-full transition-transform duration-300"></div>
                     </label>
-
-                    {step3Form.watch(checkboxName) && (
-                     <>
-                    {/* Quantity Input */}
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={3}
-                      placeholder="Daily Packets / 30ml pegs"
-                      data-id={`${index + 1}`}
-                      srno={`${3}`}
-                      data-age={m.age}
-                      data-dob={m.dob}
-                      user-id={m.id}
-                      {...step3Form.register(`${lifestyleKey}main${memberIndex + 1}qty`)}
-                      onInput={(e) => {
-                        e.target.value = e.target.value.replace(/[^\d]/g, "");
-                      }}
-                      className="border px-2 py-1 rounded-md text-sm"
-                    />
-
-                    {/* MM/YYYY Input */}
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={7}
-                      placeholder="MM/YYYY"
-                      data-id={`${index + 1}`}
-                      srno={`${3}`}
-                      data-age={m.age}
-                      data-dob={m.dob}
-                      user-id={m.id}
-                      {...step3Form.register(`${lifestyleKey}main${memberIndex + 1}date`)}
-                      onInput={(e) => {
-                        e.target.value = e.target.value
-                          .replace(/[^\d]/g, "")
-                          .replace(/^(\d{2})(\d{1,4})?$/, (_, mm, yyyy) =>
-                            yyyy ? `${mm}/${yyyy}` : mm
-                          );
-                      }}
-                      className="border px-2 py-1 rounded-md text-sm"
-                    />
-                  </>
-                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      );
-    })}
-</div>
 
+                  {/* Member checkboxes + inputs */}
+                  {isChecked && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {steptwodata?.member?.map((m, memberIndex) => {
+                        const checkboxName = `${lifestyleKey}main${
+                          memberIndex + 1
+                        }`;
+                        const dateName = `${lifestyleKey}main${
+                          memberIndex + 1
+                        }date`;
+
+                        return (
+                          <div
+                            key={m.id}
+                            className="flex flex-col border rounded-lg cursor-pointer p-3 gap-2"
+                          >
+                            <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
+                              <input
+                                type="checkbox"
+                                {...step3Form.register(checkboxName)}
+                                className="cursor-pointer accent-pink-500 h-4 w-4"
+                                data-id={`${index + 1}`}
+                                srno={`${3}`}
+                                user-id={m.id}
+                              />
+                              {m.name?.split(" ")[0].toUpperCase()}
+                            </label>
+
+                            {step3Form.watch(checkboxName) && (
+                              <>
+                                {/* Quantity Input */}
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  maxLength={3}
+                                  placeholder="Daily Packets / 30ml pegs"
+                                  data-id={`${index + 1}`}
+                                  srno={`${3}`}
+                                  data-age={m.age}
+                                  data-dob={m.dob}
+                                  user-id={m.id}
+                                  {...step3Form.register(
+                                    `${lifestyleKey}main${memberIndex + 1}qty`
+                                  )}
+                                  onInput={(e) => {
+                                    e.target.value = e.target.value.replace(
+                                      /[^\d]/g,
+                                      ""
+                                    );
+                                  }}
+                                  className="border px-2 py-1 rounded-md text-sm"
+                                />
+
+                                {/* MM/YYYY Input */}
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  maxLength={7}
+                                  placeholder="MM/YYYY"
+                                  data-id={`${index + 1}`}
+                                  srno={`${3}`}
+                                  data-age={m.age}
+                                  data-dob={m.dob}
+                                  user-id={m.id}
+                                  {...step3Form.register(
+                                    `${lifestyleKey}main${memberIndex + 1}date`
+                                  )}
+                                  onInput={(e) => {
+                                    e.target.value = e.target.value
+                                      .replace(/[^\d]/g, "")
+                                      .replace(
+                                        /^(\d{2})(\d{1,4})?$/,
+                                        (_, mm, yyyy) =>
+                                          yyyy ? `${mm}/${yyyy}` : mm
+                                      );
+                                  }}
+                                  className="border px-2 py-1 rounded-md text-sm"
+                                />
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
       </div>
 
       {/* Agreement Checkboxes */}
@@ -425,6 +447,8 @@ export default function StepThreeForm({
           <input
             type="checkbox"
             {...step3Form.register("agreeTnC", { required: true })}
+            className="cursor-pointer accent-pink-500 h-4 w-4"
+
           />
           <span>
             I hereby agree to the{" "}
@@ -437,6 +461,7 @@ export default function StepThreeForm({
           <input
             type="checkbox"
             {...step3Form.register("standingInstruction")}
+            className="cursor-pointer accent-pink-500 h-4 w-4"
           />
           <span>
             I would also like to add Standing Instruction on my credit card for
@@ -445,7 +470,9 @@ export default function StepThreeForm({
         </label>
 
         <label className="flex gap-2 items-start">
-          <input type="checkbox" {...step3Form.register("optForEMI")} />
+          <input type="checkbox" {...step3Form.register("optForEMI")}
+          className="cursor-pointer accent-pink-500 h-4 w-4" />
+          
           <span>
             I would like to opt for the EMI (Equated Monthly Installment) option
             for payment of premiums.
@@ -453,7 +480,8 @@ export default function StepThreeForm({
         </label>
 
         <label className="flex gap-2 items-start">
-          <input type="checkbox" {...step3Form.register("autoDebitBank")} />
+          <input type="checkbox" {...step3Form.register("autoDebitBank")}
+          className="cursor-pointer accent-pink-500 h-4 w-4" />
           <span>
             I authorize the auto-debit of premiums from my bank account for
             automatic payment.
