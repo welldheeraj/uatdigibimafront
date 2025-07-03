@@ -13,7 +13,7 @@ import * as XLSX from "xlsx";
 
 import { CallApi } from "../../api";
 import constant from "../../env";
-// import ButtonList from "./ButtonList";
+
 
 
 export default function Policy() {
@@ -21,19 +21,22 @@ export default function Policy() {
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 20,
-  });
   const [pageCount, setPageCount] = useState(0);
+ const [currentPage, setCurrentPage] = useState(1);
+const [fromIndex, setFromIndex] = useState(1);
 
-  // const buttons = []
+  // const [pagination, setPagination] = useState({
+  //   // pageIndex: 0,
+  //   // pageSize: 20,
+  // });
+
+
   const columns = useMemo(
     () => [
       {
         header: "S.No.",
         id: "serial",
-        cell: ({ row }) => row.index + 1,
+        cell: ({ row }) => fromIndex + row.index,
       },
       {
         header: "Proposer Name",
@@ -68,41 +71,30 @@ export default function Policy() {
         accessorKey: "action",
       },
     ],
-    []
+    [fromIndex]
   );
 
-  // for (let i = 1; i <= pageCount; i++) {
-  //   buttons.push(
-  //     <button
-  //       key={i}
-  //       className="px-4 py-2 bg-blue-400 text-white rounded"
-  //       onClick={getPolicyPage(i)}
-  //     >
-  //       {i}
-  //     </button>
-  //   )
-  // }
+
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, globalFilter, pagination },
+    state: { sorting, globalFilter },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onPaginationChange: setPagination,
-
-    manualPagination: true,
-    pageCount: pageCount,
+    // onPaginationChange: setPagination,
+    // manualPagination: true,
+    // pageCount: pageCount,
   });
 
-  async function getPolicyPage(page) {
+  async function getPolicyPage(pageNum) {
     try {
 
-      const response = await CallApi(`${constant.API.USER.POLICY}?page=${page}`, "GET");
+      const response = await CallApi(`${constant.API.USER.POLICY}?page=${pageNum}`, "GET");
 
       console.log("policy ka res", response)
 
@@ -116,10 +108,15 @@ export default function Policy() {
         // applyDate : item,
         status: item.status_details || "NA",
       })) || [];
+
+
       setData(tableData);
       setPageCount(response?.data?.policies?.last_page || 0);
       setTotalRecords(response?.data?.policies?.total || 0);
-      return
+      setCurrentPage(response?.data?.policies?.current_page || 1)
+     setFromIndex(response?.data?.policies?.from || 1);
+     
+  
     } catch (error) {
       console.error(error);
     }
@@ -127,37 +124,9 @@ export default function Policy() {
 
 
   useEffect(() => {
-    // async function getPolicy() {
-    //   try {
-    //     const page = pagination.pageIndex + 1;
-    //     const response = await CallApi(`${constant.API.USER.POLICY}?page=${page}`, "GET");
-
-    //     console.log("policy ka res", response)
-
-
-    //     const tableData = response?.data?.policies?.data?.map((item) => ({
-    //       proposerName: item.proposar_name,
-    //       policyName: item.policy_name,
-    //       policyType: item.policy_type,
-    //       proposalNumber: item.proposal,
-    //       policyNumber: item.policy,
-    //       // applyDate : item,
-    //       status: item.status_details || "NA",
-
-    //     })) || [];
-
-    //     setData(tableData);
-
-
-    // setPageCount(response?.data?.policies?.last_page || 0);
-    // setTotalRecords(response?.data?.policies?.total || 0);
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // }
-
     getPolicyPage(1);
   }, []);
+
 
   const handleCSVImport = (e) => {
     const file = e.target.files[0];
@@ -241,28 +210,7 @@ export default function Policy() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {/* <div className="flex justify-between items-center pt-4">
-          <button
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-sm">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-          </span>
-          <button
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div> */}
-
+       
 
 
         {/* New pagination */}
@@ -274,99 +222,55 @@ export default function Policy() {
 
           {/* Right side: Pagination Numbers */}
           <div className="flex gap-1 flex-wrap">
+
+            {/* First Page Button */}
             <button
-              onClick={() => setPagination((prev) => ({ ...prev, pageIndex: 0 }))}
-              disabled={pagination.pageIndex === 0}
+              onClick={() => getPolicyPage(1)}
+              disabled={ currentPage === 1}
               className="px-2 py-1 bg-blue-700 text-white rounded disabled:opacity-50"
             >
               «
             </button>
 
+            {/* Prev Page Button */}
             <button
-              onClick={() =>
-                setPagination((prev) => ({
-                  ...prev,
-                  pageIndex: Math.max(prev.pageIndex - 1, 0),
-                }))
-              }
-              disabled={pagination.pageIndex === 0}
+             onClick={() => {getPolicyPage(currentPage - 1)}}
+              disabled={currentPage === 1}
               className="px-2 py-1 bg-blue-700 text-white rounded disabled:opacity-50"
             >
               ‹
             </button>
 
-            {/* Page Numbers */}
-            {/* {Array.from({ length: pageCount }, (_, i) => i).map((page) => {
-      // Only show current page, first 2, last 2, or close neighbors
-      if (
-        page === 0 ||
-        page === pageCount - 1 ||
-        Math.abs(page - pagination.pageIndex) <= 2
-      ) {
-        return (
-          <button
-            key={page}
-            onClick={() =>
-              setPagination((prev) => ({ ...prev, pageIndex: page }))
-            }
-            className={`px-3 py-1 border rounded ${
-              page === pagination.pageIndex
-                ? "bg-white border-gray-500"
-                : "bg-blue-700 text-white"
-            }`}
-          >
-            {page + 1}
-          </button>
-        );
-      } else if (
-        Math.abs(page - pagination.pageIndex) === 3 &&
-        page !== 1 &&
-        page !== pageCount - 2
-      ) {
-        return (
-          <span key={page} className="px-2 py-1">
-            ...
-          </span>
-        );
-      } else {
-        return null;
-      }
-    })} */}
+ 
+        {/* Number Buttons */}
+        {Array.from({ length: pageCount }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => getPolicyPage(i + 1)}
+                className={`px-2 py-1 rounded ${
+                  currentPage === i + 1
+                    ? "bg-blue-900 text-white"
+                    : "bg-gray-200 text-black"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
 
-
-
-  {/* <div className="flex space-x-1">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <button
-          key={i}
-          className="px-4 py-2 bg-blue-500 text-white rounded "
-        >
-           {i + 1}
-        </button>
-      ))}
-    </div> */}
-
-
-    {/* <ButtonList pageCount={pageCount} pageClick={getPolicyPage()}/> */}
-
+         
+         {/* Next Page Btn */}
             <button
-              onClick={() =>
-                setPagination((prev) => ({
-                  ...prev,
-                  pageIndex: Math.min(prev.pageIndex + 1, pageCount - 1),
-                }))
-              }
-              disabled={pagination.pageIndex >= pageCount - 1}
+              onClick={() => getPolicyPage(currentPage + 1)}
+              disabled={currentPage === pageCount}
               className="px-2 py-1 bg-blue-700 text-white rounded disabled:opacity-50"
             >
               ›
             </button>
-
+  
+          {/* Last Page Btn */}
             <button
-              onClick={() =>
-                setPagination((prev) => ({ ...prev, pageIndex: pageCount - 1 }))
-              }
-              disabled={pagination.pageIndex >= pageCount - 1}
+              onClick={() => getPolicyPage(pageCount)}
+              disabled={ currentPage === pageCount}
               className="px-2 py-1 bg-blue-700 text-white rounded disabled:opacity-50"
             >
               »

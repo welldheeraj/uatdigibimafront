@@ -1,7 +1,7 @@
 "use client";
 
-import { CallApi } from "../../../api";
-import constant from "../../../env";
+import { CallApi,UploadDocument } from "@/api";
+import constant from "@/env";
 import { showSuccess, showError }  from "@/layouts/toaster";
 
 export default async function validateKycStep(
@@ -105,37 +105,55 @@ export default async function validateKycStep(
     }
 
     // Others Verification
-    else if (kycType === "Others") {
-      console.log("Ram");
-      const { identity, address } = proofs;
-      const identityFile = document.getElementById(`identity-${identity}`)
-        ?.files?.[0];
-      const addressFile = document.getElementById(`address-${address}`)
-        ?.files?.[0];
+     else if (kycType === "Others") {
+    console.log("Ram");
 
-      if (!identity || !address)
-        return showError("Select both proof types."), false;
+    const { identity, address } = proofs;
 
-      if (!identityFile || !addressFile)
-        return showError("Upload both documents."), false;
+    const identityFile = document.getElementById(`identity-${identity}`)?.files?.[0];
+    const addressFile = document.getElementById(`address-${address}`)?.files?.[0];
 
-      const formData = new FormData();
-      formData.append("identityProof", identityFile);
-      formData.append("addressProof", addressFile);
-      formData.append("identityType", identity);
-      formData.append("addressType", address);
+    console.log(identityFile, addressFile, identity, address);
 
-      console.log(formData);
-      res = await CallApi(constant.API.HEALTH.UPLOADDOCUMENT, "POST", formData);
+    if (!identity || !address) {
+      showError("Select both proof types.");
+      return false;
+    }
+
+    if (!identityFile || !addressFile) {
+      showError("Upload both documents.");
+      return false;
+    }
+
+    const formData = new FormData();
+
+
+    formData.append("identityfront", identityFile);
+    formData.append("addressfront", addressFile);
+
+    // // (Optional) Also append type if needed
+    // formData.append("identityType", identity);
+    // formData.append("addressType", address);
+
+    console.log(formData);
+
+    try {
+      const res = await UploadDocument(constant.API.HEALTH.UPLOADDOCUMENT, "POST", formData);
       console.log(res);
+
       if (res?.status) {
         showSuccess("Documents verified");
-        setKycVerified(true);
+        setKycVerified(true); 
+        setIsPanVerified?.(true);
         return true;
       }
 
       showError(res?.message || "Document verification failed");
+    } catch (err) {
+      console.error("Upload error:", err);
+      showError("Something went wrong during upload");
     }
+  }
 
     setKycVerified(false);
     return false;

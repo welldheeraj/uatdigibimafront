@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/router";
-import constant from "@/env";
+import constant from "../../../env";
 import { TiHome } from "react-icons/ti";
 import { MdPerson } from "react-icons/md";
 import { FaHandHoldingHeart } from "react-icons/fa";

@@ -1,54 +1,140 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import UniversalDatePicker from "../../datepicker/index";
+import UniversalDatePicker from "../../../../datepicker/index";
 import { format, parse } from "date-fns";
-import { isNumber } from "../../../styles/js/validation";
+import { isNumber } from "@/styles/js/validation";
+import { CallApi } from "@/api";
+import constant from "@/env";
 
 export default function StepTwoForm({
   step2Form,
   steponedata,
   inputClass,
   onSubmitStep,
+  usersData,
 }) {
   const [dates, setDates] = useState({});
-//   useEffect(() => {
-//   const values = step2Form.getValues();
-//   const updatedDates = {};
+  const [apiMembers, setApiMembers] = useState([]);
+  let childCounter = 1;
 
-//   if (values.proposerdob2) {
-//     const parsed = parse(values.proposerdob2, "dd-MM-yyyy", new Date());
-//     updatedDates.self = { dob: parsed };
-//   }
+useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await CallApi(constant.API.HEALTH.SAVESTEPTWO, "GET");
+        const savedData = res.data || [];
+        console.log(savedData);
 
-//   if (values.nomineedob) {
-//     const parsed = parse(values.nomineedob, "dd-MM-yyyy", new Date());
-//     updatedDates.nominee = { dob: parsed };
-//   }
+        if (savedData.length > 0) {
+          const generatedMembers = savedData
+            .filter(
+              (item) =>
+                item.relation?.toLowerCase() !== "self" &&
+                item.relation?.toLowerCase() !== "(nominee)"
+            )
+            .map((item) => ({
+              name: item.relation?.toLowerCase(),
+              dob: item.dob,
+              height: item.height,
+              inch: item.inch,
+              weight: item.weight,
+              gender: item.gender,
+              age: item.age,
+              fullname: item.name,
+            }));
 
-//   let childCounter = 1;
+          setApiMembers(generatedMembers);
 
-//   (steponedata?.members || []).forEach((m) => {
-//     const name = m.name?.toLowerCase();
-//     let key = "";
+          const selfData = savedData.find(
+            (item) => item.relation?.toLowerCase() === "self"
+          );
+          if (selfData) {
+            step2Form.setValue("proposername", selfData.name || "");
+            step2Form.setValue("proposerdob2", selfData.dob || "");
+            step2Form.setValue("proposerheight", selfData.height || "");
+            step2Form.setValue("proposerinches", selfData.inch || "");
+            step2Form.setValue("proposerweight", selfData.weight || "");
+            step2Form.setValue(
+              "proposeroccupation",
+              selfData.gender === "MALE" ? "Salaried" : "Unemployed"
+            );
 
-//     if (name === "wife") key = "spousedob";
-//     else if (name === "father") key = "fatherdob";
-//     else if (name === "mother") key = "motherdob";
-//     else if (name === "grandfather") key = "grandfatherdob";
-//     else if (name === "grandmother") key = "grandmotherdob";
-//     else if (name === "fatherinlaw") key = "fatherlawdob";
-//     else if (name === "motherinlaw") key = "motherlawdob";
-//     else if (name === "son" || name === "daughter") key = `childdob${childCounter++}`;
+            if (selfData.dob) {
+              const parsedDate = parse(selfData.dob, "dd-MM-yyyy", new Date());
+              setDates((prev) => ({ ...prev, self: { dob: parsedDate } }));
+            }
+          }
 
-//     if (values[key]) {
-//       const parsed = parse(values[key], "dd-MM-yyyy", new Date());
-//       updatedDates[key.replace("dob", "")] = { dob: parsed };
-//     }
-//   });
+          const nomineeData = savedData.find(
+            (item) => item.relation?.toLowerCase() === "(nominee)"
+          );
+          if (nomineeData) {
+            step2Form.setValue("nomineename", nomineeData.name || "");
+            step2Form.setValue("nomineedob", nomineeData.dob || "");
+            // step2Form.setValue("nomineerelation", nomineeData.gender || "");
 
-//   setDates(updatedDates);
-// }, []);
+            if (nomineeData.dob) {
+              const parsedDate = parse(nomineeData.dob, "dd-MM-yyyy", new Date());
+              setDates((prev) => ({ ...prev, nominee: { dob: parsedDate } }));
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
+    fetchData();
+  }, []);
+  useEffect(() => {
+    if (apiMembers.length === 0) return;
+
+    let tempChildCount = 1;
+
+    apiMembers.forEach((member) => {
+      const name = member.name?.toLowerCase();
+      let fieldPrefix = "";
+      let suffix = "";
+
+      const isChild = name === "son" || name === "daughter";
+      const isWife = name === "wife";
+
+      if (isChild) {
+        fieldPrefix = "child";
+        suffix = tempChildCount++;
+      } else if (isWife) {
+        fieldPrefix = "spouse";
+      } else {
+        fieldPrefix = name;
+      }
+
+      const fullPrefix = `${fieldPrefix}${suffix}`;
+
+      step2Form.setValue(
+        isChild
+          ? `${fieldPrefix}relation${suffix}`
+          : `${fieldPrefix}occupation`,
+        member.gender === "MALE" ? "Salaried" : "Unemployed"
+      );
+
+      step2Form.setValue(`${fieldPrefix}name${suffix}`, member.fullname || "");
+      step2Form.setValue(`${fieldPrefix}height${suffix}`, member.height || "");
+      step2Form.setValue(`${fieldPrefix}inches${suffix}`, member.inch || "");
+      step2Form.setValue(`${fieldPrefix}weight${suffix}`, member.weight || "");
+
+      if (member.dob) {
+        const parsedDate = parse(member.dob, "dd-MM-yyyy", new Date());
+        setDates((prev) => ({
+          ...prev,
+          [fieldPrefix + suffix]: { dob: parsedDate },
+        }));
+        const dobFieldName = isChild
+          ? `${fieldPrefix}dob${suffix}`
+          : `${fieldPrefix}dob`;
+
+        step2Form.setValue(dobFieldName, member.dob);
+      }
+    });
+  }, [apiMembers]);
 
   const handleDateChange = (key, fieldNameInForm) => (date) => {
     if (!date || isNaN(date)) return;
@@ -79,7 +165,7 @@ export default function StepTwoForm({
   ];
   const children = ["son", "daughter"];
 
-  const members = [
+  const computedMembers = [
     ...rawMembers.filter((m) => m.name?.toLowerCase() === "wife"),
     ...rawMembers.filter((m) =>
       parentsAndGrandparents.includes(m.name?.toLowerCase())
@@ -95,25 +181,55 @@ export default function StepTwoForm({
     }),
   ];
 
-  useEffect(() => {
-    const selfData = steponedata?.self?.[0];
-    if (selfData?.dob) {
-      const parsedDate = parse(selfData.dob, "dd-MM-yyyy", new Date());
+  const finalMembers = apiMembers.length > 0 ? apiMembers : computedMembers;
 
-      setDates((prev) => ({
-        ...prev,
-        self: { dob: parsedDate },
-      }));
+useEffect(() => {
+  const self = steponedata?.self?.[0] || {};
+  const u = usersData || {};
 
-      step2Form.setValue("proposername", selfData.kyc_name || "");
-      step2Form.setValue("proposerdob2", selfData.dob);
-    }
-  }, [steponedata]);
+  const getVal = (key) => self[key] || u[key] || "";
 
-  let childCounter = 1;
+  const fieldMap = {
+    proposername: "kyc_name",
+    proposerdob2: "dob",
+    proposerheight: "height",
+    proposerinches: "inch",
+    proposerweight: "weight",
+    proposeroccupation: "occupation",
+  };
+
+  Object.entries(fieldMap).forEach(([formKey, dataKey]) => {
+    step2Form.setValue(formKey, getVal(dataKey));
+  });
+
+  // Set DOB in date picker
+  if (getVal("dob")) {
+    const parsedDate = parse(getVal("dob"), "dd-MM-yyyy", new Date());
+    setDates((prev) => ({
+      ...prev,
+      self: { dob: parsedDate },
+    }));
+  }
+
+  // Bank details
+  try {
+    const bank = u.bank_details ? JSON.parse(u.bank_details) : {};
+    step2Form.setValue("proposarbankaccount", bank.account || "");
+    step2Form.setValue("proposarbankifsc", bank.ifsc || "");
+  } catch (err) {
+    console.error("Bank details parse error", err);
+  }
+}, [steponedata, usersData]);
+
+
+
+
+
+  childCounter = 1;
 
   return (
     <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+      {/* SELF SECTION */}
       <h2 className="text-xl font-bold text-gray-800">Self:</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <input
@@ -128,7 +244,10 @@ export default function StepTwoForm({
           name="proposerdob2"
           className={`proposerdob2 ...`}
           value={dates?.self?.dob || null}
-          data-age={steponedata?.members?.find(m => m.name?.toLowerCase() === "self")?.age || ""}
+          data-age={
+            steponedata?.members?.find((m) => m.name?.toLowerCase() === "self")
+              ?.age || ""
+          }
           onChange={handleDateChange("self", "proposerdob2")}
           placeholder="Pick a date"
           error={!dates?.self?.dob}
@@ -193,7 +312,8 @@ export default function StepTwoForm({
         />
       </div>
 
-      {members.map((member, index) => {
+      {/* MEMBERS SECTION */}
+      {finalMembers.map((member, index) => {
         const name = member.name?.toLowerCase();
         let isChild = name === "son" || name === "daughter";
         let isWife = name === "wife";
@@ -337,6 +457,7 @@ export default function StepTwoForm({
         );
       })}
 
+      {/* NOMINEE SECTION */}
       <h2 className="text-xl font-bold text-gray-800 mt-8">Nominee:</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <input
@@ -354,8 +475,7 @@ export default function StepTwoForm({
           data-age=""
           onChange={handleDateChange("nominee", "nomineedob")}
           placeholder="Pick a date"
-          // error={!dates?.nominee?.dob || invalidFields.includes("nomineedob")}
-          error={!dates?.nominee?.dob }
+          error={!dates?.nominee?.dob}
         />
         <select
           {...step2Form.register("nomineerelation", {

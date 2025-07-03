@@ -3,9 +3,9 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { showSuccess, showError } from "../../layouts/toaster";
-import { CallApi, getUserinfo } from "../../api";
-import constant from "../../env";
+import { showSuccess, showError } from "../../../layouts/toaster";
+import { CallApi, getUserinfo } from "../../../api";
+import constant from "../../../env";
 
 export default function IllnessForm() {
   const { register, handleSubmit, watch, setValue, reset } = useForm({

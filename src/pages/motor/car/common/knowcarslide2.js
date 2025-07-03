@@ -26,8 +26,8 @@ export default function KnowCarSlideTwo() {
   const [brands, setBrands] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [models, setModels] = useState([]);
-  const [parsedDate, setParsedDate] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
+  const [parsedDate, setParsedDate] = useState([]);
   const [dates, setDates] = useState({ regDate: "", regDateRaw: null });
 
   const router = useRouter();
@@ -64,12 +64,6 @@ export default function KnowCarSlideTwo() {
     //console.log("datesegff", parsedDate);
   }, [dates, parsedDate]);
 
-  useEffect(() => {
-    if (savedPageData && brands.length > 0) {
-      setSelectedBrand(savedPageData.brand || null);
-      setValue("brand", savedPageData.brand);
-    }
-  }, [savedPageData, brands, setValue]);
 
   useEffect(() => {
     if (savedPageData && models.length > 0) {
@@ -77,6 +71,18 @@ export default function KnowCarSlideTwo() {
       setValue("model", savedPageData.model);
     }
   }, [savedPageData, models, setValue]);
+
+
+  useEffect(() => {
+    if (savedPageData && brands.length > 0) {
+      setSelectedBrand(savedPageData.brand || null);
+      setValue("brand", savedPageData.brand);
+    }
+  }, [savedPageData, brands, setValue]);
+
+
+
+
 
   useEffect(() => {
     if (savedPageData) {
@@ -134,6 +140,11 @@ export default function KnowCarSlideTwo() {
   };
 
   useEffect(() => {
+    handleGetBrands();
+  }, []);
+
+
+  useEffect(() => {
     const handleGetModels = async () => {
       try {
         const data = {
@@ -183,9 +194,7 @@ export default function KnowCarSlideTwo() {
     }
   };
 
-  useEffect(() => {
-    handleGetBrands();
-  }, []);
+
 
   return (
     <div className="container mx-auto px-4 py-6 ">
@@ -261,8 +270,8 @@ export default function KnowCarSlideTwo() {
                 value={selectedBrand}
                 onChange={(value) => {
                   setSelectedBrand(value);
-                  // setSelectedModel(null);
                   setValue("brand", value);
+                  // setSelectedModel(null);
                 }}
                 placeholder="Select or type brand"
               />

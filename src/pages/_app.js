@@ -28,6 +28,7 @@ export default function App({ Component, pageProps }) {
   const [Username, setUsername] = useState(null);
   const [userMobile, setUserMobile] = useState(null);
   const [userData, setUserData] = useState(null);
+   const [kycData, setKycData] = useState({ status: null, kyctype: null });
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const route = router.pathname;
@@ -107,19 +108,25 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   useEffect(() => {
-    //console.log('session',authkey);
+    
     if (token) {
       const fetchData = async () => {
         try {
           setIsLoading(true);
           const response = await getUserinfo(token);
           const data = await response.json();
-          //console.log('ghgh',data);
+          console.log('ghgh',data);
+           setKycData(data.kyctype,data.status);
           if (data.status && data.user?.name) {
-            setUserData(data.user);
-          } else {
-            setUserData(null);
-          }
+        setUserData(data.user);
+        setKycData({
+          status: data.status,
+          kyctype: data.kyctype, // example: 'p' or 'a'
+        });
+      } else {
+        setUserData(null);
+        setKycData({ status: false, kyctype: null });
+      }
         } catch (error) {
           console.error("Error fetching user info:", error);
           setUserData(null);
@@ -130,12 +137,14 @@ export default function App({ Component, pageProps }) {
       fetchData();
     }
   }, [token]);
-  // useEffect(() => {
-  //   console.log('uuuatttu1', authkey,userData);
-  // }, [userData,authkey])
+
+  useEffect(() => {
+    console.log('uuuatttu1', userData);
+  }, [userData]);
   return (
     <div className={poppins.className}>
       <Header
+      token={token}
         username={userData?.name}
         setUsername={setUserData}
       />
@@ -149,7 +158,7 @@ export default function App({ Component, pageProps }) {
         <>
           < PrimeReactProvider />
           <Toaster />
-          <Component {...pageProps} usersData={userData} token={token} />
+          <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
           <Footer />
         </>
       )}

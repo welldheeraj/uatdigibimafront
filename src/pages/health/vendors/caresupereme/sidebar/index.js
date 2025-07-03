@@ -10,8 +10,8 @@ import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 
 import InsureSidebarComponent from "./editmember";
 import EditIllnessComponent from "./editillness";
-import { CallApi } from "../../../api";
-import constant from "../../../env";
+import { CallApi } from "../../../../../api";
+import constant from "../../../../../env";
 
 const SlidePanel = ({
   isSlideOpen,

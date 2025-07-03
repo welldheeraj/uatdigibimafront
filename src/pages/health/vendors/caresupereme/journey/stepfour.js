@@ -1,13 +1,27 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 import { FiEdit } from "react-icons/fi";
-import constant from "../../../env";
+import constant from "@/env";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function StepFourForm({
   stepthreedata,
   step4Form,
   onSubmitStep,
+  totalPremium
 }) {
+
+  const router = useRouter();
+const searchParams = useSearchParams();
+
+const handleEditStep = (stepNo) => {
+  console.log("Ram")
+  const currentParams = new URLSearchParams(searchParams.toString());
+  currentParams.set("step", stepNo); 
+  router.push(`/health/journey?${currentParams.toString()}`);
+};
+
   const proposer = stepthreedata?.proposar || {};
   const members = stepthreedata?.insures || [];
   const nominee = stepthreedata?.nominee || {};
@@ -27,7 +41,7 @@ export default function StepFourForm({
         individualPed = raw;
       }
 
-      console.log("Individual PED for", member.name, ":", individualPed);
+      // console.log("Individual PED for", member.name, ":", individualPed);
 
     
       individualPed.forEach((item) => {
@@ -38,7 +52,7 @@ export default function StepFourForm({
       });
     });
 
-    console.log("Final Combined PED:", parsedPed);
+    // console.log("Final Combined PED:", parsedPed);
   } catch (err) {
     console.error("Invalid PED JSON:", err);
   }
@@ -51,8 +65,8 @@ export default function StepFourForm({
     item.did?.startsWith("3.")
   );
 
-  console.log("Medical:", medicalHistory);
-  console.log("Lifestyle:", lifestyleHistory);
+  // console.log("Medical:", medicalHistory);
+  // console.log("Lifestyle:", lifestyleHistory);
   return (
     <form
       onSubmit={(e) => e.preventDefault()}
@@ -64,23 +78,22 @@ export default function StepFourForm({
         </h2>
 
         {/* Product Details */}
-        <SectionCard title="Products Details" onEdit>
+        <SectionCard title="Products Details" onEdit={() => handleEditStep(1)}>
           <div className="flex flex-col sm:flex-row items-center gap-6">
-            <img
-              src="/coverage.png"
-              alt="Coverage"
-              className="w-32 h-32 object-contain"
+            <Image
+              src={`/images/health/vendorimage/Care_logo.png`}
+              alt="carelogo"
+              width={80}
+              height={40}
+              className="object-contain"
             />
             <div className="flex-1">
               <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
                 Care Supreme —{" "}
-                <span className="text-green-600 font-bold">₹7,799</span>{" "}
+                <span className="text-green-600 font-bold">₹{totalPremium}</span>{" "}
                 Coverage
               </h3>
-              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-                <li>Unlimited automatic recharge</li>
-                <li>No sub limits on treatment</li>
-              </ul>
+             
               <button className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full text-sm shadow">
                 View All Benefits
               </button>
@@ -89,7 +102,7 @@ export default function StepFourForm({
         </SectionCard>
 
         {/* Proposer Details */}
-        <SectionCard title="Proposer Details" onEdit>
+        <SectionCard title="Proposer Details" onEdit={() => handleEditStep(1)}>
           <GridDetail
             items={[
               ["Name", proposer.name || "-"],
@@ -107,7 +120,7 @@ export default function StepFourForm({
         </SectionCard>
 
         {/* Address */}
-        <SectionCard title="Address" onEdit>
+        <SectionCard title="Address" onEdit={() => handleEditStep(1)}>
           <p className="text-sm text-gray-600 mb-2">Permanent Address</p>
           <div className="bg-gray-50 p-3 rounded-md border text-sm">
             {proposer.address || "-"}
@@ -115,7 +128,7 @@ export default function StepFourForm({
         </SectionCard>
 
         {/* Insured Members */}
-        <SectionCard title="Insured Members Details" onEdit>
+        <SectionCard title="Insured Members Details" onEdit={() => handleEditStep(2)}>
           <Table
             headers={["Name", "Age", "Height", "Weight"]}
             rows={members.map((m) => [
@@ -128,7 +141,7 @@ export default function StepFourForm({
         </SectionCard>
 
         {/* Nominee */}
-        <SectionCard title="Nominee Details" onEdit>
+        <SectionCard title="Nominee Details" onEdit={() => handleEditStep(1)}>
           <Table
             headers={["Name", "Relation", "Nominee DOB"]}
             rows={[
@@ -142,7 +155,7 @@ export default function StepFourForm({
         </SectionCard>
 
         {/* Health Details */}
-        <SectionCard title="Health Details" onEdit>
+        <SectionCard title="Health Details" onEdit={() => handleEditStep(3)}>
           {/* Medical History */}
           <div>
             <h4 className="font-semibold text-gray-800">Medical History</h4>
@@ -226,16 +239,7 @@ export default function StepFourForm({
           </div>
         </SectionCard>
 
-        {/* Continue Button */}
-        <div className="text-center pt-6">
-          <button
-            type="button"
-            onClick={onSubmitStep}
-            className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:scale-105 transition"
-          >
-            Continue to Payment →
-          </button>
-        </div>
+      
       </div>
     </form>
   );
@@ -245,7 +249,9 @@ function SectionCard({ title, children, onEdit }) {
   return (
     <div className="relative bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition">
       {onEdit && (
-        <button className="absolute top-4 right-4 text-indigo-600 hover:text-indigo-800 transition text-sm flex items-center gap-1">
+        <button 
+        onClick={onEdit}
+        className="absolute top-4 right-4 text-indigo-600 hover:text-indigo-800 transition text-sm flex items-center gap-1">
           <FiEdit className="w-4 h-4" />
           Edit
         </button>
@@ -262,12 +268,15 @@ function GridDetail({ items }) {
       {items.map(([label, value], i) => (
         <div key={i}>
           <p className="text-gray-500">{label}</p>
-          <p className="font-medium text-gray-900">{value}</p>
+          <p className="font-medium text-gray-900 break-words whitespace-pre-wrap">
+            {value}
+          </p>
         </div>
       ))}
     </div>
   );
 }
+
 
 function Table({ headers, rows }) {
   return (

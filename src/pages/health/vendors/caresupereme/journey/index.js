@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { FaChevronLeft, FaCheck } from "react-icons/fa";
@@ -8,18 +8,18 @@ import StepOneForm from "./stepone.js";
 import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
 import StepFourForm from "./stepfour.js";
-import SummaryCard from "../checkoutOne/rightsection.js";
-import { showSuccess, showError }  from "@/layouts/toaster";
-import { validateFields } from "../../../styles/js/validation.js";
+import SummaryCard from "../checkout/rightsection.js";
+import { showSuccess, showError } from "@/layouts/toaster";
+import { validateFields } from "@/styles/js/validation.js";
 import { validateStepTwoData } from "./validatesteptwoagedata.js";
-import constant from "../../../env";
+import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
-import { CallApi } from "../../../api";
-import HealthInsuranceLoader from "../loader";
+import { CallApi } from "@/api";
+import HealthInsuranceLoader from "../../../loader";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
-export default function StepperForm() {
+export default function StepperForm({ usersData, kycData }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -33,8 +33,9 @@ export default function StepperForm() {
   const [steponedata, setStepOneData] = useState([]);
   const [steptwodata, setStepTwoData] = useState([]);
   const [stepthreedata, setStepThreeData] = useState([]);
-    const searchParams = useSearchParams();
-
+   const [totalPremium, setTotalPremium] = useState("");
+  const searchParams = useSearchParams();
+  console.log("User Data:", kycData);
   const summaryData = useMemo(() => {
     const getParsed = (key) => {
       try {
@@ -43,21 +44,30 @@ export default function StepperForm() {
         return [];
       }
     };
-console.log('hello World',searchParams);
+    console.log("hello World", searchParams);
     return {
       tenure: searchParams.get("tenure") || "",
       coverAmount: searchParams.get("coverAmount") || "",
-      totalPremium: Number(searchParams.get("totalPremium") || 0),
+      totalPremium: searchParams.get("totalPremium") || "",
       selectedAddons: getParsed("selectedAddons"),
       compulsoryAddons: getParsed("compulsoryAddons"),
       tenurePrices: getParsed("tenurePrices"),
       addons: getParsed("addons"),
       fullAddonsName: getParsed("fullAddonsName"),
-      
     };
-    
   }, [searchParams]);
+    useEffect(() => {
+    if (summaryData?.totalPremium) {
+      setTotalPremium(summaryData.totalPremium);
+    }
+  }, [summaryData]);
   
+  useEffect(() => {
+  const stepFromQuery = parseInt(searchParams.get("step"));
+  if (stepFromQuery >= 1 && stepFromQuery <= 4) {
+    setCurrentStep(stepFromQuery);
+  }
+}, [searchParams]);
 
   const step1Form = useForm();
   const step2Form = useForm();
@@ -67,31 +77,34 @@ console.log('hello World',searchParams);
   const inputClass = "border border-gray-400 rounded px-3 py-2 text-sm w-full";
   const steps = ["Step", "Step", "Step", ""];
 
- const back = async () => {
-  if (currentStep === 1) {
-    router.push(constant.ROUTES.HEALTH.CHECKOUT);
-  } else {
-    setLoading(true);
-    setCurrentStep((prev) => prev - 1);
-    setLoading(false);
-  }
-};
-
+  const back = async () => {
+    if (currentStep === 1) {
+      router.push(constant.ROUTES.HEALTH.CHECKOUT);
+    } else {
+      setLoading(true);
+      setCurrentStep((prev) => prev - 1);
+      setLoading(false);
+    }
+  };
 
   const validateFormStepOne = async () => {
     const rawValues = step1Form.getValues();
 
-    const result = await validateKycStep(
-      step1Form,
-      kycType,
-      rawValues,
-      proofs,
-      setKycVerified,
-      kycVerified,
-      setIsPanVerified,
-      setVerifiedData
-    );
-    if (!result) return false;
+    // const result = await validateKycStep(
+    //   step1Form,
+    //   kycType,
+    //   rawValues,
+    //   proofs,
+    //   setKycVerified,
+    //   kycVerified,
+    //   setIsPanVerified,
+    //   setVerifiedData
+    // );
+    // if (!result) return false;
+      if (!kycVerified) {
+    showError("Please complete KYC verification before proceeding.");
+    return false;
+  }
 
     const fieldsValid = await validateFields(step1Form);
     if (!fieldsValid) return false;
@@ -129,42 +142,37 @@ console.log('hello World',searchParams);
     }
   };
 
+  const validateFormStepTwo = async () => {
+    const fieldsValid = await validateFields(step2Form);
+    if (!fieldsValid) return false;
 
+    const rawValues = step2Form.getValues();
 
-const validateFormStepTwo = async () => {
-  const fieldsValid = await validateFields(step2Form);
-  if (!fieldsValid) return false;
+    const values = step2Form.getValues();
+    const validAge = validateStepTwoData(values, steponedata);
+    if (!validAge) return false;
 
-  const rawValues = step2Form.getValues();
-
-   const values = step2Form.getValues();
-  const validAge = validateStepTwoData(values, steponedata);
-  if (!validAge) return false;
-
-  try {
-    setLoading(true);
-    const res = await CallApi(
-      constant.API.HEALTH.SAVESTEPTWO,
-      "POST",
-      values
-    );
-    if (res === 1 || res?.status) {
-      setStepTwoData(res);
-      return true;
-    } else {
-      console.error("Step 2 API failed or returned unexpected value:", res);
+    try {
+      setLoading(true);
+      const res = await CallApi(
+        constant.API.HEALTH.SAVESTEPTWO,
+        "POST",
+        values
+      );
+      if (res === 1 || res?.status) {
+        setStepTwoData(res);
+        return true;
+      } else {
+        console.error("Step 2 API failed or returned unexpected value:", res);
+        return false;
+      }
+    } catch (error) {
+      console.error("Step 2 API call error:", error);
       return false;
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Step 2 API call error:", error);
-    return false;
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
+  };
 
   const validateFormStepThree = async (step3Form, steptwodata) => {
     // const isValid = await step3Form.trigger();
@@ -374,40 +382,41 @@ const validateFormStepTwo = async () => {
     return result;
   };
 
-  const GoToPayment = async () => {
-    setLoading(true);
-    try {
-      const res = await CallApi(constant.API.HEALTH.CREATEPOLICY, "POST");
-      if (res === 1 || res?.status) {
-        const response = await CallApi(constant.API.HEALTH.GETPROPOSAL, "POST");
-        if (response.proposalNumber) {
-          router.push(
-            `/health/payment?proposalNumber=${response.proposalNumber}`
-          );
-        }
-      }
-    } catch (error) {
-      console.error("API Error", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const GoToPayment = async () => {
+  //   console.log("Ram")
+  //   setLoading(true);
+  //   try {
+  //     const res = await CallApi(constant.API.HEALTH.CREATEPOLICY, "POST");
+  //     if (res === 1 || res?.status) {
+  //       const response = await CallApi(constant.API.HEALTH.GETPROPOSAL, "POST");
+  //       if (response.proposalNumber) {
+  //         router.push(
+  //           `/health/payment?proposalNumber=${response.proposalNumber}`
+  //         );
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("API Error", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const goNext = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
 
   const onSubmitStep = async () => {
     let isValid = false;
-     setLoading(true); 
+    setLoading(true);
     if (currentStep === 1) isValid = await validateFormStepOne();
     else if (currentStep === 2) isValid = await validateFormStepTwo();
     else if (currentStep === 3)
       isValid = await validateFormStepThree(step3Form, steptwodata);
     else if (currentStep === 4) isValid = await GoToPayment();
 
-     if (!isValid) {
-    setLoading(false); 
-    return;
-  }
+    if (!isValid) {
+      setLoading(false);
+      return;
+    }
     const formToUse =
       currentStep === 1
         ? step1Form
@@ -419,7 +428,7 @@ const validateFormStepTwo = async () => {
 
     console.log(`Step ${currentStep} Data:`, formToUse.getValues());
     goNext();
-    setLoading(false); 
+    setLoading(false);
   };
 
   const handleVerifyPan = async () => {
@@ -464,123 +473,133 @@ const validateFormStepTwo = async () => {
     );
   };
 
-
   return (
-    <div className="min-h-screen bg-[#C8EDFE] p-4 sm:p-8">
-      {/* {loading && <HealthInsuranceLoader />} */}
-      <button
-        onClick={back}
-        className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
-      >
-        <FaChevronLeft /> Go back to Previous
-      </button>
+  <>
+    {loading ? (
+      <HealthInsuranceLoader />
+    ) : (
+      <div className="min-h-screen bg-[#C8EDFE] p-4 sm:p-8">
+        <button
+          onClick={back}
+          className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
+        >
+          <FaChevronLeft /> Go back to Previous
+        </button>
 
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 bg-white rounded-[32px] shadow p-8 shadow">
-          <div className="flex justify-between items-center">
-            {steps.map((label, i) => {
-              const sn = i + 1,
-                active = sn === currentStep,
-                done = sn < currentStep;
-              return (
-                <div
-                  key={sn}
-                  className={`flex items-center ${
-                    sn !== steps.length ? "w-full" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-8 h-8 rounded-full border flex justify-center items-center text-sm font-medium
-                      ${
-                        done || active
-                          ? "thmbtn text-white border-white-600"
-                          : "bg-white text-gray-700 border-gray-300"
-                      }`}
-                    >
-                      {done ? <FaCheck size={12} /> : sn}
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
+          <div className="flex-1 bg-white rounded-[32px] shadow p-8">
+            {/* Stepper */}
+            <div className="flex justify-between items-center">
+              {steps.map((label, i) => {
+                const sn = i + 1;
+                const active = sn === currentStep;
+                const done = sn < currentStep;
+
+                return (
+                  <div
+                    key={sn}
+                    className={`flex items-center ${sn !== steps.length ? "w-full" : ""}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-8 h-8 rounded-full border flex justify-center items-center text-sm font-medium ${
+                          done || active
+                            ? "thmbtn text-white border-white-600"
+                            : "bg-white text-gray-700 border-gray-300"
+                        }`}
+                      >
+                        {done ? <FaCheck size={12} /> : sn}
+                      </div>
+                      {label && (
+                        <span className="text-sm text-gray-700">{label}</span>
+                      )}
                     </div>
-                    {label && (
-                      <span className="text-sm text-gray-700">{label}</span>
+                    {sn !== steps.length && (
+                      <div
+                        className={`flex-1 h-0.5 mx-2 ${done ? "thmbtn" : "bg-gray-200"}`}
+                      />
                     )}
                   </div>
-                  {sn !== steps.length && (
-                    <div
-                      className={`flex-1 h-0.5 mx-2 ${
-                        done ? "thmbtn" : "bg-gray-200"
-                      }`}
-                    />
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            {/* Step Content */}
+            <div className="mt-10">
+              {currentStep === 1 && (
+                <StepOneForm
+                  step1Form={step1Form}
+                  kycType={kycType}
+                  setKycType={setKycType}
+                  handleVerifyPan={handleVerifyPan}
+                  handleVerifyAadhar={handleVerifyAadhar}
+                  handleVerifyOther={handleVerifyOther}
+                  loading={loading}
+                  sameAddress={sameAddress}
+                  setSameAddress={setSameAddress}
+                  fileNames={fileNames}
+                  setFileNames={setFileNames}
+                  proofs={proofs}
+                  setProofs={setProofs}
+                  inputClass={inputClass}
+                  onSubmitStep={onSubmitStep}
+                  kycVerified={kycVerified}
+                  setKycVerified={setKycVerified}
+                  setIsPanVerified={setIsPanVerified}
+                  isPanVerified={isPanVerified}
+                  verifieddata={verifieddata}
+                  usersData={usersData}
+                  kycData={kycData}
+                />
+              )}
+              {currentStep === 2 && (
+                <StepTwoForm
+                  step2Form={step2Form}
+                  steponedata={steponedata}
+                  inputClass={inputClass}
+                  onSubmitStep={onSubmitStep}
+                  usersData={usersData}
+                />
+              )}
+              {currentStep === 3 && (
+                <StepThreeForm
+                  step3Form={step3Form}
+                  steptwodata={steptwodata}
+                  inputClass={inputClass}
+                  onSubmitStep={onSubmitStep}
+                />
+              )}
+              {currentStep === 4 && (
+                <StepFourForm
+                  step4Form={step4Form}
+                  stepthreedata={stepthreedata}
+                  onSubmitStep={onSubmitStep}
+                  currentStep={currentStep}
+                  totalPremium={totalPremium}
+                  onGoToPayment={GoToPayment}
+                  
+                />
+              )}
+            </div>
           </div>
 
-          <div className="mt-10">
-            {currentStep === 1 && (
-              <StepOneForm
-                step1Form={step1Form}
-                kycType={kycType}
-                setKycType={setKycType}
-                handleVerifyPan={handleVerifyPan}
-                handleVerifyAadhar={handleVerifyAadhar}
-                handleVerifyOther={handleVerifyOther}
-                loading={loading}
-                sameAddress={sameAddress}
-                setSameAddress={setSameAddress}
-                fileNames={fileNames}
-                setFileNames={setFileNames}
-                proofs={proofs}
-                setProofs={setProofs}
-                inputClass={inputClass}
-                onSubmitStep={onSubmitStep}
-                kycVerified={kycVerified}
-                setKycVerified={setKycVerified}
-                isPanVerified={isPanVerified}
-                verifieddata={verifieddata}
-              />
-            )}
-            {currentStep === 2 && (
-              <StepTwoForm
-                step2Form={step2Form}
-                steponedata={steponedata}
-                inputClass={inputClass}
-                onSubmitStep={onSubmitStep}
-              />
-            )}
-            {currentStep === 3 && (
-              <StepThreeForm
-                step3Form={step3Form}
-                steptwodata={steptwodata}
-                inputClass={inputClass}
-                onSubmitStep={onSubmitStep}
-              />
-            )}
-            {currentStep === 4 && (
-              <StepFourForm
-                step4Form={step4Form}
-                stepthreedata={stepthreedata}
-                onSubmitStep={onSubmitStep}
-                currentStep={currentStep}
-                onGoToPayment={GoToPayment}
-              />
-            )}
-          </div>
+          {/* Summary Card */}
+          <SummaryCard
+            tenure={summaryData.tenure}
+            coverAmount={summaryData.coverAmount}
+            totalPremium={summaryData.totalPremium}
+            selectedAddons={summaryData.selectedAddons}
+            compulsoryAddons={summaryData.compulsoryAddons}
+            tenurePrices={summaryData.tenurePrices}
+            addons={summaryData.addons}
+            fullAddonsName={summaryData.fullAddonsName}
+            currentStep={currentStep}
+            onGoToPayment={GoToPayment}
+          />
         </div>
-
-        <SummaryCard
-          tenure={summaryData.tenure}
-          coverAmount={summaryData.coverAmount}
-          totalPremium={summaryData.totalPremium}
-          selectedAddons={summaryData.selectedAddons}
-          compulsoryAddons={summaryData.compulsoryAddons}
-          tenurePrices={summaryData.tenurePrices}
-          addons={summaryData.addons}
-          fullAddonsName={summaryData.fullAddonsName}
-          currentStep={currentStep}
-          onGoToPayment={GoToPayment}  
-        />
       </div>
-    </div>
-  );
+    )}
+  </>
+);
+
 }

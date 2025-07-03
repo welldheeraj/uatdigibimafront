@@ -17,7 +17,7 @@ import { useRouter } from "next/router";
 import { showSuccess } from "@/layouts/toaster";
 
 //setUsername={Username}
-export default function Header({ username, setUsername }) {
+export default function Header({ token,username, setUsername }) {
   const router = useRouter();
   const route = router.pathname;
   const splitRoute = route.split("/").filter(segment => segment !== "")[0];
@@ -37,6 +37,9 @@ export default function Header({ username, setUsername }) {
       showSuccess(response.message);
       if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
         router.push(constant.ROUTES.HEALTH.INDEX);
+      }
+      if ('/' + splitRoute === constant.ROUTES.USER.INDEX) {
+        router.push('/');
       }
       if ('/' + splitRoute === constant.ROUTES.MOTOR.INDEX) {
         router.push(constant.ROUTES.MOTOR.INDEX);
@@ -88,7 +91,7 @@ export default function Header({ username, setUsername }) {
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
               <ul className="divide-y divide-gray-100 text-sm text-gray-700">
-                {!username ? (
+                {!username && !token ? (
                   <li
                     onClick={() => {
                       setIsDropdownOpen(false);

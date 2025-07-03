@@ -9,95 +9,113 @@ import PolicyPeriodOptions from "./policyperiodoptions";
 import AddOnSelection from "./addonselection";
 import MemberDetails from "./editmember";
 import SummaryCard from "./rightsection";
-import HealthInsuranceLoader from "../loader";
+import HealthInsuranceLoader from "../../../loader";
 import SlidePanel from "../sidebar/index";
 
-import { CallApi } from "../../../api";
-import constant from "../../../env";
+import { CallApi } from "../../../../../api";
+import constant from "../../../../../env";
 
 export default function ProposalUI() {
   const router = useRouter();
 
-  // State
   const [loading, setLoading] = useState(true);
-  const [selectedAddons, setSelectedAddons] = useState([]);
   const [addons, setAddons] = useState({});
+  const [selectedAddons, setSelectedAddons] = useState([]);
   const [fullAddonsName, setFullAddonsName] = useState({});
   const [compulsoryAddons, setCompulsoryAddons] = useState([]);
+
   const [coverageOptions, setCoverageOptions] = useState([]);
   const [coverAmount, setCoverAmount] = useState("");
-  const [tenurePrices, setTenurePrices] = useState({});
   const [tenureOptions, setTenureOptions] = useState([]);
   const [tenure, setTenure] = useState("");
+  const [tenurePrices, setTenurePrices] = useState({});
+    const [totalPremium, setTotalPremium] = useState("");
+
   const [insurers, setInsurers] = useState([]);
   const [childList, setChildList] = useState([]);
   const [gender, setGender] = useState("");
   const [kycRequired, setKycRequired] = useState(false);
+
   const [isSlideOpen, setIsSlideOpen] = useState(false);
   const [pincode, setPincode] = useState("302013");
   const [memberName, setMemberName] = useState("Ravi & Family");
-
 
   const [applyClicked, setApplyClicked] = useState(false);
   const [isAddOnsModified, setIsAddOnsModified] = useState(false);
 
   useEffect(() => {
-    getCheckoutData();
+    fetchCheckoutData();
   }, []);
 
-  function getCheckoutData() {
+  const fetchCheckoutData = () => {
     setLoading(true);
     CallApi(constant.API.HEALTH.CHECKOUT)
-      .then((r) => {
-        console.log(r)
-        setSelectedAddons(r.selected_addon || []);
-        setAddons(r["addon value"] || {});
-        setFullAddonsName(r.addonname || {});
-        setCompulsoryAddons(r.compulsoryaddon || []);
-        setCoverageOptions(r.coveragelist || []);
-        setCoverAmount(r.coverage || "");
-        setTenureOptions(r.tenureList || []);
-        setTenure(r.tenure || "");
-        setInsurers(r.aInsureData || []);
-        setChildList(r.child || []);
-        setGender(r.gender || "");
-        setKycRequired(r.kyc === "1");
+      .then((res) => {
+        console.log(res)
+        setSelectedAddons(res.selected_addon || []);
+        setAddons(res["addon value"] || {});
+        setFullAddonsName(res.addonname || {});
+        setCompulsoryAddons(res.compulsoryaddon || []);
+        setCoverageOptions(res.coveragelist || []);
+        setCoverAmount(res.coverage || "");
+        setTotalPremium(res.totalamount || "");
+        setTenureOptions(res.tenureList || []);
+        setTenure(res.tenure || "");
+        setInsurers(res.aInsureData || []);
+        setChildList(res.child || []);
+        setGender(res.gender || "");
+        setKycRequired(res.kyc === "1");
       })
       .catch((err) => console.error("Checkout error:", err))
       .finally(() => setLoading(false));
-  }
-
-  const fetchData = async () => {
-    const newPrices = {};
-    if (!coverAmount || tenureOptions.length === 0) return;
-
-    for (const t of tenureOptions) {
-      const data = { tenure: t, coverage: coverAmount };
-      try {
-        const res = await CallApi(constant.API.HEALTH.PlANCHECKOUT, "POST", data);
-        if (res?.data?.premium) {
-          newPrices[t] = res.data.premium;
-        }
-      } catch (err) {
-        console.error("Price error:", err);
-      }
-    }
-
-    setTenurePrices(newPrices);
   };
 
   useEffect(() => {
-    if (coverAmount && tenureOptions.length > 0) {
-      fetchData();
-    }
+    if (!coverAmount || tenureOptions.length === 0) return;
+
+    const fetchPrices = async () => {
+      const newPrices = {};
+      for (const t of tenureOptions) {
+        try {
+          const res = await CallApi(
+            constant.API.HEALTH.PlANCHECKOUT,
+            "POST",
+            { tenure: t, coverage: coverAmount }
+          );
+          if (res?.data?.premium) newPrices[t] = res.data.premium;
+        } catch (err) {
+          console.error("Price error:", err);
+        }
+      }
+      setTenurePrices(newPrices);
+    };
+
+    fetchPrices();
   }, [coverAmount, tenureOptions]);
 
   const basePremium = tenurePrices[tenure] || 0;
-  const totalPremium =
-    basePremium +
-    Object.entries(addons)
-      .filter(([key]) => compulsoryAddons.includes(key))
-      .reduce((sum, [_, price]) => sum + (Number(price) || 0), 0);
+  // const totalPremium =
+  //   basePremium
+    //  +
+    // Object.entries(addons)
+    //   .filter(([key]) => compulsoryAddons.includes(key))
+      // .reduce((sum, [, price]) => sum + (Number(price) || 0), 0);
+
+  const handleCoverageOrTenureChange = (type, value) => {
+    const updatedPayload =
+      type === "coverage"
+        ? { coverage: value }
+        : { coverage: coverAmount, tenure: value };
+
+    if (type === "coverage") setCoverAmount(value);
+    else setTenure(value);
+
+    setLoading(true);
+    CallApi(constant.API.HEALTH.FILTERPLAN, "POST", updatedPayload)
+      .then(() => fetchCheckoutData())
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
 
   if (loading) {
     return (
@@ -123,34 +141,15 @@ export default function ProposalUI() {
         <div className="flex-1">
           <CoverageAmount
             coverAmount={coverAmount}
-            setCoverAmount={setCoverAmount}
+            setCoverAmount={(val) => handleCoverageOrTenureChange("coverage", val)}
             coverageOptions={coverageOptions}
-            onCoverageChange={(val) => {
-              setCoverAmount(val);
-              setLoading(true);
-              CallApi(constant.API.HEALTH.FILTERPLAN, "POST", { coverage: val })
-                .then(() => getCheckoutData())
-                .catch(console.error)
-                .finally(() => setLoading(false));
-            }}
           />
 
           <PolicyPeriodOptions
             tenureOptions={tenureOptions}
             tenure={tenure}
-            setTenure={setTenure}
+            setTenure={(val) => handleCoverageOrTenureChange("tenure", val)}
             tenurePrices={tenurePrices}
-            onTenureChange={(val) => {
-              setTenure(val);
-              setLoading(true);
-              CallApi(constant.API.HEALTH.FILTERPLAN, "POST", {
-                coverage: coverAmount,
-                tenure: val,
-              })
-                .then(() => getCheckoutData())
-                .catch(console.error)
-                .finally(() => setLoading(false));
-            }}
           />
 
           <AddOnSelection
@@ -158,7 +157,7 @@ export default function ProposalUI() {
             compulsoryAddons={compulsoryAddons}
             fullAddonsName={fullAddonsName}
             selectedAddons={selectedAddons}
-            getCheckoutData={getCheckoutData}
+            getCheckoutData={fetchCheckoutData}
             setApplyClicked={setApplyClicked}
             setIsAddOnsModified={setIsAddOnsModified}
           />

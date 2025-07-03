@@ -19,6 +19,7 @@ export default function SummaryCard({
   applyClicked,
   isAddOnsModified,
 }) {
+  console.log(totalPremium)
   const router = useRouter();
   const pathname = usePathname();
   const isStepFour = currentStep === 4;
@@ -63,13 +64,32 @@ export default function SummaryCard({
     }
   }, [addons, compulsoryAddons]);
 
-  useEffect(() => {
-    if (prevTotalRef.current !== totalPremium) {
-      setTotalLoading(true);
-      prevTotalRef.current = totalPremium;
-      setTimeout(() => setTotalLoading(false), 600);
+  // useEffect(() => {
+  //   if (prevTotalRef.current !== totalPremium) {
+  //     setTotalLoading(true);
+  //     prevTotalRef.current = totalPremium;
+  //     setTimeout(() => setTotalLoading(false), 600);
+  //   }
+  // }, [totalPremium]);
+    const GoToPayment = async () => {
+    console.log("Ram")
+    setLoading(true);
+    try {
+      const res = await CallApi(constant.API.HEALTH.CREATEPOLICY, "POST");
+      if (res === 1 || res?.status) {
+        const response = await CallApi(constant.API.HEALTH.GETPROPOSAL, "POST");
+        if (response.proposalNumber) {
+          router.push(
+            `/health/payment?proposalNumber=${response.proposalNumber}`
+          );
+        }
+      }
+    } catch (error) {
+      console.error("API Error", error);
+    } finally {
+      setLoading(false);
     }
-  }, [totalPremium]);
+  };
 
   const handleProceed = () => {
     if (isAddOnsModified && !applyClicked) {
@@ -78,7 +98,7 @@ export default function SummaryCard({
       );
       return;
     }
-
+console.log('hello total' ,totalPremium)
     const params = new URLSearchParams();
     params.append("tenure", tenure);
     params.append("coverAmount", coverAmount);
@@ -89,7 +109,7 @@ export default function SummaryCard({
     params.append("addons", JSON.stringify(addons));
     params.append("fullAddonsName", JSON.stringify(fullAddonsName));
     setLoading(true);
-    router.push(`/health/journey?${params.toString()}`);
+    router.push(`/health/vendors/caresupereme/journey?${params.toString()}`);
   };
 
   return (
@@ -208,7 +228,7 @@ export default function SummaryCard({
 
       {isJourneyPage && isStepFour && (
         <button
-          onClick={onGoToPayment}
+          onClick={GoToPayment}
           className="w-full mt-4 py-2 flex items-center justify-center gap-2 thmbtn"
         >
           Go to Payment

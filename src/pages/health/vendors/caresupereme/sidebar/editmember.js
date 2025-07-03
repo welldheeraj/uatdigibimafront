@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { HiPlus, HiMinus } from "react-icons/hi";
-import { showSuccess, showError } from "../../../styles/js/toaster";
-import { CallApi } from "../../../api";
-import constant from "../../../env";
+import { showSuccess, showError  } from "@/layouts/toaster";
+import { CallApi } from "../../../../../api";
+import constant from "../../../../../env";
 
 export default function InsureSidebarComponent({ onClose }) {
   const router = useRouter();
@@ -204,7 +204,7 @@ export default function InsureSidebarComponent({ onClose }) {
           ))}
 
        <div className="flex justify-center">
-  <button onClick={handleSubmit} className="w-[90%] text-center py-2 thmbtn">
+  <button onClick={handleSubmit} className="w-[96%] text-center py-2 thmbtn">
     Continue
   </button>
 </div>

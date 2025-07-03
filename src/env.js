@@ -7,11 +7,11 @@ const constant = {
     ,ROUTES:{
         HEALTH:{
                'INDEX':'/health',
-            'INSURE':'/health/insure',
-            'ILLNESS':'/health/illness',
-            'PLANS':'/health/plansOne',
-            'CHECKOUT':'health/checkoutOne',
-            'PROPOSAL':'/health/journey',
+            'INSURE':'/health/common/insure',
+            'ILLNESS':'/health/common/illness',
+            'PLANS':'/health/common/plans',
+            'CHECKOUT':'/health/vendors/caresupereme/checkout',
+            'PROPOSAL':'/health/vendors/caresupereme/journey',
             'PAYMENT':'/health/payment',
             
         } ,

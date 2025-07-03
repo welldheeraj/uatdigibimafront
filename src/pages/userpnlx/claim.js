@@ -70,7 +70,7 @@ const Claims = () => {
                   </label>
                   <select
                     {...register("insurancePolicy")}
-                    className="mt-2 p-2 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm "
+                    className="mt-2 p-2 block w-full border border-gray-400 rounded-md shadow-sm sm:text-sm "
                     defaultValue=""
                   >
                     <option value="" disabled>
