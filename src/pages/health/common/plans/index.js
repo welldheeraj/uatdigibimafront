@@ -9,7 +9,7 @@ import constant from "../../../../env";
 import FilterForm from "./filter";
 import PlanCard from "./plancard";
 import SlidePanel from "../../vendors/caresupereme/sidebar";
-import HealthInsuranceLoader from "../../loader";
+import  { HealthPlanCardSkeleton } from "../../loader";
 
 export default function HealthPlan() {
   const [vendorData, setVendorData] = useState([]);
@@ -71,6 +71,7 @@ export default function HealthPlan() {
   useEffect(() => {
     CallApi(constant.API.HEALTH.PLANDATA)
       .then((res) => {
+        console.log("plandata",res);
         setVendorData(res.vendor || []);
         setCoveragelist(res.coveragelist || []);
         setTenurelist(res.tenurelist || []);
@@ -93,19 +94,30 @@ export default function HealthPlan() {
   }, [filterData, reset]);
 
   useEffect(() => {
+   
     if (!vendorData.length) return;
-
+//  console.log(vendorData)
     setLoadingPlans(true);
     (async () => {
       const responses = await Promise.all(
         vendorData.map(async (vendor) => {
+        const route =  constant.ROUTES.HEALTH.VENDOR[String(vendor.vid)] || "";
+
+        const vendorWithRoute = {
+          ...vendor,
+          route, 
+        };
+
+        console.log("Requesting quote for:", vendorWithRoute);
           try {
             const res = await CallApi(
               constant.API.HEALTH.GETQUOTE,
               "POST",
-              vendor
+              vendorWithRoute
             );
+            console.log("Response for",  res);
             return res.status && res.data ? res.data : null;
+             
           } catch {
             return null;
           }
@@ -140,21 +152,31 @@ export default function HealthPlan() {
     }
   };
 
-  const handlePlanSubmit = () => router.push("/health/vendors/caresupereme/checkout");
+ const handlePlanSubmit = (plan) => {
+  console.log("Selected Plan:", plan);
 
-  if (loadingPlans) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#C8EDFE]">
-        <HealthInsuranceLoader />
-      </div>
-    );
+  if (!plan?.route) {
+    console.warn("No route found for the selected plan.");
+    return;
   }
+
+  router.push(plan.route); // Navigate to the dynamic route
+};
+
+
+  // if (loadingPlans) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-[#C8EDFE]">
+  //       <HealthInsuranceLoader />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="bg-[#C8EDFE] min-h-screen px-4 sm:px-10 lg:px-20 py-6">
       <button
         type="button"
-        onClick={() => router.push("/health/illness")}
+        onClick={() => router.push("/health/common/illness")}
         className="inline-flex items-center text-base text-indigo-700 mb-4 hover:underline gap-1"
       >
         <FiArrowLeft className="text-lg" />
@@ -172,12 +194,19 @@ export default function HealthPlan() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:col-span-9 space-y-6 pr-6">
-          {plansData.length ? (
+          {loadingPlans ? (
+            Array.from({ length: 3 }).map((_, i) => <HealthPlanCardSkeleton key={i} />)
+          ) : plansData.length ? (
             plansData.map((plan, i) => (
-              <PlanCard key={i} plan={plan} handlePlanSubmit={handlePlanSubmit} />
+              <PlanCard
+                key={i}
+                plan={plan}
+                allPlans={plansData}
+                handlePlanSubmit={handlePlanSubmit}
+              />
             ))
           ) : (
-            <div>No plans available</div>
+            <div className="text-gray-500 italic">No plans available</div>
           )}
         </div>
 

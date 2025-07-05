@@ -1,78 +1,122 @@
 const constant = {
-    USER:'',
-    EMAIL_ID:'',
-    COOKIE:{
-        HEADER:'@#$%^AZ##'
-    }
-    ,ROUTES:{
-        HEALTH:{
-               'INDEX':'/health',
-            'INSURE':'/health/common/insure',
-            'ILLNESS':'/health/common/illness',
-            'PLANS':'/health/common/plans',
-            'CHECKOUT':'/health/vendors/caresupereme/checkout',
-            'PROPOSAL':'/health/vendors/caresupereme/journey',
-            'PAYMENT':'/health/payment',
-            
-        } ,
-        MOTOR:{
-             'INDEX':'/motor',
-             'SELECTVEHICLE':'/motor/common',
-             'KnowCarSlide2':'/motor/car/common/knowcarslide2',
-             'KnowCarSlide3':'/motor/car/common/knowcarslide3',
-             'PLANS' : '/motor/car/common/plans'
-        },
-        USER:{
-            'INDEX':'/userpnlx',
-            'CLAIM':'/userpnlx/claim',
-            'POLICY':'/userpnlx/policy',
-            'PROFILE':'/userpnlx/profile'
-        }
+  USER: '',
+  EMAIL_ID: '',
+  COOKIE: {
+    HEADER: '@#$%^AZ##'
+  }
+  , ROUTES: {
+    'INDEX': '/',
+    LOGIN: {
+      'HEALTHLOGIN': '/login?type=health',
+      'MOTORLOGIN': '/login?type=motor'
     },
-    API:{
-       HEALTH:{
-       'SENDOTP':'/api/sendotp',
-        'VERIFYOTP':'/api/verifyotp',
-        'PINCODE':'/api/acpincode',
-        'INSUREVIEW':'/api/insureview',
-        'GETINSURE':'/api/getinsureinfo',
-        'ILLNESS':'/api/illnesses',
-        'SAVEILLNESS':'/api/saveillnesses',
-        'PLANDATA':'/api/quoteview',
-        'FILTERPLAN':'/api/filterplan',
-        'GETQUOTE':'/api/health-quotation-generate',
-        'CHECKOUT':'/api/addon',
-        'SETPREMIUM':'api/setpremium',
-        'PlANCHECKOUT':'/api/plancheckout',
-        'ADDADDONS':'/api/addaddon',
-        'PANVERIFY':'/api/verifypan',
-        'UPLOADDOCUMENT':'/api/uploadfile',
-        'AADHARVERIFY':'/api/verifyadhar',
-        'SAVESTEPONE':'/api/proposalStepOne',
-        'SAVESTEPTWO':'/api/proposalStepTwo',
-        'SAVESTEPTHREE':'/api/proposalStepThree',
-        'CREATEPOLICY':'/api/createpolicy',
-         'GETPROPOSAL':'/api/carepayment',
-         'ACPINCODE':'/api/acdetails',
-       } ,
+    HEALTH: {
+      // 'INDEX': '/health',
+      'INSURE': '/health/common/insure',
+      'ILLNESS': '/health/common/illness',
+      'PLANS': '/health/common/plans',
 
-       MOTOR:{
-        'LOGIN' : '/api/motor/vehicle-type-select',
-        'VERIFYRTO' : '/api/motor/verifyrto',
-        'BRANDS' : '/api/motor/getbrand',
-        'MODELS' : '/api/motor/getmodel',
-        CAR:{
-            'SAVESTEPONE':'/api/motor-car/kn-car-details',
-            'SAVESTEPTWO':'/api/motor-car/kn-car-detailstwo'
-        },
-        'CARDETAILSTWO' : '/api/motor-car/kn-car-detailstwo'
-       },
-       USER:{
-            'PROFILEUPDATE':'/api/userpnlx/user-profile-update',
-            'POLICY' : '/api/userpnlx/user-policy'
-       }
+      CARESUPEREME: {
+        'CHECKOUT': '/health/vendors/caresupereme/checkout',
+        'PROPOSAL': '/health/vendors/caresupereme/journey',
+        'PAYMENT': '/health/payment',
+      },
+
+      ULTIMATECARE: {
+        'PROPOSAL': '/health/vendors/ultimatecare/journey',
+        'PAYMENT': '/health/payment',
+      },
+
+      VENDOR: {
+        '100': '/health/vendors/caresupereme/checkout',
+        '102': '/health/vendors/ultimatecare/checkout',
+        '101': '/health/vendors/Godigits/checkout'
+      }
+
     },
-     QUESTION: {
+    MOTOR: {
+      // 'INDEX': '/motor',
+      'SELECTVEHICLE': '/motor/select-vehicle-type',
+      'KNOWCARSTEPTWO': '/motor/car/knowcarstep-two',
+      'KNOWCARSTEPTHREE': '/motor/car/knowcarstep-three',
+      'NEWCAR': '/motor/car/new-car',
+      'PLANS': '/motor/car/plans',
+
+      'KNOWBIKESTEPTWO': '/motor/bike/Knowbikestep-two',
+      'NEWBIKE' : '/motor/bike/new-bike'
+    },
+    USER: {
+      'INDEX': '/userpnlx',
+      'CLAIM': '/userpnlx/claim',
+      'POLICY': '/userpnlx/policy',
+      'PROFILE': '/userpnlx/profile'
+    }
+  },
+  API: {
+    HEALTH: {
+      'SENDOTP': '/api/sendotp',
+      'VERIFYOTP': '/api/verifyotp',
+      'PINCODE': '/api/acpincode',
+      'INSUREVIEW': '/api/insureview',
+      'GETINSURE': '/api/getinsureinfo',
+      'ILLNESS': '/api/illnesses',
+      'SAVEILLNESS': '/api/saveillnesses',
+      'PLANDATA': '/api/quoteview',
+      'FILTERPLAN': '/api/filterplan',
+      'GETQUOTE': '/api/health-quotation-generate',
+      'ACPINCODE': '/api/acdetails',
+      CARESUPEREME: {
+        'CHECKOUT': '/api/addon',
+        'SETPREMIUM': 'api/setpremium',
+        'PlANCHECKOUT': '/api/plancheckout',
+        'ADDADDONS': '/api/addaddon',
+        'PANVERIFY': '/api/verifypan',
+        'UPLOADDOCUMENT': '/api/uploadfile',
+        'AADHARVERIFY': '/api/verifyadhar',
+        'SAVESTEPONE': '/api/proposalStepOne',
+        'SAVESTEPTWO': '/api/proposalStepTwo',
+        'SAVESTEPTHREE': '/api/proposalStepThree',
+        'CREATEPOLICY': '/api/createpolicy',
+        'GETPROPOSAL': '/api/carepayment',
+      },
+      ULTIMATECARE: {
+        'CHECKOUT': '/api/health-ultimatecare/addon',
+        'SETPREMIUM': '/api/health-ultimatecare/setpremium',
+        'PlANCHECKOUT': '/api/health-ultimatecare/plancheckout',
+        'ADDADDONS': '/api/health-ultimatecare/addaddon',
+        'PANVERIFY': '/api/verifypan',
+        'UPLOADDOCUMENT': '/api/uploadfile',
+        'AADHARVERIFY': '/api/verifyadhar',
+        'SAVESTEPONE': '/api/proposalStepOne',
+        'SAVESTEPTWO': '/api/proposalStepTwo',
+        'SAVESTEPTHREE': '/api/proposalStepThree',
+        'CREATEPOLICY': '/api/createpolicy',
+        'GETPROPOSAL': '/api/carepayment',
+      },
+    },
+
+    MOTOR: {
+      'LOGIN': '/api/motor/vehicle-type-select',
+      'VERIFYRTO': '/api/motor/verifyrto',
+      'BRANDS': '/api/motor/getbrand',
+      'MODELS': '/api/motor/getmodel',
+      'GETCITY': '/api/motor/getcity',
+
+      CAR: {
+        'SAVESTEPONE': '/api/motor-car/kn-car-details',
+        'KNOWCARDETAILSTWO': '/api/motor-car/kn-car-steptwo',
+        'KNOWCARDETAILSTHREE': '/api/motor-car/knowcarstepthree',
+        'PLANS': '/api/motor-car/plans',
+        'ADDADDONS':'/api/motor-car/addaddon'
+      },
+
+    },
+    USER: {
+      'PROFILEUPDATE': '/api/userpnlx/user-profile-update',
+      'POLICY': '/api/userpnlx/user-policy'
+    }
+  },
+  QUESTION: {
     CAREDISEASE: {
       '11': 'Cancer or Tumor of any kind?',
       '12': 'Any heart related or circulatory system disorders?',

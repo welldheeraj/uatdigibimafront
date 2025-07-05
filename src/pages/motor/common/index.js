@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { showSuccess, showError } from "../../../layouts/toaster";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
@@ -10,6 +10,10 @@ import { FaCar, FaMotorcycle, FaTractor } from "react-icons/fa6";
 
 export default function VehicleSelect({ usersData }) {
   const [carnumber, setCarnumber] = useState();
+  const [cities, setCities] = useState(null);
+const cityRef = useRef(null);
+
+
   const {
     register,
     watch,
@@ -34,6 +38,7 @@ export default function VehicleSelect({ usersData }) {
       commercialOption: "knowcommercial",
       mobile: usersData?.mobile,
       carRegNumber: carnumber,
+      carCity : cities,
     });
   }, [usersData, carnumber]);
 
@@ -45,7 +50,7 @@ export default function VehicleSelect({ usersData }) {
           "GET"
         );
         setCarnumber(response.data.carregnumber);
-        console.log("Saved response", response);
+        console.log("Saved responseee", response);
         // if (response.data.carregnumber) {
         //   // setValue("carRegNumber", response.data.carregnumber);
 
@@ -64,6 +69,20 @@ export default function VehicleSelect({ usersData }) {
   const carOption = watch("carOption");
   const bikeOption = watch("bikeOption");
   const commercialOption = watch("commercialOption");
+
+  const getCities = async (value) => {
+    try {
+      const response = await CallApi(constant.API.MOTOR.GETCITY, "POST", {
+        city: value,
+      });
+
+      console.log("Cities ka response", response);
+
+      setCities(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const onSubmit = async (data) => {
     console.log("abc data", data);
@@ -105,7 +124,10 @@ export default function VehicleSelect({ usersData }) {
     try {
       const response = await CallApi(constant.API.MOTOR.VERIFYRTO, "POST", {
         carregnumber: data.carRegNumber,
+        carCity : data.carCity
       });
+
+      console.log("res of verifying" , response)
       var saveresponse;
       if (response) {
         saveresponse = await CallApi(
@@ -113,12 +135,13 @@ export default function VehicleSelect({ usersData }) {
           "POST",
           {
             carregnumber: data.carRegNumber,
+             carCity : data.carCity
           }
         );
-        console.log(saveresponse);
+        console.log("saving after verifying",saveresponse);
       }
       if (saveresponse) {
-        router.push(constant.ROUTES.MOTOR.KnowCarSlide2);
+        router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTWO);
       }
       showSuccess("Detail verified");
       // router.push({
@@ -130,6 +153,21 @@ export default function VehicleSelect({ usersData }) {
       showError("Error");
     }
   };
+
+
+useEffect(() => {
+  function handleClickOutside(event) {
+    if (cityRef.current && !cityRef.current.contains(event.target)) {
+      setCities([]); 
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+
 
   return (
     <div>
@@ -278,25 +316,44 @@ export default function VehicleSelect({ usersData }) {
                     {carOption === "newcar" && (
                       <>
                         <div className="flex flex-col md:flex-row gap-4">
-                          <div className="flex flex-col">
+                          <div className="flex flex-col relative"  ref={cityRef}>
                             <label className="text-base md:text-base">
                               City Name
                             </label>
                             <input
                               type="text"
                               placeholder="Enter City Name"
+                        
                               {...register("carCity", {
                                 required:
                                   carOption === "newcar"
                                     ? "City name is required"
                                     : false,
+                                onChange: (e) => getCities(e.target.value),
                               })}
-                              className="w-[full] border rounded p-2 mt-1"
+                              className="w-full border rounded p-2 mt-1"
                             />
                             {errors.carCity && (
                               <p className="text-red-500 text-sm">
                                 {errors.carCity.message}
                               </p>
+                            )}
+
+                            {cities?.length > 0 && (
+                              <ul className="absolute top-full left-0 right-0 z-10 border rounded bg-white max-h-40 overflow-y-auto shadow-md mt-1">
+                                {cities.map((city, idx) => (
+                                  <li
+                                    key={idx}
+                                    onClick={() => {
+                                      setValue("carCity", city);
+                                      setCities([]);
+                                    }}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    {city}
+                                  </li>
+                                ))}
+                              </ul>
                             )}
                           </div>
 
@@ -454,50 +511,57 @@ export default function VehicleSelect({ usersData }) {
                 {selectedVehicle === "commercial" && (
                   <div className="space-y-4 ">
                     <div className="flex flex-col md:flex-row gap-4">
-                     <div className="flex gap-4">
-                      <label>
-                        <input
-                          type="radio"
-                          value="knowcommercial"
-                          {...register("commercialOption")}
-                        />
-                        Know Commercial No.
-                      </label>
-                      <label>
-                        <input
-                          type="radio"
-                          value="newcommercial"
-                          {...register("commercialOption")}
-                        />
-                        New Commercial
-                      </label>
-                     </div>
+                      <div className="flex gap-4">
+                        <label>
+                          <input
+                            type="radio"
+                            value="knowcommercial"
+                            {...register("commercialOption")}
+                          />
+                          Know Commercial No.
+                        </label>
+                        <label>
+                          <input
+                            type="radio"
+                            value="newcommercial"
+                            {...register("commercialOption")}
+                          />
+                          New Commercial
+                        </label>
+                      </div>
                     </div>
 
                     {commercialOption === "knowcommercial" && (
                       <>
                         <div className="flex flex-col md:flex-row gap-4 ">
-                        
                           <div className="flex flex-col gap-2">
-                          <div className="flex flex-col">
-                            <label>Registration Number</label>
-                            <input
-                              type="text"
-                              placeholder="Enter Commercial Reg. Number"
-                              {...register("commercialRegNumber")}
-                              className="w-full border rounded p-2"
-                            />
-                          </div>
+                            <div className="flex flex-col">
+                              <label>Registration Number</label>
+                              <input
+                                type="text"
+                                placeholder="Enter Commercial Reg. Number"
+                                {...register("commercialRegNumber")}
+                                className="w-full border rounded p-2"
+                              />
+                            </div>
 
-                           <div className="flex flex-col">
+                            <div className="flex flex-col">
                               <label>Vehicle Type</label>
-                              <select name="commercialVehicle" id="comVehicle" className="p-1">
+                              <select
+                                name="commercialVehicle"
+                                id="comVehicle"
+                                className="p-1"
+                              >
                                 <option>Vehicle Type</option>
-                                <option value="">Passenger Carrying Commercial Vehicle</option>
-                                <option value="">Goods Carrying Commercial Vehicles</option>
+                                <option value="">
+                                  Passenger Carrying Commercial Vehicle
+                                </option>
+                                <option value="">
+                                  Goods Carrying Commercial Vehicles
+                                </option>
                               </select>
                             </div>
-                            </div>
+                          </div>
 
                           <div className="flex flex-col">
                             <label>Mobile Number</label>

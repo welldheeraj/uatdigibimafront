@@ -316,7 +316,7 @@ const handleSubmit = async () => {
             <div className="flex flex-wrap gap-3 justify-start">
               <button
                 type="button"
-                onClick={() => router.push(constant.ROUTES.HEALTH.INDEX)}
+                onClick={() => router.push(constant.ROUTES.LOGIN.HEALTHLOGIN)}
                 className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                 style={{
                   background: "linear-gradient(to bottom, #426D98, #28A7E4)",

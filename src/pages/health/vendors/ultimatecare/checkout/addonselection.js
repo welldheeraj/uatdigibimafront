@@ -14,6 +14,7 @@ export default function AddOnSelection({
   setApplyClicked,
   setIsAddOnsModified,
 }) {
+  // console.log(addons,compulsoryAddons)
   const { register, handleSubmit, control } = useForm(); 
   const [loading, setLoading] = useState(false);
 
@@ -47,7 +48,8 @@ export default function AddOnSelection({
     try {
       setLoading(true);
       const payload = { addon: selectedKeys };
-      const response = await CallApi(constant.API.HEALTH.CARESUPEREME.ADDADDONS, "POST", payload);
+        console.log(constant.API.HEALTH.ULTIMATECARE.ADDADDONS);
+      const response = await CallApi(constant.API.HEALTH.ULTIMATECARE.ADDADDONS, "POST", payload);
       console.log("AddOns Applied:", response);
 
       if (typeof setApplyClicked === "function") setApplyClicked(true);

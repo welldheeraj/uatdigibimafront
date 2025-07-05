@@ -17,10 +17,10 @@ import { useRouter } from "next/router";
 import { showSuccess } from "@/layouts/toaster";
 
 //setUsername={Username}
-export default function Header({ token,username, setUsername }) {
+export default function Header({ token, username, setUsername }) {
   const router = useRouter();
   const route = router.pathname;
-  const splitRoute = route.split("/").filter(segment => segment !== "")[0];
+  const splitRoute = route.split("/").filter((segment) => segment !== "")[0];
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   // useEffect(() => {
   //   console.log('uuuu', username);
@@ -35,17 +35,18 @@ export default function Header({ token,username, setUsername }) {
       window.dispatchEvent(new Event("auth-change"));
       setIsDropdownOpen(false);
       showSuccess(response.message);
-      if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+      if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
         router.push(constant.ROUTES.HEALTH.INDEX);
       }
-      if ('/' + splitRoute === constant.ROUTES.USER.INDEX) {
-        router.push('/');
+      if ("/" + splitRoute === constant.ROUTES.USER.INDEX) {
+        router.push("/");
       }
-      if ('/' + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+      if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
         router.push(constant.ROUTES.MOTOR.INDEX);
       } else {
         window.dispatchEvent(new Event("auth-change"));
       }
+
     }
   };
 
@@ -92,7 +93,7 @@ export default function Header({ token,username, setUsername }) {
             <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
               <ul className="divide-y divide-gray-100 text-sm text-gray-700">
                 {!username && !token ? (
-                  <li
+                 <li
                     onClick={() => {
                       setIsDropdownOpen(false);
                       router.push(constant.ROUTES.HEALTH.INDEX);
@@ -120,7 +121,6 @@ export default function Header({ token,username, setUsername }) {
                         setIsDropdownOpen(false);
                         logout();
                       }}
-
                       className="px-5 py-3 hover:bg-red-50 hover:text-red-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2"
                     >
                       <button className="flex items-center gap-2">

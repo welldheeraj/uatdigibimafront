@@ -20,7 +20,7 @@ export default function StepTwoForm({
 useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await CallApi(constant.API.HEALTH.CARESUPEREME.SAVESTEPTWO, "GET");
+        const res = await CallApi(constant.API.HEALTH.SAVESTEPTWO, "GET");
         const savedData = res.data || [];
         console.log(savedData);
 

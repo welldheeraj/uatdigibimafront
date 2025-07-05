@@ -1,11 +1,11 @@
 import { useForm } from "react-hook-form";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { showSuccess, showError } from "../../layouts/toaster";
-import { CallApi } from "../../api";
-import { CallNextApi } from "../utils/helper";
-import constant from "../../env";
-import { isNumber } from '../../styles/js/validation';
+import { showSuccess, showError } from "../layouts/toaster";
+import { CallApi } from "../api";
+import { CallNextApi } from "../pages/utils/helper";
+import constant from "../env";
+import { isNumber } from '../styles/js/validation';
 
 
 export default function FormPage({ usersData, token }) {

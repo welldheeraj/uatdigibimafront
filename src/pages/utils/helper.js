@@ -1,3 +1,10 @@
+// export async function isAuth() {
+//   if(!localStorage.setItem('token'))
+//   {
+//     router.replace(constant.ROUTES.INDEX);
+//   }
+// }
+
 export async function CallNextApi(url, methods, data = {}) {
   let options = {
     method:methods,
@@ -13,5 +20,7 @@ export async function CallNextApi(url, methods, data = {}) {
   if (!res.ok) throw new Error("API request failed");
   return await res.json();
 }
+
+
 
 

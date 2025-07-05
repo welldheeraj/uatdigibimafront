@@ -1,6 +1,21 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+
+ const routesMap = {
+    // Car: "/motor",
+    // Bike: "/motor",
+    // Commercial: "/motor",
+    // Health: "/health",
+
+  Car: "/login?type=motor",
+  Bike: "/login?type=motor",
+  Commercial: "/login?type=motor",
+  Health: "/login?type=health",
+
+    
+  };
 
 export default function Main() {
   return (
@@ -32,6 +47,7 @@ export default function Main() {
             { label: "Health", src: "/health.jpg" },
             { label: "Commercial", src: "/commercial.jpg" },
           ].map(({ label, src }, index) => (
+               <Link href={routesMap[label]} key={index}>
             <div key={index} className="text-center border-2 border-blue-300 rounded-xl overflow-hidden shadow-sm">
               <Image
                 src={src}
@@ -42,6 +58,7 @@ export default function Main() {
               />
               <div className="py-2 font-medium text-lg">{label}</div>
             </div>
+            </Link>
           ))}
         </div>
       </div>

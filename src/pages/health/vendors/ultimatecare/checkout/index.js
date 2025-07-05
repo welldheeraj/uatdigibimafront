@@ -49,11 +49,13 @@ export default function ProposalUI() {
 
   const fetchCheckoutData = () => {
     setLoading(true);
-    CallApi(constant.API.HEALTH.CARESUPEREME.CHECKOUT)
+    console.log(constant.API.HEALTH.ULTIMATECARE.CHECKOUT)
+      // return false;
+    CallApi(constant.API.HEALTH.ULTIMATECARE.CHECKOUT)
       .then((res) => {
         console.log(res)
         setSelectedAddons(res.selected_addon || []);
-        setAddons(res["addon value"] || {});
+        setAddons(res.addOn_Value || {});
         setFullAddonsName(res.addonname || {});
         setCompulsoryAddons(res.compulsoryaddon || []);
         setCoverageOptions(res.coveragelist || []);
@@ -78,7 +80,7 @@ export default function ProposalUI() {
       for (const t of tenureOptions) {
         try {
           const res = await CallApi(
-            constant.API.HEALTH.CARESUPEREME.PlANCHECKOUT,
+            constant.API.HEALTH.ULTIMATECARE.PlANCHECKOUT,
             "POST",
             { tenure: t, coverage: coverAmount }
           );
@@ -111,7 +113,7 @@ export default function ProposalUI() {
     else setTenure(value);
 
     setLoading(true);
-    CallApi(constant.API.HEALTH.CARESUPEREME.FILTERPLAN, "POST", updatedPayload)
+    CallApi(constant.API.HEALTH.FILTERPLAN, "POST", updatedPayload)
       .then(() => fetchCheckoutData())
       .catch(console.error)
       .finally(() => setLoading(false));

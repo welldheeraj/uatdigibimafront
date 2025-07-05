@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { showSuccess, showError } from "../../../layouts/toaster";
-import { CallApi, getUserinfo } from "../../../api";
+import { CallApi, getUserinfo,isAuth } from "../../../api";
 import constant from "../../../env";
 
 export default function IllnessForm() {
@@ -25,6 +25,20 @@ export default function IllnessForm() {
   const selected = watch("data") || [];
   const isNoDiseaseSelected = selected.includes("No Existing Disease");
   const isAnyOtherSelected = selected.some((d) => d !== "No Existing Disease");
+
+  useEffect(()=>{
+    async function getAuth()
+    {
+      const isauth= await isAuth();
+    
+      console.log('auth:',isauth);
+      if(!isauth)
+      {
+        router.replace(constant.ROUTES.INDEX);
+      }
+    }
+    getAuth();
+  },[]);
 
   useEffect(() => {
     const getToken = localStorage.getItem("token");

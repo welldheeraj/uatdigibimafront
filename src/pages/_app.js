@@ -28,7 +28,7 @@ export default function App({ Component, pageProps }) {
   const [Username, setUsername] = useState(null);
   const [userMobile, setUserMobile] = useState(null);
   const [userData, setUserData] = useState(null);
-   const [kycData, setKycData] = useState({ status: null, kyctype: null });
+  const [kycData, setKycData] = useState({ status: null, kyctype: null });
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const route = router.pathname;
@@ -37,22 +37,23 @@ export default function App({ Component, pageProps }) {
     let status = false;
     let tokenresponse = await CallNextApi("/api/getsession",
       "GET"
-      );
-    // tokenresponse= await tokenresponse.json();
+    );
+    //tokenresponse= await tokenresponse.json();
+    console.log('token', localStorage.getItem('token'), 'cookie', tokenresponse);
     //setAuthkey(tokenresponse.authkey);
-    if(tokenresponse.authkey && localStorage.getItem("token") && tokenresponse.authkey == localStorage.getItem("token") )
-    {
-      console.log('tkn',true);
-      status=true;
-    }
-    else{console.log('tkn',false);
-    }
-    return status;
+    // if(tokenresponse.authkey && localStorage.getItem("token") && tokenresponse.authkey == localStorage.getItem("token") )
+    // {
+    //   // console.log('tkn',true);
+    //   status=true;
+    // }
+    // else{console.log('tkn',false);
+    // }
+    // return status;
   }
   useEffect(() => {
     const verifyAuth = async () => {
       const storedToken = localStorage.getItem("token");
-      // var storedCookie = await getSession();
+      //svar storedCookie = await getSession();
       // console.log('gettokenresponse',storedCookie);
       if (!storedToken) {
         setToken(null);
@@ -108,25 +109,25 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   useEffect(() => {
-    
+
     if (token) {
       const fetchData = async () => {
         try {
           setIsLoading(true);
           const response = await getUserinfo(token);
           const data = await response.json();
-          console.log('ghgh',data);
-           setKycData(data.kyctype,data.status);
+          // console.log('ghgh',data);
+          setKycData(data.kyctype, data.status);
           if (data.status && data.user?.name) {
-        setUserData(data.user);
-        setKycData({
-          status: data.status,
-          kyctype: data.kyctype, // example: 'p' or 'a'
-        });
-      } else {
-        setUserData(null);
-        setKycData({ status: false, kyctype: null });
-      }
+            setUserData(data.user);
+            setKycData({
+              status: data.status,
+              kyctype: data.kyctype, // example: 'p' or 'a'
+            });
+          } else {
+            setUserData(null);
+            setKycData({ status: false, kyctype: null });
+          }
         } catch (error) {
           console.error("Error fetching user info:", error);
           setUserData(null);
@@ -138,13 +139,13 @@ export default function App({ Component, pageProps }) {
     }
   }, [token]);
 
-  useEffect(() => {
-    console.log('uuuatttu1', userData);
-  }, [userData]);
+  // useEffect(() => {
+  //   // console.log('uuuatttu1', userData);
+  // }, [userData]);
   return (
     <div className={poppins.className}>
       <Header
-      token={token}
+        token={token}
         username={userData?.name}
         setUsername={setUserData}
       />
@@ -181,10 +182,9 @@ export default function App({ Component, pageProps }) {
 //         const tokenData = await responseToken.json();
 //         console.log("Token Data:", tokenData);
 // export async function getServerSideProps(context) {
-
 //   return {
 //     props: {
-//       userinfo:'ffgfg'
+//       abc:'ffgfg'
 //     },
 //   };
 // }

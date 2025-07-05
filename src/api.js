@@ -2,6 +2,7 @@ import { openDB } from 'idb';
 //import {constant} from './pages'
 const DB_NAME = 'AuthDB';
 const STORE_NAME = 'tokens';
+import constant from '@/env'
 
 export async function CallApi(url, method = "POST", data = null) {
   // console.log(data);
@@ -88,3 +89,8 @@ export async function deleteDBToken() {
   const db = await getDB();
   await db.delete(STORE_NAME, 'authToken');
 }
+
+export async function isAuth() {
+  return localStorage.getItem('token')?true:false;
+}
+
