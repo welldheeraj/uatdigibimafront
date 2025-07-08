@@ -15,6 +15,7 @@ import { CallApi } from "../../api";
 import constant from "../../env";
 import { useRouter } from "next/router";
 import { showSuccess } from "@/layouts/toaster";
+import Link from "next/link";
 
 //setUsername={Username}
 export default function Header({ token, username, setUsername }) {
@@ -35,15 +36,21 @@ export default function Header({ token, username, setUsername }) {
       window.dispatchEvent(new Event("auth-change"));
       setIsDropdownOpen(false);
       showSuccess(response.message);
-      if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-        router.push(constant.ROUTES.HEALTH.INDEX);
-      }
-      if ("/" + splitRoute === constant.ROUTES.USER.INDEX) {
-        router.push("/");
-      }
-      if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-        router.push(constant.ROUTES.MOTOR.INDEX);
-      } else {
+      // if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+      //   router.push(constant.ROUTES.HEALTH.INDEX);
+      // }
+      // if ("/" + splitRoute === constant.ROUTES.USER.INDEX) {
+      //   router.push("/");
+      // }
+      // if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+      //   router.push(constant.ROUTES.MOTOR.INDEX);
+      // } else {
+      //   window.dispatchEvent(new Event("auth-change"));
+      // }
+      
+    if(response.status === true) {
+      router.push("/")
+    } else {
         window.dispatchEvent(new Event("auth-change"));
       }
 
@@ -67,11 +74,14 @@ export default function Header({ token, username, setUsername }) {
       {/* Logo and Profile */}
       <div className="bg-white px-6 py-4 mx-4 flex justify-between items-center rounded-bl-[40px] rounded-br-[40px] shadow-sm border-b relative">
         <div className="flex items-center gap-2">
+             <Link href="/">
           <img
             src="https://test.digibima.com/public/front/images/logo.png"
             alt="DigiBima Logo"
             className="h-[35px] w-auto"
+            
           />
+          </Link>
         </div>
 
         {/* Profile Button with Dropdown */}
@@ -96,7 +106,8 @@ export default function Header({ token, username, setUsername }) {
                  <li
                     onClick={() => {
                       setIsDropdownOpen(false);
-                      router.push(constant.ROUTES.HEALTH.INDEX);
+                      // router.push(constant.ROUTES.HEALTH.INDEX);
+                      router.push(constant.ROUTES.INDEX);
                     }}
                     className="px-5 py-3 hover:bg-blue-50 hover:text-blue-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2"
                   >

@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import constant from "../../../env";
@@ -29,6 +29,7 @@ export default function KnowCarStepTwo() {
   const [savedPageData, setSavedPageData] = useState(null);
 
   const router = useRouter();
+  const matchedModelRef = useRef(null);
   const registerDate = watch("carregdate");
 
   useEffect(() => {
@@ -65,17 +66,20 @@ export default function KnowCarStepTwo() {
   }, [savedPageData, brands, setValue]);
 
   useEffect(() => {
-    if (savedPageData && models.length > 0) {
-      setSelectedModel(savedPageData.model || null);
-      setValue("model", savedPageData.model);
+  if (savedPageData && models.length > 0) {
+    const matchedModel = models.find((m) => m.model === savedPageData.model); 
+    if (matchedModel) {
+      setSelectedModel(matchedModel);
+     setValue("model", matchedModel.id);
     }
-  }, [savedPageData, models, setValue]);
+  }
+}, [savedPageData, models, setValue]);
 
   useEffect(() => {
     if (savedPageData) {
       reset({
         brand: savedPageData.brand,
-        model: savedPageData.model,
+        model: matchedModelRef.current?.id || "",
         carregdate: savedPageData.carregdate,
         brandyear: savedPageData.brandyear,
         under: savedPageData.under || "individual",
@@ -100,7 +104,8 @@ export default function KnowCarStepTwo() {
 
   const handleGetBrands = async () => {
     try {
-      const brand = { brand: "CAR" };
+      const Brandvalue = "MOT-PRD-001"
+      const brand = { brand: Brandvalue };
       const response = await CallApi(constant.API.MOTOR.BRANDS, "POST", brand);
       setBrands(response.brand);
     } catch (error) {
@@ -118,6 +123,7 @@ export default function KnowCarStepTwo() {
         const car = "MOT-PRD-001";
         const data = { brand: selectedBrand, type: car };
         const response = await CallApi(constant.API.MOTOR.MODELS, "POST", data);
+        console.log(response);
         setModels(response);
         reset((prev) => ({ ...prev, model: "" }));
       } catch (error) {
@@ -237,13 +243,12 @@ export default function KnowCarStepTwo() {
                     name="model"
                     {...register("model", { required: true })}
                     options={models.map((model) => ({
-                      value: model.model,
+                      value: model.id, 
                       label: model.model,
                     }))}
-                    value={selectedModel}
+                    value={watch("model") || ""} 
                     onChange={(value) => {
-                      setSelectedModel(value);
-                      setValue("model", value);
+                      setValue("model", value); 
                     }}
                     placeholder="Select or type Model"
                     className="inputcls"
@@ -253,6 +258,7 @@ export default function KnowCarStepTwo() {
                       Model is required
                     </span>
                   )}
+
                 </div>
 
                 {/* Register Date */}

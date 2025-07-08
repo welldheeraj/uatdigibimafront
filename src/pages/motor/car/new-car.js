@@ -1,25 +1,55 @@
 "use client"
 
-import {  useState } from "react";
+import {  useState , useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import constant from "../../../env";
+import { CallApi } from "../../../api";
 import Image from "next/image";
 import DropdownWithSearch from "../../lib/DropdownWithSearch";
 
 
 function NewCar() {
 
-const {register, setValue,   handleSubmit, formState: { errors },} = useForm();
+const {register, setValue,   handleSubmit, formState: { errors },reset,} = useForm();
 
   const [under, setUnder] = useState("individual");
-  //   const [brands, setBrands] = useState([]);
-  // const [selectedBrand, setSelectedBrand] = useState(null);
-  //  const [models, setModels] = useState([]);
-  // const [selectedModel, setSelectedModel] = useState(null);
+    const [brands, setBrands] = useState([]);
+  const [selectedBrand, setSelectedBrand] = useState(null);
+   const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState(null);
+  const router = useRouter();
 
+const handleGetBrands = async () => {
+    try {
+       const Brandvalue = "MOT-PRD-001"
+      const brand = { brand: Brandvalue };
+      const response = await CallApi(constant.API.MOTOR.BRANDS, "POST", brand);
+      setBrands(response.brand);
+    } catch (error) {
+      console.error("error fetching brands", error);
+    }
+  };
 
-    const router = useRouter();
+  useEffect(() => {
+    handleGetBrands();
+  }, []);
+
+  useEffect(() => {
+    const handleGetModels = async () => {
+      try {
+        const car = "MOT-PRD-001";
+        const data = { brand: selectedBrand, type: car };
+        const response = await CallApi(constant.API.MOTOR.MODELS, "POST", data);
+        setModels(response);
+        reset((prev) => ({ ...prev, model: "" }));
+      } catch (error) {
+        console.error("error fetching models", error);
+      }
+    };
+    if (selectedBrand) handleGetModels();
+  }, [selectedBrand]);
+
 
   const onSubmit = (data) => {
      console.log(data)
@@ -72,16 +102,16 @@ const {register, setValue,   handleSubmit, formState: { errors },} = useForm();
               <DropdownWithSearch
                 id="brandsDropdown"
                 name="brand"
-                // options={brands.map((brand) => ({
-                //   value: brand.MANUFACTURER,
-                //   label: brand.MANUFACTURER,
-                // }))}
-                // {...register("brand", { required: true })}
-                // value={selectedBrand}
-                // onChange={(value) => {
-                //   setSelectedBrand(value);
-                //   setValue("brand", value);
-                // }}
+                options={brands.map((brand) => ({
+                  value: brand.MANUFACTURER,
+                  label: brand.MANUFACTURER,
+                }))}
+                {...register("brand", { required: true })}
+                value={selectedBrand}
+                onChange={(value) => {
+                  setSelectedBrand(value);
+                  setValue("brand", value);
+                }}
                 placeholder="Select or type brand"
               />
               {errors.brand && <span className="text-red-600 text-sm">Brand is required</span>}
@@ -92,16 +122,16 @@ const {register, setValue,   handleSubmit, formState: { errors },} = useForm();
               <DropdownWithSearch
                 id="modelsDropdown"
                 name="model"
-                // {...register("model", { required: true })}
-                // options={models.map((model) => ({
-                //   value: model.model,
-                //   label: model.model,
-                // }))}
-                // value={selectedModel}
-                // onChange={(value) => {
-                //   setSelectedModel(value);
-                //   setValue("model", value);
-                // }}
+                {...register("model", { required: true })}
+                options={models.map((model) => ({
+                  value: model.model,
+                  label: model.model,
+                }))}
+                value={selectedModel}
+                onChange={(value) => {
+                  setSelectedModel(value);
+                  setValue("model", value);
+                }}
                 placeholder="Select or type Model"
               />
               {errors.model && <span className="text-red-600 text-sm">Model is required</span>}

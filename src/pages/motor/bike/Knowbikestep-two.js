@@ -26,9 +26,12 @@ export default function KnowBikeStepTwo() {
   const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
    const [dates, setDates] = useState({ regDate: "", regDateRaw: null });
+ const [savedPageData, setSavedPageData] = useState(null);
 
 
   const router = useRouter();
+
+
   const registerDate = watch("bikeregdate");
 
   const manufactYearOpt = () => {
@@ -45,9 +48,63 @@ export default function KnowBikeStepTwo() {
   };
 
 
+  useEffect(() => {
+    async function getBikeSavedResponse() {
+      try {
+        const response = await CallApi(
+          constant.API.MOTOR.BIKE.KNOWBIKEDETAILSTWO,
+          "GET"
+        );
+        console.log("Saved response of Bike page 2", response);
+        setSavedPageData(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    getBikeSavedResponse();
+  }, []);
+
+
+  useEffect(() => {
+    if (savedPageData) {
+      reset({
+        brand: savedPageData.brand,
+        model: savedPageData.model,
+        carregdate: savedPageData.bikeregdate,
+        brandyear: savedPageData.brandyear,
+        under: savedPageData.under || "individual",
+      });
+      setUnder(savedPageData.under || "individual");
+
+      if (savedPageData?.bikeregdate) {
+        setDates({
+          regDate: savedPageData.bikeregdate,
+          regDateRaw: parse(savedPageData.bikeregdate, "dd-MM-yyyy", new Date()),
+        });
+      }
+    }
+  }, [savedPageData]);
+
+
+ useEffect(() => {
+    if (savedPageData && brands.length > 0) {
+      setSelectedBrand(savedPageData.brand || null);
+      setValue("brand", savedPageData.brand);
+    }
+  }, [savedPageData, brands, setValue]);
+
+
+  useEffect(() => {
+  if (savedPageData && models.length > 0) {
+     setSelectedModel(savedPageData.model || null);
+      setValue("model", savedPageData.model);
+  }
+}, [savedPageData, models, setValue]);
+
     const handleGetBrands = async () => {
     try {
-      const brand = { brand: "BIKE" };
+      const BikeBrand =  'MOT-PRD-002'
+      const brand = { brand: BikeBrand };
       const response = await CallApi(constant.API.MOTOR.BRANDS, "POST", brand);
       setBrands(response.brand);
     } catch (error) {
@@ -79,7 +136,19 @@ export default function KnowBikeStepTwo() {
 
 
   const onSubmit = async (data) => {
-    console.log("Submitted know bike Data:", data);
+       console.log("Submitted Data:", data);
+    try {
+      const response = await CallApi(
+        constant.API.MOTOR.BIKE.KNOWBIKEDETAILSTWO,
+        "POST",
+        data
+      );
+      if (response) {
+        router.push(constant.ROUTES.MOTOR.KNOWBIKESTEPTHREE);
+      }
+    } catch (error) {
+      console.error(error);
+    }
     // router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTHREE);
   };
 

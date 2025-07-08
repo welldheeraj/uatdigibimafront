@@ -24,7 +24,7 @@ export default function SummaryCard({
   const router = useRouter();
   const pathname = usePathname();
   const isStepFour = currentStep === 4;
-  const isJourneyPage = pathname.includes("/health/vendors/caresupereme/journey");
+  const isJourneyPage = pathname.includes("/health/vendors/ultimatecare/journey");
 
   const [priceLoading, setPriceLoading] = useState(false);
   const [addonLoading, setAddonLoading] = useState(false);
@@ -92,7 +92,7 @@ console.log('hello total' ,totalPremium)
     params.append("addons", JSON.stringify(addons));
     params.append("fullAddonsName", JSON.stringify(fullAddonsName));
     setLoading(true);
-    router.push(`/health/vendors/caresupereme/journey?${params.toString()}`);
+    router.push(`/health/vendors/ultimatecare/journey?${params.toString()}`);
   };
 
   return (

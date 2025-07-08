@@ -111,7 +111,7 @@ export default function ProposalUI() {
     else setTenure(value);
 
     setLoading(true);
-    CallApi(constant.API.HEALTH.CARESUPEREME.FILTERPLAN, "POST", updatedPayload)
+    CallApi(constant.API.HEALTH.FILTERPLAN, "POST", updatedPayload)
       .then(() => fetchCheckoutData())
       .catch(console.error)
       .finally(() => setLoading(false));

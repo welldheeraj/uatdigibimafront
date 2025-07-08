@@ -10,6 +10,7 @@ import { FaCar, FaMotorcycle, FaTractor } from "react-icons/fa6";
 
 export default function VehicleSelect({ usersData }) {
   const [carnumber, setCarnumber] = useState();
+  const [bikenumber, setBikenumber] = useState();
   const [cities, setCities] = useState(null);
 const cityRef = useRef(null);
 
@@ -30,6 +31,12 @@ const cityRef = useRef(null);
     },
   });
 
+  const router = useRouter();
+  const selectedVehicle = watch("vehicle");
+  const carOption = watch("carOption");
+  const bikeOption = watch("bikeOption");
+  const commercialOption = watch("commercialOption");
+
   useEffect(()=>{
     async function getAuth()
     {
@@ -41,6 +48,8 @@ const cityRef = useRef(null);
     }
     getAuth();
   },[]);
+
+
   useEffect(() => {
     reset({
       vehicle: "car",
@@ -49,10 +58,11 @@ const cityRef = useRef(null);
       commercialOption: "knowcommercial",
       mobile: usersData?.mobile,
       carRegNumber: carnumber,
-      carCity : cities,
+      bikeRegNumber : bikenumber
     });
   }, [usersData, carnumber]);
 
+  
   useEffect(() => {
     async function getSavedResponse() {
       try {
@@ -75,11 +85,27 @@ const cityRef = useRef(null);
     }
     getSavedResponse();
   }, []);
-  const router = useRouter();
-  const selectedVehicle = watch("vehicle");
-  const carOption = watch("carOption");
-  const bikeOption = watch("bikeOption");
-  const commercialOption = watch("commercialOption");
+
+
+useEffect(() => {
+    async function getBikeSavedResponse() {
+      try {
+        const response = await CallApi(
+          constant.API.MOTOR.BIKE.BIKESAVESTEPONE,
+          "GET"
+        );
+     
+        console.log("Getting From Bike Saved responseee", response);
+        setBikenumber(response.data.bikeregnumber)
+
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    getBikeSavedResponse();
+  }, []);
+
+
 
   const getCities = async (value) => {
     try {
@@ -212,10 +238,7 @@ const cityRef = useRef(null);
         router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTWO);
       }
       
-      // router.push({
-      //   pathname: "/constant.ROUTES.MOTOR.KnowCarSlide2",
-      //   state: { vehicle: selected },
-      // });
+
     } catch (error) {
       console.error("Error", error);
       showError("Error");
@@ -227,16 +250,72 @@ const cityRef = useRef(null);
       }
     } else if (selected === "bike") {
       payload.bikeOption = data.bikeOption;
-
+      
       if (data.bikeOption === "knowbike") {
         payload.bikeRegNumber = data.bikeRegNumber;
+        
+        try {
+          const response = await CallApi(constant.API.MOTOR.BIKEVERIFYRTO, "POST", {
+        bikeregnumber: data.bikeRegNumber,
+      
+      });
+-     
+      console.log("res of Bike verifying RTO" , response)
+   
+        if(response.status === false){
+        showError(response.message)
+     }
 
-         router.push(constant.ROUTES.MOTOR.KNOWBIKESTEPTWO);
+    if(response.status === true){
+      showSuccess("Detail verified");
+    }
+
+
+    if(response.status === true){
+      const bikeDetailsSave =  await CallApi(
+          constant.API.MOTOR.BIKE.BIKESAVESTEPONE,
+          "POST",
+          {
+             bikeregnumber: data.bikeRegNumber,
+           
+          }
+        );
+
+        console.log(bikeDetailsSave)
+
+         if (bikeDetailsSave.status === true) {
+        router.push(constant.ROUTES.MOTOR.KNOWBIKESTEPTWO);
+      }
+    }
+
+        } catch (error) {
+          console.error("Error", error);
+      showError("Error");
+        }
+
          
       } else if (data.bikeOption === "newbike") {
         payload.bikeCity = data.bikeCity;
 
-         router.push(constant.ROUTES.MOTOR.NEWBIKE);
+      try {
+         const response = await CallApi(constant.API.MOTOR.BIKE.NEWBIKE, "POST", {
+       newbikecity: data.bikeCity,
+      
+      });
+
+     console.log("new bike kaa res", response)
+
+     if(response.status === true){
+     router.push(constant.ROUTES.MOTOR.NEWBIKE);
+     }
+
+      } catch (error) {
+         console.error("Error", error);
+      showError("Error");
+      }
+
+
+        
       }
     } else if (selected === "commercial") {
       payload.commercialOption = data.commercialOption;
@@ -416,7 +495,7 @@ useEffect(() => {
                       <>
                         <div className="flex flex-col md:flex-row gap-4">
                           <div className="flex flex-col relative"  ref={cityRef}>
-                            <label className="text-base md:text-base">
+                            <label className="labelcls">
                               City Name
                             </label>
                             <input
@@ -430,7 +509,7 @@ useEffect(() => {
                                     : false,
                                 onChange: (e) => getCities(e.target.value),
                               })}
-                              className="w-full border rounded p-2 mt-1"
+                              className="inputcls"
                             />
                             {errors.carCity && (
                               <p className="text-red-500 text-sm">
@@ -457,7 +536,7 @@ useEffect(() => {
                           </div>
 
                           <div className="flex flex-col">
-                            <label className="text-base md:text-base">
+                            <label className="labelcls">
                               Mobile Number
                             </label>
                             <input
@@ -474,7 +553,7 @@ useEffect(() => {
                                   message: "Invalid Mobile Number",
                                 },
                               })}
-                              className="w-full border rounded p-2 mt-1"
+                              className="inputcls"
                             />
                             {errors.mobile && (
                               <p className="text-red-500 text-sm">
@@ -527,6 +606,11 @@ useEffect(() => {
                               },
                             })}
                             className="inputcls"
+                             onInput={(e) => {
+                              e.target.value = e.target.value
+                                .toUpperCase()
+                                .slice(0, 10);
+                            }}
                           />
                           {errors.bikeRegNumber && (
                             <p className="text-red-500 text-sm">
@@ -565,16 +649,47 @@ useEffect(() => {
                   {bikeOption === "newbike" && (
                     <>
                       <div className="flex flex-col md:flex-row  gap-4">
-                        <div className="flex flex-col">
+                        <div className="flex flex-col relative" ref={cityRef}>
                           <label className="labelcls">
                             City Name
                           </label>
                           <input
                             type="text"
                             placeholder="Enter City Name"
-                            {...register("bikeCity")}
+                            // {...register("bikeCity")}
+                                 {...register("bikeCity", {
+                                required:
+                                  bikeOption === "newbike"
+                                    ? "City name is required"
+                                    : false,
+                                onChange: (e) => getCities(e.target.value),
+                              })}
                             className="inputcls"
                           />
+
+                           {errors.bikeCity && (
+                              <p className="text-red-500 text-sm">
+                                {errors.bikeCity.message}
+                              </p>
+                            )}
+
+
+                            {cities?.length > 0 && (
+                              <ul className="absolute top-full left-0 right-0 z-10 border rounded bg-white max-h-40 overflow-y-auto shadow-md mt-1">
+                                {cities.map((city, idx) => (
+                                  <li
+                                    key={idx}
+                                    onClick={() => {
+                                      setValue("bikeCity", city);
+                                      setCities([]);
+                                    }}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    {city}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                         </div>
 
                         <div className="flex flex-col">
@@ -710,7 +825,7 @@ useEffect(() => {
               <div className="flex flex-wrap gap-3 justify-start mt-4">
                 <button
                   type="button"
-                  onClick={() => router.push(constant.ROUTES.MOTOR.INDEX)}
+                  onClick={() => router.push("/")}
                   className="px-6 py-2 text-white rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                   style={{
                     background: "linear-gradient(to bottom, #426D98, #28A7E4)",

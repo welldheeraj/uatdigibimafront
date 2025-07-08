@@ -20,7 +20,7 @@ export default function StepTwoForm({
 useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await CallApi(constant.API.HEALTH.SAVESTEPTWO, "GET");
+        const res = await CallApi(constant.API.HEALTH.ULTIMATECARE.SAVESTEPTWO, "GET");
         const savedData = res.data || [];
         console.log(savedData);
 
@@ -29,7 +29,7 @@ useEffect(() => {
             .filter(
               (item) =>
                 item.relation?.toLowerCase() !== "self" &&
-                item.relation?.toLowerCase() !== "(nominee)"
+                !item.relation?.toLowerCase().includes("(nominee)")
             )
             .map((item) => ({
               name: item.relation?.toLowerCase(),

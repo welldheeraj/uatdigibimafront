@@ -1,13 +1,13 @@
 "use client";
 import { useForm } from "react-hook-form";
 import { useEffect, useState, useRef } from "react";
-import { useRouter , useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { showSuccess, showError } from "../../layouts/toaster";
 import { CallApi, getUserinfo } from "../../api";
 import constant from "../../env";
 import { isNumber } from "../../styles/js/validation";
 
-export default function FormPage() {
+export default function FormPage({ usersData }) {
   const {
     register,
     handleSubmit,
@@ -39,10 +39,7 @@ export default function FormPage() {
   const [stoken, setToken] = useState();
   const searchParams = useSearchParams();
   const router = useRouter();
-
-  const type = searchParams.get("type"); 
-  // const {type} = router.query
-
+  const type = searchParams.get("type");
   useEffect(() => {
     const handleAuthChange = () => {
       console.log("Resetting form after logout...");
@@ -70,17 +67,22 @@ export default function FormPage() {
   }, [reset]);
 
   useEffect(() => {
-    //localStorage.removeItem("token");
     const getToken = localStorage.getItem("token");
+    if (type === "health" && getToken) {
+      router.push(constant.ROUTES.HEALTH.INSURE);
+    }
+    if (type === "motor" && getToken) {
+      router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
+    }
     console.log("token:", getToken);
     if (getToken) {
       setToken(getToken);
       setIsOtpVerified(true);
       const fetchData = async () => {
         try {
-          const res = await getUserinfo(getToken);
+          const res = usersData;
           const data = await res.json();
-          console.log("Login page ka data",data);
+          console.log("Login page ka data", data);
           if (data.status === true) {
             reset({
               name: data.user.name || "",
@@ -91,10 +93,10 @@ export default function FormPage() {
             });
             // setIsReadOnly(true);
             if (data.user.email) {
-            setIsReadOnly(true);
-          } else {
-            setIsReadOnly(false);
-          }
+              setIsReadOnly(true);
+            } else {
+              setIsReadOnly(false);
+            }
           } else {
             setIsReadOnly(false);
           }
@@ -108,7 +110,7 @@ export default function FormPage() {
     } else {
       setIsReadOnly(false);
     }
-  }, []);
+  }, [usersData]);
 
 
   useEffect(() => {
@@ -141,7 +143,7 @@ export default function FormPage() {
   }, []);
 
 
-  
+
   const fetchCities = async (cleaned) => {
     if (/^\d{5,6}$/.test(cleaned)) {
       let pincodeData = { pincode: cleaned };
@@ -259,7 +261,7 @@ export default function FormPage() {
   //   }
 
 
-    
+
   //   try {
   //     console.log("motor ka data" , data)
   //     const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
@@ -279,8 +281,7 @@ export default function FormPage() {
   // };
 
 
-
-    const onSubmit = async (data) => {
+  const onSubmit = async (data) => {
     const gender = watch("gender");
     const mobile = watch("mobile");
     const name = watch("name");
@@ -307,48 +308,47 @@ export default function FormPage() {
       return;
     }
     if (type === "motor") {
-    try {
-      console.log("motor ka data" , data)
-      const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
-      console.log("login ka response",res);
-      if (!stoken) {
-        localStorage.setItem("token", res.token);
-        setToken(res.token);
-        window.dispatchEvent(new Event("auth-change"));
+      try {
+        console.log("motor ka data", data)
+        const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
+        console.log("motor login ka response", res);
+        if (!stoken) {
+          localStorage.setItem("token", res.token);
+          setToken(res.token);
+          window.dispatchEvent(new Event("auth-change"));
+        }
+        showSuccess("Login successfully")
+        router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
+      } catch (error) {
+        console.error("Submission Error:", error);
+        showError("Submission failed. Please try again later.");
       }
-      // showSuccess(res.message);
-      showSuccess("Login successfully")
-      router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
-    } catch (error) {
-      console.error("Submission Error:", error);
-      showError("Submission failed. Please try again later.");
-    }
-      // router.push("/motor");
+
     } else if (type === "health") {
-          try {
-       console.log("health ka data" , data)
-      const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
-      console.log(res);
-      if (res.status) {
-        localStorage.setItem("token", res.token);
-        setToken(res.token);
-        // await CallNextApi("/api/setsession",
-        //   "POST",
-        //   { token: res.token }
-        // );
-        window.dispatchEvent(new Event("auth-change"));
+      try {
+        console.log("health ka data", data)
+        const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
+        console.log("health login ka response", res);
+        if (res.status) {
+          localStorage.setItem("token", res.token);
+          setToken(res.token);
+          // await CallNextApi("/api/setsession",
+          //   "POST",
+          //   { token: res.token }
+          // );
+          window.dispatchEvent(new Event("auth-change"));
+        }
+
+        showSuccess(res.message);
+        router.push(constant.ROUTES.HEALTH.INSURE);
+      } catch (error) {
+        console.error("Submission Error:", error);
+        showError("Submission failed. Please try again later.");
       }
 
-      showSuccess(res.message);
-      router.push(constant.ROUTES.HEALTH.INSURE);
-    } catch (error) {
-      console.error("Submission Error:", error);
-      showError("Submission failed. Please try again later.");
-    }
-      // router.push("/health");
     }
 
-    
+
 
   };
 
@@ -381,11 +381,10 @@ export default function FormPage() {
                   className="hidden"
                 />
                 <div
-                  className={`px-5 py-2 rounded border text-sm font-medium cursor-pointer transition ${
-                    selectedGender === gender
-                      ? "bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white text-white"
-                      : "border border-gray-400 text-black bg-white"
-                  }`}
+                  className={`px-5 py-2 rounded border text-sm font-medium cursor-pointer transition ${selectedGender === gender
+                    ? "bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white text-white"
+                    : "border border-gray-400 text-black bg-white"
+                    }`}
                 >
                   {gender.charAt(0).toUpperCase() + gender.slice(1)}
                 </div>
@@ -421,7 +420,7 @@ export default function FormPage() {
               </label>
               <input
                 {...register("email", {
-                //   required: "Email is required",
+                  //   required: "Email is required",
                   pattern: {
                     value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
                     message: "Enter a valid email address",
@@ -430,8 +429,8 @@ export default function FormPage() {
                 type="text"
                 placeholder="Enter Email"
                 className="w-full border border-gray-400 px-4 py-2 rounded-md text-sm"
-                defaultValue={email} 
-    readOnly={isReadOnly}
+                defaultValue={email}
+                readOnly={isReadOnly}
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">
@@ -457,11 +456,10 @@ export default function FormPage() {
                     placeholder="Enter Mobile Number"
                     onInput={isNumber}
                     //onChange={handleChange}
-                    className={`w-full border border-gray-400 px-4 py-2 rounded-md text-sm ${
-                      isOtpVerified
-                        ? "bg-white text-gray-700"
-                        : "border-gray-300 bg-white focus:ring-blue-100"
-                    }`}
+                    className={`w-full border border-gray-400 px-4 py-2 rounded-md text-sm ${isOtpVerified
+                      ? "bg-white text-gray-700"
+                      : "border-gray-300 bg-white focus:ring-blue-100"
+                      }`}
                   />
 
                   {!isOtpVerified && (
@@ -469,11 +467,10 @@ export default function FormPage() {
                       type="button"
                       disabled={mobile?.length !== 10 || isLoading || timer > 0}
                       onClick={sendOtp}
-                      className={`px-3 py-2 text-sm rounded-full bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${
-                        mobile?.length === 10 && timer === 0
-                          ? ""
-                          : "opacity-40 cursor-not-allowed"
-                      }`}
+                      className={`px-3 py-2 text-sm rounded-full bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${mobile?.length === 10 && timer === 0
+                        ? ""
+                        : "opacity-40 cursor-not-allowed"
+                        }`}
                     >
                       {timer > 0 ? "Resend" : "Verify"}
                     </button>
@@ -505,9 +502,8 @@ export default function FormPage() {
                     type="button"
                     onClick={verifyOtp}
                     disabled={otp.length !== 6 || isLoading || stoken}
-                    className={`px-3 py-2 text-sm rounded-full font-semibold shadow-md bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${
-                      otp.length === 6 ? "" : "opacity-40 cursor-not-allowed"
-                    }`}
+                    className={`px-3 py-2 text-sm rounded-full font-semibold shadow-md bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${otp.length === 6 ? "" : "opacity-40 cursor-not-allowed"
+                      }`}
                   >
                     {isLoading ? "Verifying..." : "Submit"}
                   </button>
@@ -566,9 +562,8 @@ export default function FormPage() {
             <button
               type="submit"
               disabled={!(isOtpVerified || stoken)} // <-- actual button disabling
-              className={`px-10 py-2 thmbtn text-base ${
-                isOtpVerified || stoken ? "" : "opacity-50 cursor-not-allowed"
-              }`}
+              className={`px-10 py-2 thmbtn text-base ${isOtpVerified || stoken ? "" : "opacity-50 cursor-not-allowed"
+                }`}
             >
               Continue
             </button>

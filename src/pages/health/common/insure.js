@@ -1,4 +1,3 @@
-"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -9,50 +8,7 @@ import { CallApi, VerifyToken } from "../../../api";
 import constant from "../../../env";
 
 
-// export async function getServerSideProps(context) {
-//   const session = await getIronSession(context.req, context.res, sessionOptions);
-//   const response = await fetch("https://stage.digibima.com/api/insureview", {
-//     //method: "POST", // Required if API expects it
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'Authorization': session.token || "", // Fallback to empty string
-//     },
-//     body: JSON.stringify({}) // If your API expects input; adjust as needed
-//   });
-//   //console.log(response);
-//   // const contentType = response.headers.get("content-type");
-//   // let data = null;
-  
-//   // if (response.ok && contentType?.includes("application/json")) {
-//     data = await response.json();
-//     console.log(data);
-//   // } else {
-//   //   const errorHtml = await response.text(); // For debugging
-//   //   console.error("API did not return JSON. Response:", errorHtml);
-//   // }
 
-//   return {
-//     props: {
-//       userdata: data,
-//     },
-//   };
-// }
-
-// export async function getServerSideProps(context) {
-//   const session = await getIronSession(context.req, context.res, sessionOptions);
-//   const response = await fetch("https://stage.digibima.com/api/getinsureinfo",{
-//     headers:{
-//        'Content-Type': 'application/json',
-//        'Authorization': `${session.token}`,
-//   }
-//    });  
-//   const data = await response.json();
-//   return {
-//     props: {
-//       userdata: data || null,
-//     },
-//   };
-// }
 export default function InsurePage() {
   //console.log(userdata);
   const router = useRouter();
@@ -316,7 +272,7 @@ const handleSubmit = async () => {
             <div className="flex flex-wrap gap-3 justify-start">
               <button
                 type="button"
-                onClick={() => router.push(constant.ROUTES.LOGIN.HEALTHLOGIN)}
+                onClick={() => router.push("/")}
                 className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                 style={{
                   background: "linear-gradient(to bottom, #426D98, #28A7E4)",

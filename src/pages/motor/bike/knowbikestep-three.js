@@ -9,23 +9,24 @@ import { CallApi } from "@/api";
 import { format, parse } from "date-fns";
 import { showError } from "@/layouts/toaster";
 
-export default function KnowCarSlideThree() {
-  const { control, register, handleSubmit, watch, setValue } = useForm({
+const KnowBikeStepThree = () => {
+ const { control, register, handleSubmit, watch, setValue } = useForm({
     defaultValues: {
       ownershiptoggle: "0",
       policyclaim: "0",
     },
   });
+
    const [loading, setLoading] = useState(true);
   const [ownershipToggle, setOwnershipToggle] = useState(false);
   const [policyToggle, setPolicyToggle] = useState(false);
   const [Data, setData] = useState(null);
   const router = useRouter();
 
-  const prePolicyType = watch("prepolitype");
+ const prePolicyType = watch("prepolitype");
   const bonusValue = watch("bonus-button");
 
-  const calculateToDate = (fromDateStr, isThreeYear) => {
+   const calculateToDate = (fromDateStr, isThreeYear) => {
     if (!fromDateStr) return "";
     const [dd, mm, yyyy] = fromDateStr.split("-").map(Number);
     const fromDate = new Date(yyyy, mm - 1, dd);
@@ -41,13 +42,14 @@ export default function KnowCarSlideThree() {
   const compfromdate = watch("compfromdate");
   const odfromdate = watch("odfromdate");
   const odtpfromdate = watch("odtpfromdate");
-  const tpfromdate = watch("tpfromdate");
+  const tpfromdate = watch("tpfromdate"); 
 
-  useEffect(() => {
+
+    useEffect(() => {
     async function getDetails() {
       try {
         const res = await CallApi(
-          constant.API.MOTOR.CAR.KNOWCARDETAILSTHREE,
+          constant.API.MOTOR.BIKE.KNOWBIKEDETAILSTHREE,
           "GET"
         );
         console.log("Saved response", res.data);
@@ -73,7 +75,8 @@ export default function KnowCarSlideThree() {
     getDetails();
   }, [setValue]);
 
-  useEffect(() => {
+
+ useEffect(() => {
     if (bdfromdate) setValue("bdtodate", calculateToDate(bdfromdate, false));
   }, [bdfromdate]);
 
@@ -105,7 +108,8 @@ export default function KnowCarSlideThree() {
     comprehensive: ["compfromdate", "comptodate"],
     odonly: ["odfromdate", "odtodate", "odtpfromdate", "odtptodate"],
     tponly: ["tpfromdate", "tptodate"],
-  };
+  };  
+
 
   const onSubmit = async (data) => {
     if (!data.prepolitype) {
@@ -124,20 +128,22 @@ export default function KnowCarSlideThree() {
     console.log("Form submitted:", data);
     try {
       const res = await CallApi(
-        constant.API.MOTOR.CAR.KNOWCARDETAILSTHREE,
+        constant.API.MOTOR.BIKE.KNOWBIKEDETAILSTHREE,
         "POST",
         data
       );
       console.log(res);
       if (res) {
-        router.push(constant.ROUTES.MOTOR.PLANS);
+        router.push(constant.ROUTES.MOTOR.BIKEPLANS);
       }
     } catch (error) {
       console.error(error);
     }
   };
 
-  const renderDatePicker = (
+
+
+ const renderDatePicker = (
     name,
     label,
     { validateFutureDate = false } = {}
@@ -187,6 +193,7 @@ export default function KnowCarSlideThree() {
       />
     </div>
   );
+
 
   return (
     <div className="bg-[#C8EDFE] py-6 sm:py-10 min-h-screen flex items-center justify-center overflow-x-hidden">
@@ -382,7 +389,7 @@ export default function KnowCarSlideThree() {
                 <button
                   type="button"
                   onClick={() =>
-                    router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTWO)
+                    router.push(constant.ROUTES.MOTOR.KNOWBIKESTEPTWO)
                   }
                   className="px-6 py-2 thmbtn"
                 >
@@ -401,5 +408,7 @@ export default function KnowCarSlideThree() {
         </div>
       </div>
     </div>
-  );
+  )
 }
+
+export default KnowBikeStepThree

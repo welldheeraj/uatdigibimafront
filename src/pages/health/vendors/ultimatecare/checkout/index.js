@@ -113,6 +113,7 @@ export default function ProposalUI() {
     else setTenure(value);
 
     setLoading(true);
+    console.log("Tenure onchange",constant.API.HEALTH.FILTERPLAN)
     CallApi(constant.API.HEALTH.FILTERPLAN, "POST", updatedPayload)
       .then(() => fetchCheckoutData())
       .catch(console.error)

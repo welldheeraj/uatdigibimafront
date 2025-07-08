@@ -1,9 +1,9 @@
 "use client";
-import { useForm, useWatch } from "react-hook-form"; 
+import { useForm, useWatch } from "react-hook-form";
 import { useState } from "react";
 import { CallApi } from "../../../../../api";
 import constant from "../../../../../env";
-import { showSuccess, showError }  from "@/layouts/toaster";
+import { showSuccess, showError } from "@/layouts/toaster";
 
 export default function AddOnSelection({
   addons = {},
@@ -14,42 +14,56 @@ export default function AddOnSelection({
   setApplyClicked,
   setIsAddOnsModified,
 }) {
-  // console.log(addons,compulsoryAddons)
-  const { register, handleSubmit, control } = useForm(); 
+  const { register, handleSubmit, control,setValue  } = useForm();
   const [loading, setLoading] = useState(false);
 
-  const isPedSelected = useWatch({ name: "addons.ped", control }); 
+  // Extract tb value like "2", "3", etc.
+  const tbAddon = (Array.isArray(selectedAddons) ? selectedAddons : []).find(
+    (val) => val.startsWith("tb") && val !== "tb"
+  );
+  const tbValueFromSelectedAddon = tbAddon?.replace("tb", "") || "";
+  const isTbChecked = !!tbAddon;
+
+  const isPedSelected = useWatch({ name: "addons.tb", control });
+  
 
   const onSubmit = async (data) => {
     let selectedKeys = [];
     const addonsData = data.addons || {};
-    const isPedChecked = addonsData.ped;
-    const pedValue = data.pedaddonvalue;
+    const istbChecked = addonsData.tb;
+    const tbValue = data.tbaddonvalue;
 
     Object.entries(addonsData).forEach(([key, checked]) => {
-      if (checked && key !== "ped") {
+      if (checked && key !== "tb") {
         selectedKeys.push(key);
       }
     });
 
-    if (isPedChecked) {
-      if (!pedValue) {
+    if (istbChecked) {
+      if (!tbValue) {
         showError("Please select a value for PED Wait Period Modification.");
         return;
       }
 
-      if (["1", "2"].includes(pedValue)) {
-        selectedKeys.push("ped", pedValue);
+      if (["2", "3", "4"].includes(tbValue)) {
+        selectedKeys.push(`tb${tbValue}`);
       }
     } else {
-      selectedKeys = selectedKeys.filter((val) => val !== "1" && val !== "2");
+      selectedKeys = selectedKeys.filter(
+        (val) => val !== "2" && val !== "3" && val !== "4"
+      );
     }
 
     try {
       setLoading(true);
       const payload = { addon: selectedKeys };
-        console.log(constant.API.HEALTH.ULTIMATECARE.ADDADDONS);
-      const response = await CallApi(constant.API.HEALTH.ULTIMATECARE.ADDADDONS, "POST", payload);
+      console.log(payload);
+
+      const response = await CallApi(
+        constant.API.HEALTH.ULTIMATECARE.ADDADDONS,
+        "POST",
+        payload
+      );
       console.log("AddOns Applied:", response);
 
       if (typeof setApplyClicked === "function") setApplyClicked(true);
@@ -84,7 +98,8 @@ export default function AddOnSelection({
           <div>
             <h2 className="font-semibold text-base mb-2">Add-On</h2>
             <p className="text-sm text-gray-600">
-              You should get these additional benefits to enhance your current plan.
+              You should get these additional benefits to enhance your current
+              plan.
             </p>
           </div>
           <button type="submit" className="px-6 py-1 thmbtn" disabled={loading}>
@@ -96,8 +111,11 @@ export default function AddOnSelection({
           const selectedNames = Object.values(selectedAddons).map((v) =>
             v.toLowerCase().trim()
           );
-          const isChecked = selectedNames.includes(key.toLowerCase().trim());
-          const isPED = key.toLowerCase() === "ped";
+
+          const isTb = key.toLowerCase() === "tb";
+          const isChecked = isTb
+            ? isTbChecked
+            : selectedNames.includes(key.toLowerCase().trim());
 
           return (
             <div
@@ -109,16 +127,19 @@ export default function AddOnSelection({
                   {fullAddonsName[key] || key}
                 </p>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  Covers specific health events with added protection and faster claims.
+                  Covers specific health events with added protection and faster
+                  claims.
                 </p>
               </div>
 
               <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-4 md:mt-0">
                 <label className="flex items-center gap-2 px-4 py-3 border border-gray-400 rounded-xl min-w-[120px] cursor-pointer">
-                  {!isPED && (
+                  {!isTb && (
                     <div className="text-center leading-tight text-sm text-gray-800">
                       <p className="font-medium">Premium</p>
-                      <p className="font-bold">₹{Number(price).toLocaleString()}</p>
+                      <p className="font-bold">
+                        ₹{Number(price).toLocaleString()}
+                      </p>
                     </div>
                   )}
 
@@ -128,25 +149,31 @@ export default function AddOnSelection({
                     defaultChecked={isChecked}
                     className="accent-purple-500 w-4 h-4"
                     onChange={() => {
-                      if (typeof setIsAddOnsModified === "function") setIsAddOnsModified(true);
-                      if (typeof setApplyClicked === "function") setApplyClicked(false);
+                      if (typeof setIsAddOnsModified === "function")
+                        setIsAddOnsModified(true);
+                      if (typeof setApplyClicked === "function")
+                        setApplyClicked(false);
                     }}
                   />
 
-                  {isPED && (
+                  {isTb && (
                     <select
-                      {...register("pedaddonvalue")}
+                      {...register("tbaddonvalue")}
                       className="border rounded-md text-sm"
-                      defaultValue=""
-                      // disabled={!isPedSelected} 
+                      defaultValue={tbValueFromSelectedAddon}
                       onChange={() => {
-                        if (typeof setIsAddOnsModified === "function") setIsAddOnsModified(true);
-                        if (typeof setApplyClicked === "function") setApplyClicked(false);
+                        if (typeof setIsAddOnsModified === "function")
+                          setIsAddOnsModified(true);
+                        if (typeof setApplyClicked === "function")
+                          setApplyClicked(false);
                       }}
                     >
-                      <option value="" disabled>Select</option>
-                      <option value="1">1 Years</option>
+                      <option value="" disabled>
+                        Select
+                      </option>
                       <option value="2">2 Years</option>
+                      <option value="3">3 Years</option>
+                      <option value="4">4 Years</option>
                     </select>
                   )}
                 </label>

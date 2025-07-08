@@ -42,8 +42,11 @@ const constant = {
       'NEWCAR': '/motor/car/new-car',
       'PLANS': '/motor/car/plans',
 
+
       'KNOWBIKESTEPTWO': '/motor/bike/Knowbikestep-two',
-      'NEWBIKE' : '/motor/bike/new-bike'
+      'KNOWBIKESTEPTHREE' : '/motor/bike/knowbikestep-three',
+      'NEWBIKE' : '/motor/bike/new-bike',
+      'BIKEPLANS' : '/motor/bike/plans'
     },
     USER: {
       'INDEX': '/userpnlx',
@@ -98,6 +101,7 @@ const constant = {
     MOTOR: {
       'LOGIN': '/api/motor/vehicle-type-select',
       'VERIFYRTO': '/api/motor/verifyrto',
+      'BIKEVERIFYRTO' : '/api/motor/bikeverifyrto',
       'BRANDS': '/api/motor/getbrand',
       'MODELS': '/api/motor/getmodel',
       'GETCITY': '/api/motor/getcity',
@@ -107,9 +111,17 @@ const constant = {
         'KNOWCARDETAILSTWO': '/api/motor-car/kn-car-steptwo',
         'KNOWCARDETAILSTHREE': '/api/motor-car/knowcarstepthree',
         'PLANS': '/api/motor-car/plans',
-        'ADDADDONS':'/api/motor-car/addaddon'
+        'ADDADDONS':'/api/motor-car/addaddon',
+        'QUOTE':'/api/motor-car/getcarquote'
       },
-
+      
+      BIKE : {
+        'BIKESAVESTEPONE' : '/api/kn-bike-details',
+        'KNOWBIKEDETAILSTWO' : '/api/kn-bike-step-two',
+        'KNOWBIKEDETAILSTHREE' : '/api/kn-bike-step-three',
+        'NEWBIKE' : '/api/new-bike-details',
+        'NEWBIKEDETAILSTWO' : '/api/new-bike-step-two'
+      }
     },
     USER: {
       'PROFILEUPDATE': '/api/userpnlx/user-profile-update',

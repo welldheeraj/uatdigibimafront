@@ -79,7 +79,7 @@ export default function StepperForm({ usersData, kycData }) {
 
   const back = async () => {
     if (currentStep === 1) {
-      router.push(constant.ROUTES.HEALTH.CHECKOUT);
+      router.push(constant.ROUTES.HEALTH.ULTIMATECARE.CHECKOUT);
     } else {
       setLoading(true);
       setCurrentStep((prev) => prev - 1);
@@ -121,7 +121,7 @@ export default function StepperForm({ usersData, kycData }) {
     try {
       setLoading(true);
       const res = await CallApi(
-        constant.API.HEALTH.SAVESTEPONE,
+        constant.API.HEALTH.ULTIMATECARE.SAVESTEPONE,
         "POST",
         values
       );
@@ -155,7 +155,7 @@ export default function StepperForm({ usersData, kycData }) {
     try {
       setLoading(true);
       const res = await CallApi(
-        constant.API.HEALTH.SAVESTEPTWO,
+        constant.API.HEALTH.ULTIMATECARE.SAVESTEPTWO,
         "POST",
         values
       );
@@ -359,10 +359,11 @@ export default function StepperForm({ usersData, kycData }) {
     });
 
     console.log(result);
+    // return false;
 
     try {
       const res = await CallApi(
-        constant.API.HEALTH.SAVESTEPTHREE,
+        constant.API.HEALTH.ULTIMATECARE.SAVESTEPTHREE,
         "POST",
         result
       );
@@ -386,9 +387,9 @@ export default function StepperForm({ usersData, kycData }) {
     // console.log("Ram")
     setLoading(true);
     try {
-      const res = await CallApi(constant.API.HEALTH.CREATEPOLICY, "POST");
+      const res = await CallApi(constant.API.HEALTH.ULTIMATECARE.CREATEPOLICY, "POST");
       if (res === 1 || res?.status) {
-        const response = await CallApi(constant.API.HEALTH.GETPROPOSAL, "POST");
+        const response = await CallApi(constant.API.HEALTH.ULTIMATECARE.GETPROPOSAL, "POST");
         if (response.proposalNumber) {
           router.push(
             `/health/payment?proposalNumber=${response.proposalNumber}`

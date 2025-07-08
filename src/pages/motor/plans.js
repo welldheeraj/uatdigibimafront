@@ -4,62 +4,24 @@ import { useState, useEffect } from "react";
 import { Modal } from "@mui/material";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { RiArrowDropUpLine } from "react-icons/ri";
-import { parseCookies } from "nookies";
-import { CallApi } from "@/api";
-import constant from "@/env";
-import { showError } from "@/layouts/toaster";
-import { useRouter } from "next/router";
 
-// import { CallNextApi } from "./utils/helper";
-// export async function getdata() {
-//   return "gghghgh"; // Returning a resolved string as a promise
-// }
+const addons = [
+  { label: "ZERO DEPRECIATION", hasTooltip: true },
+  { label: "ROAD SIDE ASSISTANCE", hasTooltip: true },
+  { label: "CONSUMABLE", hasTooltip: true },
+  { label: "ENGINE PROTECTOR", hasTooltip: true },
+  { label: "TYRE SECURE", hasTooltip: false },
+  { label: "RETURN TO INVOICE", hasTooltip: false },
+  { label: "LOSS OF PERSONAL BELONGINGS", hasTooltip: false },
+  { label: "EMERGENCY TRAN HOTEL EXPREM YN", hasTooltip: false },
+  { label: "DAILY EXPREM YN", hasTooltip: false },
+  { label: "MULTI CAR BENEFIT YN", hasTooltip: false },
+  { label: "KEY REPLACEMENT", hasTooltip: true },
+  { label: "NCB PROTECTION", hasTooltip: false },
+  { label: "MOTOR PROTECTION", hasTooltip: false },
+];
 
-// export async function getServerSideProps(context) {
-//   const cookies = parseCookies(context);
-//   const encryptedToken = cookies.unused || null;
-
-//   if (!encryptedToken) {
-//     console.log("No token found in session");
-//     return {
-//       props: {
-//         abc: null,
-//       },
-//     };
-//   }
-
-//   // Optional: decrypt token here if needed
-//   const token = encryptedToken;
-
-//   try {
-//     const response = await fetch(
-//       "https://stage.digibima.com/api/motor-car/plans",
-//       {
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization: `${token}`, // Or use "Bearer " + token if needed
-//         },
-//       }
-//     );
-
-//     const data = await response.json();
-
-//     return {
-//       props: {
-//         abc: data,
-//       },
-//     };
-//   } catch (error) {
-//     console.error("Error fetching plans:", error);
-//     return {
-//       props: {
-//         abc: null,
-//       },
-//     };
-//   }
-// }
-
-export default function Plans() {
+const Plans = () => {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [addonModalOpen, setIsAddonModalOpen] = useState(false);
   const [paModalOpen, setIsPaModalOpen] = useState(false);
@@ -69,67 +31,7 @@ export default function Plans() {
   const [showPaCover, setShowPaCover] = useState(false);
   const [showAccessories, setShowAccessories] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [planTypes, setPlanTypes] = useState([]);
-  const [plan, setPlan] = useState([]);
-  const [addAddonModal, setAddAddonModal] = useState(false);
-  const [addons, setAddons] = useState([]);
-  const [selectedAddon, setSelectedAddon] = useState([]);
-  const [vendorList, setVendorList] = useState([]);
 
-  const router = useRouter();
-
-  useEffect(() => {
-    async function getDetails() {
-      try {
-        const res = await CallApi(constant.API.MOTOR.CAR.PLANS, "GET");
-        console.log("Saved response", res);
-        const addonObj = res.data?.addons || {};
-        const addonList = Object.entries(addonObj).map(([key, label]) => ({
-          id: key,
-          label: label.trim(),
-          //hasTooltip: checkIfHasTooltip(label), // helper function
-        }));
-        setAddons(addonList);
-        const plantypeObj = res.data?.plantype || {};
-        const plantypeList = Object.entries(plantypeObj).map(
-          ([key, label]) => ({
-            id: key,
-            label,
-          })
-        );
-        setPlanTypes(plantypeList);
-        const vendorArr = res.data?.vendor || [];
-        setVendorList(vendorArr.filter((v) => v.isActive === "1"));
-        // using plans state for addons now
-        //setPlans(res.data);
-      } catch (error) {
-        console.error("Error loading saved step three data:", error);
-      }
-    }
-    getDetails();
-  }, []);
-
-  const handleAddonChange = (id) => {
-    setSelectedAddon((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
-  const handleSaveAddons = async () => {
-    try {
-      const payload = {
-        selectedaddons: selectedAddon,
-      };
-      console.log("Sending to API:", payload);
-      const res = await CallApi(
-        constant.API.MOTOR.CAR.ADDADDONS,
-        "POST",
-        payload
-      );
-      console.log("Saved successfully:", res);
-    } catch (error) {
-      console.error("Failed to save addons:", error);
-    }
-  };
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
@@ -148,12 +50,7 @@ export default function Plans() {
     <div className="min-h-screen bg-[#fbfbfb] p-6">
       {/* Go Back */}
       <div className="mb-1">
-        <button
-          className="text-sm "
-          onClick={() => router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTHREE)}
-        >
-          ← Go back to Previous
-        </button>
+        <button className="text-sm ">← Go back to Previous</button>
       </div>
 
       {/* Page Section */}
@@ -164,11 +61,7 @@ export default function Plans() {
             <div className="flex flex-col">
               <label className="font-semibold">Plan Type</label>
               <select className="border rounded p-2 mt-1 w-40">
-                {planTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.label}
-                  </option>
-                ))}
+                <option>Select Cover</option>
               </select>
             </div>
 
@@ -255,8 +148,7 @@ export default function Plans() {
                         className="text-blue-600 font-medium focus:outline-none flex items-center space-x-1"
                         onClick={() => setShowPaCover(!showPaCover)}
                       >
-                        What is PA Cover?{" "}
-                        {showPaCover ? (
+                        What is PA Cover? {showPaCover ? (
                           <RiArrowDropDownLine className="text-4xl" />
                         ) : (
                           <RiArrowDropUpLine className="text-4xl" />
@@ -434,33 +326,26 @@ export default function Plans() {
                         <div className="mt-4">
                           {activeTab === "Tab1" && (
                             <div className="p-2">
-                              <p className="mb-4 text-gray-600">
+                              <p className=" mb-4 text-gray-600">
                                 Select the addons you'd like to add.
                               </p>
-
                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                                {addons.map((addon) => (
+                                {addons.map((addon, index) => (
                                   <div
-                                    key={addon.id}
+                                    key={index}
                                     className="bg-blue-50 hover:bg-blue-100 cursor-pointer flex items-center p-2 rounded-md border relative"
                                   >
                                     <input
                                       type="checkbox"
-                                      id={`addon-${addon.id}`}
+                                      id={`addon-${index}`}
                                       className="mr-2"
-                                      checked={selectedAddon.includes(addon.id)}
-                                      onChange={() =>
-                                        handleAddonChange(addon.id)
-                                      }
                                     />
-
                                     <label
-                                      htmlFor={`addon-${addon.id}`}
+                                      htmlFor={`addon-${index}`}
                                       className="text-sm font-medium truncate"
                                     >
                                       {addon.label}
                                     </label>
-
                                     {addon.hasTooltip && (
                                       <div className="group ml-2 relative cursor-pointer">
                                         <span className="text-gray-500 text-sm">
@@ -482,7 +367,6 @@ export default function Plans() {
                                     background:
                                       "linear-gradient(to bottom, #426D98, #28A7E4)",
                                   }}
-                                  onClick={handleSaveAddons}
                                 >
                                   Save Changes
                                 </button>
@@ -584,86 +468,38 @@ export default function Plans() {
 
       {/* Details Page */}
       <div className="flex flex-col gap-2 md:flex-row mt-4">
-        {/* Vendor Cards */}
-        <div className="w-full lg:w-3/4 flex flex-wrap gap-6 justify-start lg:ml-16">
-          {vendorList
-            .filter((vendor) => vendor.isActive === "1")
-            .map((vendor) => (
-              <div
-                key={vendor.vid}
-                className="w-full sm:w-[320px] h-80 rounded-md bg-white shadow-md p-4"
-              >
-                <div className="flex flex-col items-center gap-4 h-full justify-between">
-                  {/* Vendor Name */}
-                  <h2 className="text-blue-800 font-medium text-center capitalize">
-                    {vendor.vendorname}
+        <div className="w-full lg:w-3/4  ">
+          <div className="w-[320px] h-80 rounded-md bg-white shadow-md lg:ml-16">
+            {loading ? (
+              <div className="w-full h-full bg-gray-200 animate-pulse rounded"></div>
+            ) : (
+              <div className="">
+                <div className="flex items-center justify-center flex-col gap-4">
+                  <h2 className="mt-2 text-blue-800 font-medium">
+                    SHRIRAM GENERAL INSURANCE
                   </h2>
-
-                  {/* Logo */}
-                  <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden shadow">
-                    {vendor.logo && (
-                      <img
-                        src={`/images/${vendor.logo}`}
-                        alt={vendor.vendorname}
-                        className="w-full h-full object-contain"
-                      />
-                    )}
-                  </div>
-
-                  {/* IDV Info */}
-                  <p className="text-gray-500 text-sm">
+                  <div className="w-20 h-20 bg-yellow-300 rounded"></div>
+                  <p className="text-gray-500">
                     Cover value (IDV){" "}
-                    <span className="text-black font-semibold">₹ 3,54,998</span>
+                    <span className="text-black font-medium">₹ 354998</span>
                   </p>
+                </div>
 
-                  {/* Price Box */}
-                  <div className="flex items-center justify-center bg-gray-100 w-[140px] rounded py-1 shadow">
-                    <div className="text-center">
-                      <p className="font-medium text-sm">Buy Now</p>
-                      <p className="font-semibold text-sm">₹ 9,667</p>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-4 mt-2">
-                    <button
-                      onClick={() => setAddAddonModal(true)}
-                      className="text-blue-500 text-sm hover:underline"
-                    >
-                      Addons
-                    </button>
-                    <button className="text-blue-500 text-sm hover:underline">
-                      Premium Backup
-                    </button>
+                <div className="flex items-center justify-center  gap-2 mt-4  ">
+                  <div className="flex items-center justify-center flex-col bg-gray-200 w-[140px] rounded">
+                    <p className="font-medium">Buy Now</p>
+                    <p className="font-medium">₹ 9667</p>
                   </div>
                 </div>
+
+                <div className="flex items-center justify-center flex-col gap-2 mt-4">
+                  <button className="text-blue-400">Addons</button>
+                  <button className="text-blue-400">Premium Back-up</button>
+                </div>
               </div>
-            ))}
-        </div>
-        {addAddonModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md relative shadow-xl">
-              <button
-                onClick={() => setAddAddonModal(false)}
-                className="absolute top-2 right-3 text-gray-500 hover:text-black text-lg"
-              >
-                ✕
-              </button>
-              <h3 className="text-lg font-semibold mb-4">Selected Addons</h3>
-              {selectedAddon.length === 0 ? (
-                <p className="text-sm text-gray-600">No addons selected.</p>
-              ) : (
-                <ul className="list-disc list-inside text-sm text-gray-800 space-y-1 max-h-52 overflow-auto">
-                  {addons
-                    .filter((a) => selectedAddon.includes(a.id))
-                    .map((addon) => (
-                      <li key={addon.id}>{addon.label}</li>
-                    ))}
-                </ul>
-              )}
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Car Details Card */}
         <div className="w-full lg:w-1/4 bg-white shadow-lg border p-4 rounded-xl ">
@@ -700,4 +536,6 @@ export default function Plans() {
       </div>
     </div>
   );
-}
+};
+
+export default Plans;
