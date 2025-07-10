@@ -33,6 +33,7 @@ export const Sidebar = () => {
         icon={<TiHome />}
         title="Dashboard"
         link={constant.ROUTES.USER.INDEX}
+        // link={constant.ROUTES.USER.DASHBOARD}
       />
       <SidebarItem
         icon={<FaHandshake />}

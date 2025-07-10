@@ -1,8 +1,18 @@
 "use client";
 import React from "react";
+import { useState} from "react";
 import { Modal } from "@mui/material";
 
-export default function UpdateIdvModal({ open, onClose, value, setValue }) {
+export default function UpdateIdvModal({ open, onClose, value, setValue, min,
+  max, onUpdate }) {
+  const[loading, setLoading] = useState(false);
+   const handleClick = async () => {
+    setLoading(true);
+    await onUpdate(); // run the passed function from parent
+    setLoading(false);
+  };
+
+
   return (
     <Modal open={open} onClose={onClose}>
       <div className="fixed inset-0 flex items-center justify-center">
@@ -25,19 +35,21 @@ export default function UpdateIdvModal({ open, onClose, value, setValue }) {
               <input
                 id="slider"
                 type="range"
-                min="100"
-                max="1000"
+                min={min}
+                max={max}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer mt-4 bg-gradient-to-r from-blue-600 to-violet-300"
               />
               <div className="flex justify-between text-sm text-gray-600 mt-1">
-                <span>100</span>
-                <span>1000</span>
+                <span>{min}</span>
+                <span>{max}</span>
               </div>
             </div>
             <div className="flex items-center justify-center">
               <button
+                onClick={handleClick}
+                disabled={loading}
                 className="text-white w-full p-1 rounded"
                 style={{ background: "linear-gradient(to bottom, #426D98, #28A7E4)" }}
               >

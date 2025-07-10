@@ -18,7 +18,62 @@ const {register, setValue,   handleSubmit, formState: { errors },reset,} = useFo
   const [selectedBrand, setSelectedBrand] = useState(null);
    const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
+  const [manufactureYears, setManufactureYears] = useState([]);
+
+  const [savedPageData, setSavedPageData] = useState(null);
   const router = useRouter();
+
+    useEffect(() => {
+    const currentYear = new Date().getFullYear();
+    setManufactureYears([currentYear, currentYear - 1]);
+  }, []);
+
+ useEffect(() => {
+    async function getSavedResponse() {
+      try {
+        const response = await CallApi(
+          constant.API.MOTOR.CAR.NEWCARDETAILSTWO,
+          "GET"
+        );
+        console.log("Saved response new caaarrr", response);
+        setSavedPageData(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    getSavedResponse();
+  }, []);
+
+ useEffect(() => {
+    if (savedPageData && brands.length > 0) {
+      setSelectedBrand(savedPageData.brand || null);
+      setValue("brand", savedPageData.brand);
+    }
+  }, [savedPageData, brands, setValue]);
+  
+
+ useEffect(() => {
+  if (savedPageData && models.length > 0) {
+     setSelectedModel(savedPageData.model || null);
+      setValue("model", savedPageData.model);
+  }
+}, [savedPageData, models, setValue]);
+
+
+  useEffect(() => {
+    if (savedPageData) {
+      reset({
+        brand: savedPageData.brand,
+        model: savedPageData.model,
+        brandyear: savedPageData.brandyear,
+        under: savedPageData.under || "individual",
+      });
+      setUnder(savedPageData.under || "individual");
+
+    }
+  }, [savedPageData]);
+
+
 
 const handleGetBrands = async () => {
     try {
@@ -51,9 +106,22 @@ const handleGetBrands = async () => {
   }, [selectedBrand]);
 
 
-  const onSubmit = (data) => {
-     console.log(data)
-     router.push(constant.ROUTES.MOTOR.PLANS)
+  const onSubmit = async (data) => {
+       console.log("new car ka payload", data);
+
+    try {
+      const response = await CallApi(constant.API.MOTOR.CAR.NEWCARDETAILSTWO,"POST", data)
+       
+      console.log("NewCAAR response", response)
+
+      if(response.status === true){
+             router.push(constant.ROUTES.MOTOR.PLANS)
+      }
+
+    } catch (error) {
+      console.log(error)
+    }
+    //  router.push(constant.ROUTES.MOTOR.PLANS)
   }
 
 
@@ -124,7 +192,7 @@ const handleGetBrands = async () => {
                 name="model"
                 {...register("model", { required: true })}
                 options={models.map((model) => ({
-                  value: model.model,
+                  value: model.id,
                   label: model.model,
                 }))}
                 value={selectedModel}
@@ -140,14 +208,16 @@ const handleGetBrands = async () => {
               <div>
                 <label className="block font-medium mb-1">Year Of Manufacture</label>
                 <select 
-                // {...register("brandyear", { required: true })} 
+                {...register("brandyear", { required: true })} 
                 className="w-full border rounded px-3 py-2">
                   <option value="">Select Year</option>
-                  {/* {manufactYearOpt().map((year) => (
-                    <option key={year} value={year}>{year}</option>
-                  ))} */}
+                  {manufactureYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
                 </select>
-                {/* {errors.brandyear && <span className="text-red-600 text-sm">Year is required</span>} */}
+                {errors.brandyear && <span className="text-red-600 text-sm">Year is required</span>}
               </div>
 
 

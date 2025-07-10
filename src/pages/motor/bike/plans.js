@@ -61,7 +61,8 @@ const router = useRouter()
       <div className="mb-1">
         <button
           className="text-sm "
-          onClick={() => router.push(constant.ROUTES.MOTOR.KNOWBIKESTEPTHREE)}
+          // onClick={() => router.push(constant.ROUTES.MOTOR.KNOWBIKESTEPTHREE)}
+          onClick={() => router.back()}
         >
           ← Go back to Previous
         </button>

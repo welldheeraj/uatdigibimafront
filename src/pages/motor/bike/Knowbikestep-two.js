@@ -233,7 +233,7 @@ export default function KnowBikeStepTwo() {
                     name="model"
                     {...register("model", { required: true })}
                     options={models.map((model) => ({
-                      value: model.model,
+                      value: model.id,
                       label: model.model,
                     }))}
                     value={selectedModel}

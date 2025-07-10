@@ -65,21 +65,31 @@ export default function KnowCarStepTwo() {
     }
   }, [savedPageData, brands, setValue]);
 
-  useEffect(() => {
+//   useEffect(() => {
+//   if (savedPageData && models.length > 0) {
+//     const matchedModel = models.find((m) => m.model === savedPageData.model); 
+//     if (matchedModel) {
+//       setSelectedModel(matchedModel);
+//      setValue("model", matchedModel.id);
+//     }
+//   }
+// }, [savedPageData, models, setValue]);
+
+
+ useEffect(() => {
   if (savedPageData && models.length > 0) {
-    const matchedModel = models.find((m) => m.model === savedPageData.model); 
-    if (matchedModel) {
-      setSelectedModel(matchedModel);
-     setValue("model", matchedModel.id);
-    }
+     setSelectedModel(savedPageData.model || null);
+      setValue("model", savedPageData.model);
   }
 }, [savedPageData, models, setValue]);
+
 
   useEffect(() => {
     if (savedPageData) {
       reset({
         brand: savedPageData.brand,
-        model: matchedModelRef.current?.id || "",
+        // model: matchedModelRef.current?.id || "",
+        model: savedPageData.model,
         carregdate: savedPageData.carregdate,
         brandyear: savedPageData.brandyear,
         under: savedPageData.under || "individual",

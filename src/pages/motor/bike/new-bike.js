@@ -14,6 +14,7 @@ function NewBike() {
     setValue,
     handleSubmit,
     formState: { errors },
+    reset
   } = useForm();
 
   const [under, setUnder] = useState("individual");
@@ -41,7 +42,7 @@ const [manufactureYears, setManufactureYears] = useState([]);
           "GET"
         );
         console.log("Saved response new Bikee", response);
-        // setSavedPageData(response.data);
+        setSavedPageData(response.data);
       } catch (error) {
         console.error(error);
       }
@@ -49,8 +50,39 @@ const [manufactureYears, setManufactureYears] = useState([]);
     getSavedResponse();
   }, []);
 
-
+ useEffect(() => {
+    if (savedPageData && brands.length > 0) {
+      setSelectedBrand(savedPageData.brand || null);
+      setValue("brand", savedPageData.brand);
+    }
+  }, [savedPageData, brands, setValue]);
   
+
+ useEffect(() => {
+  if (savedPageData && models.length > 0) {
+     setSelectedModel(savedPageData.model || null);
+      setValue("model", savedPageData.model);
+  }
+}, [savedPageData, models, setValue]);
+
+
+  useEffect(() => {
+    if (savedPageData) {
+      reset({
+        brand: savedPageData.brand,
+        // model: matchedModelRef.current?.id || "",
+        model: savedPageData.model,
+        // carregdate: savedPageData.carregdate,
+        brandyear: savedPageData.brandyear,
+        under: savedPageData.under || "individual",
+      });
+      setUnder(savedPageData.under || "individual");
+
+    }
+  }, [savedPageData]);
+
+
+
 
   const handleGetBrands = async () => {
     try {
@@ -159,11 +191,11 @@ const [manufactureYears, setManufactureYears] = useState([]);
                   value: brand.MANUFACTURER,
                   label: brand.MANUFACTURER,
                 }))}
-                {...register("newbikemanu", { required: true })}
+                {...register("brand", { required: true })}
                 value={selectedBrand}
                 onChange={(value) => {
                   setSelectedBrand(value);
-                  setValue("newbikemanu", value);
+                  setValue("brand", value);
                 }}
                 placeholder="Select or type brand"
               />
@@ -177,7 +209,7 @@ const [manufactureYears, setManufactureYears] = useState([]);
               <DropdownWithSearch
                 id="modelsDropdown"
                 name="model"
-                {...register("newbikemodel", { required: true })}
+                {...register("model", { required: true })}
                 options={models.map((model) => ({
                   value: model.id,
                   label: model.model,
@@ -185,7 +217,7 @@ const [manufactureYears, setManufactureYears] = useState([]);
                 value={selectedModel}
                 onChange={(value) => {
                   setSelectedModel(value);
-                  setValue("newbikemodel", value);
+                  setValue("model", value);
                   console.log("model ki value", value);
                 }}
                 placeholder="Select or type Model"
@@ -200,7 +232,7 @@ const [manufactureYears, setManufactureYears] = useState([]);
                 Year Of Manufacture
               </label>
               <select
-                {...register("newbikemanuyear", { required: true })}
+                {...register("brandyear", { required: true })}
                 className="w-full border rounded px-3 py-2"
               >
                 <option value="">Select Year</option>

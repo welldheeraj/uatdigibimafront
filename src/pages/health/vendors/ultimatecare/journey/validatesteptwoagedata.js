@@ -27,17 +27,20 @@ export const validateStepTwoData = (values, steponedata) => {
     const actual = calculateAgeFromDOB(selfDob);
     const expected = parseInt(selfMember.age);
     if (actual !== expected) {
-      showError(`Self DOB mismatch: ${actual} vs ${expected}`);
+      // showError(`Self DOB mismatch: ${actual} vs ${expected}`);
+      showError(` Invalid Age for Self. Expected ${expected} year.`);
       markInvalid("proposerdob2");
       return false;
     }
   }
+  // Invalid Age for ${memberId}. Expected ${calculatedDobYear} year.
 
   if (values.nomineedob && steponedata?.nominee?.age) {
     const actual = calculateAgeFromDOB(values.nomineedob);
     const expected = parseInt(steponedata.nominee.age);
     if (actual !== expected) {
-      showError(`Nominee DOB mismatch: ${actual} vs ${expected}`);
+      // showError(`Nominee DOB mismatch: ${actual} vs ${expected}`);
+      showError(` Invalid Age for Nominee. Expected ${expected} year.`);
       markInvalid("nomineedob");
       return false;
     }
@@ -65,7 +68,8 @@ export const validateStepTwoData = (values, steponedata) => {
     const actual = calculateAgeFromDOB(dob);
     const expected = parseInt(member.age);
     if (actual !== expected) {
-      showError(`${member.name} DOB mismatch: ${actual} vs ${expected}`);
+      // showError(`${member.name} DOB mismatch: ${actual} vs ${expected}`);
+      showError(` Invalid Age for ${member.name}. Expected ${expected} year.`);
       markInvalid(key);
       return false;
     }

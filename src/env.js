@@ -41,9 +41,10 @@ const constant = {
       'KNOWCARSTEPTHREE': '/motor/car/knowcarstep-three',
       'NEWCAR': '/motor/car/new-car',
       'PLANS': '/motor/car/plans',
+      'SHRIRAMJOURNEY':'/motor/car/vendor/shriram/journey',
 
 
-      'KNOWBIKESTEPTWO': '/motor/bike/Knowbikestep-two',
+      'KNOWBIKESTEPTWO': '/motor/bike/knowbikestep-two',
       'KNOWBIKESTEPTHREE' : '/motor/bike/knowbikestep-three',
       'NEWBIKE' : '/motor/bike/new-bike',
       'BIKEPLANS' : '/motor/bike/plans'
@@ -52,7 +53,8 @@ const constant = {
       'INDEX': '/userpnlx',
       'CLAIM': '/userpnlx/claim',
       'POLICY': '/userpnlx/policy',
-      'PROFILE': '/userpnlx/profile'
+      'PROFILE': '/userpnlx/profile',
+      // 'DASHBOARD': '/userpnlx/dashboard'
     }
   },
   API: {
@@ -110,9 +112,21 @@ const constant = {
         'SAVESTEPONE': '/api/motor-car/kn-car-details',
         'KNOWCARDETAILSTWO': '/api/motor-car/kn-car-steptwo',
         'KNOWCARDETAILSTHREE': '/api/motor-car/knowcarstepthree',
+        'NEWCARDETAILS': '/api/motor-car/new-car-details',
+        'NEWCARDETAILSTWO': '/api/motor-car/new-car-detailstwo',
         'PLANS': '/api/motor-car/plans',
         'ADDADDONS':'/api/motor-car/addaddon',
-        'QUOTE':'/api/motor-car/getcarquote'
+        'QUOTE':'/api/motor-car/getcarquote',
+        'UPDATEIDV':'/api/motor-car/updateidv',
+        'CHANGEPLAN':'/api/motor-car/change-plan-type',
+        'PACOVERREASON':'/api/motor-car/pacoverreason',
+        'GETCACHEQUOTE':'/api/motor-car/getcachecarquote',
+        'ACCESSORIES':'/api/motor-car/accessories',
+          SHRIRAM:{
+              'UPLOADDOCUMENT':'/api/motor-car-shriram/uploadfile',
+              'SAVESTEPONE':'/api/motor-car-shriram/savestepone',
+              
+            }
       },
       
       BIKE : {
