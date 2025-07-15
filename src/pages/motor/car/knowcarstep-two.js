@@ -9,6 +9,7 @@ import { CallApi } from "../../../api";
 import UniversalDatePicker from "../../datepicker/index";
 import { format, parse } from "date-fns";
 import DropdownWithSearch from "../../lib/DropdownWithSearch";
+import { showSuccess, showError } from "../../../layouts/toaster";
 
 export default function KnowCarStepTwo() {
   const {
@@ -65,24 +66,22 @@ export default function KnowCarStepTwo() {
     }
   }, [savedPageData, brands, setValue]);
 
-//   useEffect(() => {
-//   if (savedPageData && models.length > 0) {
-//     const matchedModel = models.find((m) => m.model === savedPageData.model); 
-//     if (matchedModel) {
-//       setSelectedModel(matchedModel);
-//      setValue("model", matchedModel.id);
-//     }
-//   }
-// }, [savedPageData, models, setValue]);
+  //   useEffect(() => {
+  //   if (savedPageData && models.length > 0) {
+  //     const matchedModel = models.find((m) => m.model === savedPageData.model);
+  //     if (matchedModel) {
+  //       setSelectedModel(matchedModel);
+  //      setValue("model", matchedModel.id);
+  //     }
+  //   }
+  // }, [savedPageData, models, setValue]);
 
-
- useEffect(() => {
-  if (savedPageData && models.length > 0) {
-     setSelectedModel(savedPageData.model || null);
+  useEffect(() => {
+    if (savedPageData && models.length > 0) {
+      setSelectedModel(savedPageData.model || null);
       setValue("model", savedPageData.model);
-  }
-}, [savedPageData, models, setValue]);
-
+    }
+  }, [savedPageData, models, setValue]);
 
   useEffect(() => {
     if (savedPageData) {
@@ -114,7 +113,7 @@ export default function KnowCarStepTwo() {
 
   const handleGetBrands = async () => {
     try {
-      const Brandvalue = "MOT-PRD-001"
+      const Brandvalue = "MOT-PRD-001";
       const brand = { brand: Brandvalue };
       const response = await CallApi(constant.API.MOTOR.BRANDS, "POST", brand);
       setBrands(response.brand);
@@ -152,11 +151,27 @@ export default function KnowCarStepTwo() {
         data
       );
       if (response) {
-        router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTHREE);
+        router.push(constant.ROUTES.MOTOR.CAR.KNOWCARSTEPTHREE);
       }
     } catch (error) {
       console.error(error);
     }
+  };
+  const onInvalid = (errors) => {
+    const firstField = Object.keys(errors)[0];
+    const message = errors[firstField]?.message;
+
+    const fallbackMessages = {
+      brand: "Brand is required",
+      model: "Model is required",
+      carregdate: "Car registration date is required",
+      brandyear: "Manufacturing year is required",
+      under: "Please select individual or company",
+    };
+
+    showError(
+      message || fallbackMessages[firstField] || "Please correct the form."
+    );
   };
 
   return (
@@ -184,39 +199,42 @@ export default function KnowCarStepTwo() {
             {/* Right Side: Form */}
             <div className="md:col-span-2">
               <form
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(onSubmit, onInvalid)}
                 className="grid grid-cols-1 sm:grid-cols-2 gap-6"
               >
                 {/* Car Register Under */}
                 <div className="sm:col-span-2">
                   <label className="labelcls">Car Register Under</label>
-                  <div className="flex gap-4 flex-wrap">
+                  <div className="flex items-center bg-[#E9F1FF] rounded-full p-1 w-fit shadow-sm">
                     {["individual", "company"].map((type) => (
-                      <label
-                        key={type}
-                        className={`flex items-center gap-2 cursor-pointer ${
-                          under === type ? "text-blue-600 font-semibold" : ""
-                        }`}
-                      >
+                      <label key={type} className="cursor-pointer">
                         <input
                           type="radio"
                           value={type}
                           {...register("under", { required: true })}
+                          className="peer hidden"
                           checked={under === type}
                           onChange={() => {
                             setUnder(type);
                             setValue("under", type);
                           }}
                         />
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                        <div
+                          className={`
+                              px-5 py-1.5 rounded-full text-sm font-semibold capitalize
+                              text-[#2F4A7E] hover:bg-[#d3e6ff]
+                              transition-all duration-300 ease-in-out
+                              peer-checked:bg-gradient-to-b 
+                              peer-checked:from-[#426D98] 
+                              peer-checked:to-[#28A7E4] 
+                              peer-checked:text-white
+                            `}
+                        >
+                          {type}
+                        </div>
                       </label>
                     ))}
                   </div>
-                  {errors.under && (
-                    <span className="text-red-600 text-sm">
-                      Please select one
-                    </span>
-                  )}
                 </div>
 
                 {/* Manufacture */}
@@ -238,11 +256,6 @@ export default function KnowCarStepTwo() {
                     placeholder="Select or type brand"
                     className="inputcls"
                   />
-                  {errors.brand && (
-                    <span className="text-red-600 text-sm">
-                      Brand is required
-                    </span>
-                  )}
                 </div>
 
                 {/* Model & Variant */}
@@ -253,22 +266,16 @@ export default function KnowCarStepTwo() {
                     name="model"
                     {...register("model", { required: true })}
                     options={models.map((model) => ({
-                      value: model.id, 
+                      value: model.id,
                       label: model.model,
                     }))}
-                    value={watch("model") || ""} 
+                    value={watch("model") || ""}
                     onChange={(value) => {
-                      setValue("model", value); 
+                      setValue("model", value);
                     }}
                     placeholder="Select or type Model"
                     className="inputcls"
                   />
-                  {errors.model && (
-                    <span className="text-red-600 text-sm">
-                      Model is required
-                    </span>
-                  )}
-
                 </div>
 
                 {/* Register Date */}
@@ -284,11 +291,6 @@ export default function KnowCarStepTwo() {
                     error={!dates.regDate}
                     errorText="Please select a valid date"
                   />
-                  {errors.carregdate && (
-                    <span className="text-red-600 text-sm">
-                      Date is required
-                    </span>
-                  )}
                 </div>
 
                 {/* Year of Manufacture */}
@@ -306,11 +308,6 @@ export default function KnowCarStepTwo() {
                         </option>
                       ))}
                     </select>
-                    {errors.brandyear && (
-                      <span className="text-red-600 text-sm">
-                        Year is required
-                      </span>
-                    )}
                   </div>
                 )}
 

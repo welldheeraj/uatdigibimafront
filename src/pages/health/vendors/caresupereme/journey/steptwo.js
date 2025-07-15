@@ -29,7 +29,7 @@ useEffect(() => {
             .filter(
               (item) =>
                 item.relation?.toLowerCase() !== "self" &&
-                item.relation?.toLowerCase() !== "(nominee)"
+                 !item.relation?.toLowerCase().includes("(nominee)")
             )
             .map((item) => ({
               name: item.relation?.toLowerCase(),

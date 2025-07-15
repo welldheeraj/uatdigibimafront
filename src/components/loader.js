@@ -25,3 +25,21 @@ export default function CarInsuranceLoader() {
     </div>
   );
 }
+
+export function MotorCardSkeleton() {
+  return (
+    <div className="w-full sm:w-[320px] h-80 bg-white rounded-3xl shadow-md p-5 animate-pulse">
+      <div className="flex flex-col items-center gap-4 h-full justify-between">
+        <div className="w-28 h-24 bg-blue-100 rounded-xl" />
+        <div className="w-36 h-4 bg-blue-200 rounded" />
+        <div className="w-48 h-3 bg-blue-100 rounded" />
+        <div className="w-28 h-8 bg-blue-200 rounded-xl mt-4" />
+        <div className="flex gap-4 mt-2">
+          <div className="w-16 h-3 bg-blue-100 rounded" />
+          <div className="w-20 h-3 bg-blue-100 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+

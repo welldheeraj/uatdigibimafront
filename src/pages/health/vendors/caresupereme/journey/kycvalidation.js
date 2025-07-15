@@ -37,7 +37,7 @@ export default async function validateKycStep(
         customerpancardDob,
       };
 
-      res = await CallApi(constant.API.HEALTH.PANVERIFY, "POST", payload);
+      res = await CallApi(constant.API.HEALTH.CARESUPEREME.PANVERIFY, "POST", payload);
       console.log("PAN API Response:", res);
 
       if (res?.status && res?.kyc === "1") {

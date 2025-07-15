@@ -3,20 +3,20 @@
 import React, { useState,useEffect } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
-import { FaChevronLeft, FaCheck } from "react-icons/fa";
+import { FaChevronLeft, FaCheck,FaCar } from "react-icons/fa";
 import StepOneForm from "./stepone.js";
 import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
 import StepFourForm from "./stepfour.js";
-// import SummaryCard from "../checkout/rightsection.js";
-  import CarDetailsCard from '../../../plans/cardetailscard'
+import VehicleCard from '../../../../vehicledetails/index.js'
+
 import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "@/styles/js/validation.js";
 import { validateStepTwoData } from "./validatesteptwoagedata.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
-// import HealthInsuranceLoader from "../../../loader";
+import CarInsuranceLoader from "@/components/loader.js";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -35,6 +35,15 @@ export default function StepperForm({ usersData, kycData }) {
   const [steptwodata, setStepTwoData] = useState([]);
   const [stepthreedata, setStepThreeData] = useState([]);
    const [totalPremium, setTotalPremium] = useState("");
+
+     const [vehicleDetails, setVehicleDetails] = useState([]);
+     const [cardata, setCarData] = useState([]);
+     const [journeydata, setJourneyData] = useState([]);
+     const [bankdata, setBankData] = useState([]);
+     const [prevInsurdata, setPrevInsurData] = useState([]);
+     const [motortype, setMotorType] = useState([]);
+
+   
   const searchParams = useSearchParams();
   // console.log("User Data:", kycData);
   const summaryData = useMemo(() => {
@@ -71,7 +80,9 @@ export default function StepperForm({ usersData, kycData }) {
 }, [searchParams]);
 
   const step1Form = useForm();
-  const step2Form = useForm();
+const step2Form = useForm({
+  shouldUnregister: true,
+});
   const step3Form = useForm();
   const step4Form = useForm();
 
@@ -80,7 +91,7 @@ export default function StepperForm({ usersData, kycData }) {
 
   const back = async () => {
     if (currentStep === 1) {
-      router.push(constant.ROUTES.HEALTH.CARESUPEREME.CHECKOUT);
+      router.push(constant.ROUTES.MOTOR.PLANS);
     } else {
       setLoading(true);
       setCurrentStep((prev) => prev - 1);
@@ -145,12 +156,25 @@ export default function StepperForm({ usersData, kycData }) {
   };
 
   const validateFormStepTwo = async () => {
+  
+    const values = step2Form.getValues();  
     const fieldsValid = await validateFields(step2Form);
     if (!fieldsValid) return false;
 
     const rawValues = step2Form.getValues();
 
-    const values = step2Form.getValues();
+  if (values.bankloantype === "" && values.financierbranch === "" && enabled) {
+    showError("Please fill bank loan provider and branch details.");
+    return false;
+  }
+  if (values.bankloantype === "" && enabled) {
+    showError("Please select a bank/loan provider.");
+    return false;
+  }
+  if (values.financierbranch === "" && enabled) {
+    showError("Please enter branch name.");
+    return false;
+  }
     // const validAge = validateStepTwoData(values, steponedata);
     // if (!validAge) return false;
 
@@ -183,48 +207,67 @@ export default function StepperForm({ usersData, kycData }) {
 
     const data = step3Form.getValues();
 
+    console.log(data)
+  try {
+  const res = await CallApi(
+    constant.API.MOTOR.CAR.SHRIRAM.SAVESTEPONE,
+    "POST",
+    data
+  );
 
-    try {
-      const res = await CallApi(
-        constant.API.MOTOR.CAR.SHRIRAM.SAVESTEPONE,
-        "POST",
-        data
-      );
-      console.log("Step 3 API Response", res);
+  console.log("Step 3 API Response:", res);
 
-      if (res === 1 || res?.status) {
-        setStepThreeData(res);
-        return true;
-      } else {
-        console.error("Step 3 API failed or returned unexpected value:", res);
-        return false;
-      }
-    } catch (error) {
-      console.error("Step 3 API call error:", error);
-      return false;
+  const status = res?.data?.status;
+  const errorDesc = res?.data?.apiresponse?.ERROR_DESC;
+
+  if (status === true || res === 1) {
+    setStepThreeData(res.data);
+    showSuccess("Step 3 saved successfully.");
+    return true;
+  } else {
+    if (errorDesc) {
+        
+      showError(errorDesc);
+    } else {
+      
+      showError("Step 3 save failed. Please try again.");
     }
+    return false;
+  }
+
+} catch (error) {
+  console.error("Step 3 API call error:", error);
+  showError("Something went wrong while saving Step 3.");
+  return false;
+}
     return result;
   };
 
-  const GoToPayment = async () => {
-    // console.log("Ram")
-    setLoading(true);
-    try {
-      const res = await CallApi(constant.API.HEALTH.CARESUPEREME.CREATEPOLICY, "POST");
-      if (res === 1 || res?.status) {
-        const response = await CallApi(constant.API.HEALTH.CARESUPEREME.GETPROPOSAL, "POST");
-        if (response.proposalNumber) {
-          router.push(
-            `/health/payment?proposalNumber=${response.proposalNumber}`
-          );
-        }
-      }
-    } catch (error) {
-      console.error("API Error", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const GoToPayment = () => {
+  const apiResponse = stepthreedata?.apiresponse;
+  const proposal = stepthreedata?.proposal;
+
+  if (!apiResponse?.PROPOSAL_NO) {
+    showError("Proposal number not found");
+    return;
+  }
+
+  const proposalNumber = apiResponse.PROPOSAL_NO;
+  const polSysId = apiResponse.POL_SYS_ID;
+  const premium = proposal?.premium;
+  const productcode = proposal?.productcode;
+
+  if (!polSysId || !premium || !productcode) {
+    showError("Required proposal details missing");
+    return;
+  }
+
+  setLoading(true);
+
+  router.push(
+    `/motor/car/payment?proposalNumber=${proposalNumber}&polSysId=${polSysId}&premium=${premium}&productcode=${productcode}`
+  );
+};
 
   const goNext = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
 
@@ -322,20 +365,62 @@ const handleVerifyOther = async () => {
 };
 
 
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const res = await CallApi(
+        constant.API.MOTOR.CAR.SHRIRAM.SAVEDATA,
+        "GET"
+      );
+      
+      console.log("Full response:", res);
+       if (res?.data?.details) {
+        setCarData(res.data.details); 
+      }
+      if (res?.data?.user) {
+        setJourneyData(res.data.user);
+      }
+      if (res?.data?.bank) {
+        setBankData(res.data.bank);
+      }
+      if (res?.data?.prevInsurance) {
+        setPrevInsurData(res.data.prevInsurance);
+      }
+     
+      if (res?.data?.aVehicleDetails) {
+        setVehicleDetails(res.data.aVehicleDetails);
+      }
+      if (res?.cache) {
+        setMotorType(res.cache);
+      }
+      // if (res?.journey) {
+      //   setJourneyData(res.journey);
+      // }
 
+      // const carDataArray = res.data;
+      // if (Array.isArray(carDataArray) && carDataArray.length > 0) {
+      //   const firstEntry = carDataArray[0];
 
+      //   try {
+      //     const parsedDetails = JSON.parse(firstEntry.knowcar_reg_details);
+      //     setCarData(parsedDetails);
+      //   } catch (err) {
+      //     console.error("Failed to parse knowcar_reg_details:", err);
+      //   }
+      // }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
-//   const handleVerifyOther = async (data) => {
-//   console.log("Ram Pass");
-//   console.log("Final Data:", data);
-// };
-
+  fetchData();
+}, []);
 
   return (
   <>
-    {/* {loading ? (
-      <HealthInsuranceLoader />
-    ) : ( */}
+    {loading ? (
+      <CarInsuranceLoader />
+    ) : (
       <div className="min-h-screen bg-[#C8EDFE] p-4 sm:p-8">
         <button
           onClick={back}
@@ -408,16 +493,23 @@ const handleVerifyOther = async () => {
                   verifieddata={verifieddata}
                   usersData={usersData}
                   kycData={kycData}
+                     cardata={cardata}
+                     journeydata={journeydata}
                 />
               )}
               {currentStep === 2 && (
-                <StepTwoForm
-                  step2Form={step2Form}
-                  steponedata={steponedata}
-                  inputClass={inputClass}
-                  onSubmitStep={onSubmitStep}
-                  usersData={usersData}
-                />
+                        <StepTwoForm
+                        step2Form={step2Form}
+                        steponedata={steponedata}
+                        inputClass={inputClass}
+                        onSubmitStep={onSubmitStep}
+                        usersData={usersData}
+                        cardata={cardata}
+                          journeydata={journeydata}
+                          bankdata={bankdata}
+                          prevInsurdata={prevInsurdata}
+                          motortype={motortype}
+                      />
               )}
               {currentStep === 3 && (
                 <StepThreeForm
@@ -425,6 +517,7 @@ const handleVerifyOther = async () => {
                   steptwodata={steptwodata}
                   inputClass={inputClass}
                   onSubmitStep={onSubmitStep}
+                   journeydata={journeydata}
                 />
               )}
               {currentStep === 4 && (
@@ -435,7 +528,7 @@ const handleVerifyOther = async () => {
                   currentStep={currentStep}
                   totalPremium={totalPremium}
                   onGoToPayment={GoToPayment}
-                  
+                   motortype={motortype}
                 />
               )}
             </div>
@@ -454,10 +547,19 @@ const handleVerifyOther = async () => {
             currentStep={currentStep}
             onGoToPayment={GoToPayment}
           /> */}
-          <CarDetailsCard />
+          
+          {(motortype === "knowcar" || motortype === "newcar") && (
+              <VehicleCard
+              vehicleDetails={vehicleDetails}
+              title={motortype === "knowcar" ? "Private Car" : "New Car"}
+              icon={<FaCar className="text-blue-600 text-xl" />}
+              currentStep={currentStep}
+             onGoToPayment={GoToPayment}
+            />
+              )}
         </div>
       </div>
-    {/* )} */}
+     )} 
   </>
 );
 

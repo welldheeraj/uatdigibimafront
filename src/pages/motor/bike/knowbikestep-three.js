@@ -135,7 +135,7 @@ const KnowBikeStepThree = () => {
       );
       console.log(res);
       if (res) {
-        router.push(constant.ROUTES.MOTOR.BIKEPLANS);
+        router.push(constant.ROUTES.MOTOR.BIKE.BIKEPLANS);
       }
     } catch (error) {
       console.error(error);
@@ -390,7 +390,7 @@ const KnowBikeStepThree = () => {
                 <button
                   type="button"
                   onClick={() =>
-                    router.push(constant.ROUTES.MOTOR.KNOWBIKESTEPTWO)
+                    router.push(constant.ROUTES.MOTOR.BIKE.KNOWBIKESTEPTWO)
                   }
                   className="px-6 py-2 thmbtn"
                 >

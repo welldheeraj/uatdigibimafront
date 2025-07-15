@@ -213,7 +213,7 @@ const [fromIndex, setFromIndex] = useState(1);
        
 
 
-        {/* New pagination */}
+       
         <div className="flex justify-between items-center pt-4 flex-wrap gap-4">
           {/* Left side: Total Records */}
           <div className="bg-yellow-100 text-black px-3 py-1 rounded">

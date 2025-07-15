@@ -154,7 +154,7 @@ export default function VehicleSelect({ usersData }) {
             console.log("saving after verifying", saveresponse);
           }
           if (saveresponse) {
-            router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTWO);
+            router.push(constant.ROUTES.MOTOR.CAR.KNOWCARSTEPTWO);
           }
         } catch (error) {
           console.error("Error", error);
@@ -182,7 +182,7 @@ export default function VehicleSelect({ usersData }) {
           }
 
           if (response.status === true) {
-            router.push(constant.ROUTES.MOTOR.NEWCAR);
+            router.push(constant.ROUTES.MOTOR.CAR.NEWCAR);
           }
         } catch (error) {
           console.error(error);
@@ -224,7 +224,7 @@ export default function VehicleSelect({ usersData }) {
             console.log(bikeDetailsSave);
 
             if (bikeDetailsSave.status === true) {
-              router.push(constant.ROUTES.MOTOR.KNOWBIKESTEPTWO);
+              router.push(constant.ROUTES.MOTOR.BIKE.KNOWBIKESTEPTWO);
             }
           }
         } catch (error) {
@@ -255,7 +255,7 @@ export default function VehicleSelect({ usersData }) {
           }
 
           if (response.status === true) {
-            router.push(constant.ROUTES.MOTOR.NEWBIKE);
+            router.push(constant.ROUTES.MOTOR.BIKE.NEWBIKE);
           }
         } catch (error) {
           console.error("Error", error);
@@ -285,6 +285,11 @@ export default function VehicleSelect({ usersData }) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  const onInvalid = (errors) => {
+  const firstErrorKey = Object.keys(errors)[0];
+  const message = errors[firstErrorKey]?.message || "Please check required fields.";
+  showError(message);
+};
 
   return (
     <form
@@ -347,24 +352,52 @@ export default function VehicleSelect({ usersData }) {
               {/* CAR FORM */}
               {selectedVehicle === "car" && (
                 <div className="space-y-4 ">
-                  <div className="flex gap-4">
-                    <label>
-                      <input
-                        type="radio"
-                        value="knowcar"
-                        {...register("carOption")}
-                      />
-                      Know Car No.
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="newcar"
-                        {...register("carOption")}
-                      />
-                      New Car
-                    </label>
-                  </div>
+<div className="flex items-center bg-[#E9F1FF] rounded-full p-1 w-fit shadow-sm">
+  {/* Know Car No. */}
+  <label className="cursor-pointer">
+    <input
+      type="radio"
+      value="knowcar"
+      {...register("carOption")}
+      className="peer hidden"
+    />
+    <div className="
+      px-5 py-1.5 rounded-full text-sm font-semibold
+      text-[#195BDA] hover:bg-[#d3e6ff]
+      transition-all duration-300 ease-in-out
+      peer-checked:bg-gradient-to-b 
+      peer-checked:from-[#426D98] 
+      peer-checked:to-[#28A7E4] 
+      peer-checked:text-white
+    ">
+      Know car No.
+    </div>
+  </label>
+
+  {/* New Car */}
+  <label className="cursor-pointer">
+    <input
+      type="radio"
+      value="newcar"
+      {...register("carOption")}
+      className="peer hidden"
+    />
+    <div className="
+      px-5 py-1.5 rounded-full text-sm font-semibold
+      text-[#195BDA] hover:bg-[#d3e6ff]
+      transition-all duration-300 ease-in-out
+      peer-checked:bg-gradient-to-b 
+      peer-checked:from-[#426D98] 
+      peer-checked:to-[#28A7E4] 
+      peer-checked:text-white
+    ">
+      New car
+    </div>
+  </label>
+</div>
+
+
+
 
                   {carOption === "knowcar" && (
                     <>
@@ -393,11 +426,7 @@ export default function VehicleSelect({ usersData }) {
                                 .slice(0, 10);
                             }}
                           />
-                          {errors.carRegNumber && (
-                            <p className="text-red-500 text-sm">
-                              {errors.carRegNumber.message}
-                            </p>
-                          )}
+                         
                         </div>
 
                         <div className="flex flex-col flex-1">
@@ -418,11 +447,7 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls"
                           />
-                          {errors.mobile && (
-                            <p className="text-red-500 text-sm">
-                              {errors.mobile.message}
-                            </p>
-                          )}
+                          
                         </div>
                       </div>
                     </>
@@ -445,11 +470,7 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls"
                           />
-                          {errors.carCity && (
-                            <p className="text-red-500 text-sm">
-                              {errors.carCity.message}
-                            </p>
-                          )}
+                         
 
                           {cities?.length > 0 && (
                             <ul className="absolute top-full left-0 right-0 z-10 border rounded bg-white max-h-40 overflow-y-auto shadow-md mt-1">
@@ -488,11 +509,7 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls"
                           />
-                          {errors.mobile && (
-                            <p className="text-red-500 text-sm">
-                              {errors.mobile.message}
-                            </p>
-                          )}
+                         
                         </div>
                       </div>
                     </>
@@ -503,23 +520,45 @@ export default function VehicleSelect({ usersData }) {
               {/* BIKE FORM */}
               {selectedVehicle === "bike" && (
                 <div className="space-y-4 ">
-                  <div className="flex gap-4">
-                    <label>
-                      <input
-                        type="radio"
-                        value="knowbike"
-                        {...register("bikeOption")}
-                      />
-                      Know Bike No.
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="newbike"
-                        {...register("bikeOption")}
-                      />
-                      New Bike
-                    </label>
+                  <div className="flex items-center bg-[#E9F1FF] rounded-full p-1 w-fit shadow-sm mb-">
+                      <label className="cursor-pointer">
+                        <input
+                          type="radio"
+                          value="knowbike"
+                          {...register("bikeOption")}
+                          className="peer hidden"
+                        />
+                        <div className="
+                         px-5 py-1.5 rounded-full text-sm font-semibold capitalize
+                              text-[#2F4A7E] hover:bg-[#d3e6ff]
+                              transition-all duration-300 ease-in-out
+                              peer-checked:bg-gradient-to-b 
+                              peer-checked:from-[#426D98] 
+                              peer-checked:to-[#28A7E4] 
+                              peer-checked:text-white
+                        ">
+                          Know Bike No.
+                        </div>
+                      </label>
+                    <label className="cursor-pointer">
+    <input
+      type="radio"
+      value="newbike"
+      {...register("bikeOption")}
+      className="peer hidden"
+    />
+    <div className="
+     px-5 py-1.5 rounded-full text-sm font-semibold capitalize
+                              text-[#2F4A7E] hover:bg-[#d3e6ff]
+                              transition-all duration-300 ease-in-out
+                              peer-checked:bg-gradient-to-b 
+                              peer-checked:from-[#426D98] 
+                              peer-checked:to-[#28A7E4] 
+                              peer-checked:text-white
+    ">
+      New Bike
+    </div>
+  </label>
                   </div>
 
                   {bikeOption === "knowbike" && (
@@ -545,11 +584,7 @@ export default function VehicleSelect({ usersData }) {
                                 .slice(0, 10);
                             }}
                           />
-                          {errors.bikeRegNumber && (
-                            <p className="text-red-500 text-sm">
-                              {errors.bikeRegNumber.message}
-                            </p>
-                          )}
+                         
                         </div>
 
                         <div className="flex flex-col flex-1">
@@ -567,11 +602,7 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls"
                           />
-                          {errors.mobile && (
-                            <p className="text-red-500 text-sm">
-                              {errors.mobile.message}
-                            </p>
-                          )}
+                         
                         </div>
                       </div>
                     </>
@@ -598,11 +629,7 @@ export default function VehicleSelect({ usersData }) {
                             className="inputcls"
                           />
 
-                          {errors.bikeCity && (
-                            <p className="text-red-500 text-sm">
-                              {errors.bikeCity.message}
-                            </p>
-                          )}
+                         
 
                           {cities?.length > 0 && (
                             <ul className="absolute top-full left-0 right-0 z-10 border rounded bg-white max-h-40 overflow-y-auto shadow-md mt-1">
@@ -638,11 +665,7 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls "
                           />
-                          {errors.mobile && (
-                            <p className="text-red-500 text-sm">
-                              {errors.mobile.message}
-                            </p>
-                          )}
+                         
                         </div>
                       </div>
                     </>
@@ -766,7 +789,7 @@ export default function VehicleSelect({ usersData }) {
                 </button>
                 <button
                   type="button"
-                  onClick={handleSubmit(onSubmit)}
+                   onClick={handleSubmit(onSubmit, onInvalid)}
                   className="px-6 py-2 text-white rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                   style={{
                     background: "linear-gradient(to bottom, #426D98, #28A7E4)",

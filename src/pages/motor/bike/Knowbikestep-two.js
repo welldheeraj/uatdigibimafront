@@ -144,7 +144,7 @@ export default function KnowBikeStepTwo() {
         data
       );
       if (response) {
-        router.push(constant.ROUTES.MOTOR.KNOWBIKESTEPTHREE);
+        router.push(constant.ROUTES.MOTOR.BIKE.KNOWBIKESTEPTHREE);
       }
     } catch (error) {
       console.error(error);

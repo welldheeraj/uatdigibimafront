@@ -115,7 +115,7 @@ const handleGetBrands = async () => {
       console.log("NewCAAR response", response)
 
       if(response.status === true){
-             router.push(constant.ROUTES.MOTOR.PLANS)
+             router.push(constant.ROUTES.MOTOR.CAR.PLANS)
       }
 
     } catch (error) {

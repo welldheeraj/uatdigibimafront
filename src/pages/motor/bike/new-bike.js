@@ -123,7 +123,7 @@ const [manufactureYears, setManufactureYears] = useState([]);
       console.log("NewBBB response", response)
 
       if(response.status === true){
-             router.push(constant.ROUTES.MOTOR.BIKEPLANS)
+             router.push(constant.ROUTES.MOTOR.BIKE.BIKEPLANS)
       }
 
     } catch (error) {

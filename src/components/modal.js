@@ -5,12 +5,12 @@ export default function Modal({
   onClose,
   title = "Details",
   children,
-  width = "max-w-3xl", 
-     showConfirmButton = true,
+  width = "max-w-3xl",
   showCancelButton = true,
-  confirmText = "Confirm",   
-  cancelText = "Cancel",  
-   onConfirm,
+  showConfirmButton = true,
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  onConfirm,
 }) {
   if (!isOpen) return null;
 
@@ -27,30 +27,32 @@ export default function Modal({
           </button>
         </div>
 
+        {/* Content */}
         <div className="mt-4 text-sm text-gray-700 max-h-[70vh] overflow-y-auto pr-1">
           {children}
         </div>
 
-
-        <div className="mt-6 flex justify-start gap-3">
-          {showCancelButton && (
-            <button
-              onClick={onClose}
-              className="px-4 py-2 thmbtn text-sm font-medium"
-            >
-              {cancelText}
-            </button>
-          )}
-
-          {showConfirmButton && (
-            <button
-              className="px-4 py-2 thmbtn text-sm font-medium"
-              onClick={onConfirm} 
-            >
-              {confirmText}
-            </button>
-          )}
-        </div>
+        {/* Footer Buttons */}
+        {(showCancelButton || showConfirmButton) && (
+          <div className="mt-6 flex justify-start gap-3">
+            {showCancelButton && (
+              <button
+                onClick={onClose}
+                className="px-4 py-2 thmbtn text-sm font-medium"
+              >
+                {cancelText}
+              </button>
+            )}
+            {showConfirmButton && (
+              <button
+                className="px-4 py-2 thmbtn text-sm font-medium"
+                onClick={onConfirm}
+              >
+                {confirmText}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -130,7 +130,7 @@ export default function KnowCarSlideThree() {
       );
       console.log(res);
       if (res) {
-        router.push(constant.ROUTES.MOTOR.PLANS);
+        router.push(constant.ROUTES.MOTOR.CAR.PLANS);
       }
     } catch (error) {
       console.error(error);
@@ -296,22 +296,27 @@ export default function KnowCarSlideThree() {
                   <label className="labelcls">
                     Was there any ownership transfer in the previous year?
                   </label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={ownershipToggle}
-                      onChange={() => {
+                
+
+                   <input type="hidden" {...register("ownershiptoggle")} />
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={ownershipToggle}
+                         onChange={() => {
                         const value = !ownershipToggle ? "1" : "0";
                         setOwnershipToggle(!ownershipToggle);
                         setValue("ownershiptoggle", value);
                       }}
-                    />
-                    <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 relative transition-all">
-                      <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                    </div>
-                  </label>
-                  <input type="hidden" {...register("ownershiptoggle")} />
+                      />
+                      <div className="w-12 h-6 bg-gray-300 rounded-full peer-checked:bg-indigo-500 transition-colors" />
+                      <div
+                        className={`absolute left-0 top-0 w-6 h-6 bg-white border border-gray-200 rounded-full shadow transform transition-transform ${
+                          ownershipToggle ? "translate-x-6" : ""
+                        }`}
+                      />
+                    </label>
                 </div>
 
                 {/* Policy Claim */}
@@ -319,22 +324,27 @@ export default function KnowCarSlideThree() {
                   <label className="labelcls">
                     Did you make a claim in your previous policy period?
                   </label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={policyToggle}
-                      onChange={() => {
+                 
+
+                   <input type="hidden" {...register("policyclaim")} />
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={policyToggle}
+                          onChange={() => {
                         const value = !policyToggle ? "1" : "0";
                         setPolicyToggle(!policyToggle);
                         setValue("policyclaim", value);
                       }}
-                    />
-                    <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 relative transition-all">
-                      <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                    </div>
-                  </label>
-                  <input type="hidden" {...register("policyclaim")} />
+                      />
+                      <div className="w-12 h-6 bg-gray-300 rounded-full peer-checked:bg-indigo-500 transition-colors" />
+                      <div
+                        className={`absolute left-0 top-0 w-6 h-6 bg-white border border-gray-200 rounded-full shadow transform transition-transform ${
+                          policyToggle ? "translate-x-6" : ""
+                        }`}
+                      />
+                    </label>
                 </div>
               </div>
 
@@ -382,7 +392,7 @@ export default function KnowCarSlideThree() {
                 <button
                   type="button"
                   onClick={() =>
-                    router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTWO)
+                    router.push(constant.ROUTES.MOTOR.CAR.KNOWCARSTEPTWO)
                   }
                   className="px-6 py-2 thmbtn"
                 >

@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { CallApi } from "@/api";
 import constant from "@/env";
-
+import { FaChevronLeft,FaCar ,FaInfoCircle  } from "react-icons/fa";
 import PaCoverModal from "./pacovermodal";
-import AddonModal from "./addonmodal";
+import AddonModal, {VendorAddonModal} from "./addonmodal";
 import UpdateIdvModal from "./updateIdvmodal";
 import VendorCard from "./vendorcard";
-import CarDetailsCard from "./cardetailscard";
+import VehicleCard from '../../vehicledetails/index'
+import { MotorCardSkeleton } from "@/components/loader";
+console.log("MotorCardSkeleton:", MotorCardSkeleton); 
 
 export default function Plans() {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -19,6 +21,7 @@ export default function Plans() {
   const [showAccessories, setShowAccessories] = useState(false);
   const [loading, setLoading] = useState(true);
   const [planTypes, setPlanTypes] = useState([]);
+   const [fullAddonsName, setFullAddonsName] = useState({});
   const [addons, setAddons] = useState([]);
   const [selectedAddon, setSelectedAddon] = useState([]);
   const [vendorList, setVendorList] = useState([]);
@@ -33,6 +36,7 @@ export default function Plans() {
   const [paCoverChecked, setPaCoverChecked] = useState(false);
   const [vehicleDetails, setVehicleDetails] = useState([]);
   const [idv,setIdv] = useState();
+   const [motortype, setMotorType] = useState([]);
 
   const router = useRouter();
 
@@ -45,6 +49,7 @@ export default function Plans() {
           id: key,
           label: label.trim(),
         }));
+        console.log("plandata",res);
         setAddons(addonList);
 
         const plantypeObj = res.data?.plantype || {};
@@ -54,6 +59,8 @@ export default function Plans() {
         setPlanTypes(plantypeList);
 
         const vendorArr = res.data?.vendor || [];
+         setFullAddonsName(res.data?.addons || {});
+
         const activeVendors = vendorArr.filter((v) => v.isActive === "1");
         setVendorList(activeVendors);
 
@@ -65,7 +72,7 @@ export default function Plans() {
          }
         const selectaddon = res.data?.selectedaddons || [];
         setSelectedAddon(selectaddon);
-
+          setMotorType(res.cache);
         console.log(selectaddon);
        
       } catch (error) {
@@ -251,29 +258,37 @@ export default function Plans() {
     }
   };
 
+  // useEffect(() => {
+  //   const timer = setTimeout(() => setLoading(false), 1500);
+  //   return () => clearTimeout(timer);
+  // }, []);
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+  if (vendorPlans.length > 0) {
+    setLoading(false);
+  }
+}, [vendorPlans]);
+
 
   return (
-    <div className="min-h-screen bg-[#fbfbfb] p-6">
+    <div className="bg-[#C8EDFE] p-6  min-h-screen  overflow-x-hidden">
       <div className="mb-1">
-        <button
-          className="text-sm"
+       <button
           onClick={() => router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTHREE)}
+          className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
         >
-          ← Go back to Previous
+          <FaChevronLeft /> Go back to Previous
         </button>
       </div>
 
       <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
-        <div className="w-full bg-white p-4 rounded-xl shadow-md">
-          <div className="flex flex-col md:flex-row md:items-center gap-4 flex-wrap">
-            <div className="flex flex-col">
-              <label className="font-semibold">Plan Type</label>
+        <div className="w-full  p-6 rounded-3xl shadow-2xl  bg-[#fff]">
+          <div className="flex flex-col md:flex-row md:items-end gap-5 flex-wrap">
+            
+            {/* Plan Type */}
+            <div className="flex flex-col w-44">
+              <label className="font-semibold text-[#426D98] mb-2 text-sm">Plan Type</label>
               <select
-                className="border rounded p-2 mt-1 w-40"
+                className="border border-blue-300 rounded-xl px-4 py-2 text-sm text-[#1f3b57] bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                 value={selectedPlanType}
                 onChange={handlePlanTypeChange}
               >
@@ -285,47 +300,47 @@ export default function Plans() {
               </select>
             </div>
 
+            {/* PA Cover */}
             <div
-              className="flex items-center space-x-3 mt-6 md:mt-8 bg-[#D8E0FF] p-3 rounded cursor-pointer"
+              className="flex items-center  gap-3 px-4 py-3 bg-gradient-to-r from-[#cfe2ff] to-[#d6eaff] rounded-2xl shadow-md hover:shadow-lg cursor-pointer transition"
               onClick={() => setIsPaModalOpen(true)}
             >
               <input
                 type="checkbox"
                 id="pa-cover"
-                className="w-4 h-4"
+                className="form-checkbox accent-pink-500 h-4 w-4 cursor-pointer rounded border border-gray-300"
                 checked={paCoverChecked}
+                readOnly
               />
-              <label htmlFor="pa-cover" className="text-sm">
+              <label htmlFor="pa-cover" className="text-sm font-medium text-[#1f3b57] cursor-pointer">
                 PA Cover
               </label>
-              <span className="text-gray-400 text-xs cursor-pointer">ℹ️</span>
+              <span className="text-blue-600 text-sm font-bold"><FaInfoCircle/></span>
             </div>
 
-            <div className="flex items-center gap-2 mt-6 md:mt-8">
-              <label className="font-semibold">IDV:</label>
+            {/* IDV Input */}
+            <div className="flex items-center gap-2">
+              <label className="font-semibold text-[#426D98] text-sm whitespace-nowrap">IDV:</label>
               <input
                 type="text"
                 value={idv}
-                className="border rounded px-2 py-1 w-24 focus:outline-blue-600"
+                readOnly
+                className="border border-blue-300 rounded-xl px-4 py-2 w-28 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm"
               />
             </div>
 
-            <div className="flex gap-3 mt-6 md:mt-8">
+
+            {/* Buttons */}
+            <div className="flex gap-4">
               <button
-                style={{
-                  background: "linear-gradient(to bottom, #426D98, #28A7E4)",
-                }}
-                className="text-white px-4 py-2 rounded"
                 onClick={() => setIsUpdateModalOpen(true)}
+                className="bg-gradient-to-r from-[#426D98] to-[#28A7E4] text-white px-6 py-2 rounded-xl shadow-md hover:scale-105 hover:shadow-lg transition text-sm font-semibold"
               >
                 Update
               </button>
               <button
-                style={{
-                  background: "linear-gradient(to bottom, #426D98, #28A7E4)",
-                }}
-                className="text-white px-4 py-2 rounded"
                 onClick={() => setIsAddonModalOpen(true)}
+                className="bg-gradient-to-r from-[#426D98] to-[#28A7E4] text-white px-6 py-2 rounded-xl shadow-md hover:scale-105 hover:shadow-lg transition text-sm font-semibold"
               >
                 Addons
               </button>
@@ -333,6 +348,8 @@ export default function Plans() {
           </div>
         </div>
       </div>
+
+
 
       <PaCoverModal
         open={paModalOpen}
@@ -367,54 +384,43 @@ export default function Plans() {
 
       <div className="flex flex-col gap-2 md:flex-row mt-4">
         <div className="w-full lg:w-3/4 flex flex-wrap gap-6 justify-start lg:ml-16">
-          {vendorPlans.map((plan) => (
-            <VendorCard
-              key={plan.vendorId}
-              data={plan}
-              onAddonsClick={(vendorData) => {
-                setSelectedPlan(vendorData);
-                setAddAddonModal(true);
-                console.log(vendorData);
-              }}
-              onPremiumClick={premiumBackupData}
-            />
-          ))}
-        </div>
-        <CarDetailsCard vehicleDetails={vehicleDetails} />
+            {loading
+              ? Array(2).fill(0).map((_, idx) => <MotorCardSkeleton key={idx} />)
+              : vendorPlans.map((plan) => (
+                  <VendorCard
+                    key={plan.vendorId}
+                    data={plan}
+                    onAddonsClick={(vendorData) => {
+                      setSelectedPlan(vendorData);
+                      setAddAddonModal(true);
+                    }}
+                    onPremiumClick={premiumBackupData}
+                  />
+            ))}
+
+
+          </div>
+
+       
+      {(motortype === "knowcar" || motortype === "newcar") && (
+        <VehicleCard
+          vehicleDetails={vehicleDetails}
+          title={motortype === "knowcar" ? "Private Car" : "New Car"}
+          icon={<FaCar className="text-blue-600 text-xl" />}
+        />
+      )}
+
       </div>
 
-      {addAddonModal && selectedPlan && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md relative shadow-xl">
-            <button
-              onClick={() => {
-                setAddAddonModal(false);
-                setSelectedPlan(null);
-              }}
-              className="absolute top-2 right-3 text-gray-500 hover:text-black text-lg"
-            >
-              ✕
-            </button>
-            <h3 className="text-lg font-semibold mb-4">Vendor Addons</h3>
-
-            {selectedPlan.addons &&
-            Object.keys(selectedPlan.addons).length > 0 ? (
-             
-              <ul className="list-disc list-inside text-sm text-gray-800 space-y-1 max-h-52 overflow-auto">
-                {Object.entries(selectedPlan.addons).map(([addonId, price]) => (
-                  <li key={addonId} >
-                    <strong>Addon {addonId}</strong>: ₹ {price}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-600">
-                No addons available for this plan.
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+      <VendorAddonModal
+  isOpen={addAddonModal}
+  fullAddonsName={fullAddonsName}
+  onClose={() => {
+    setAddAddonModal(false);
+    setSelectedPlan(null);
+  }}
+  selectedPlan={selectedPlan}
+/>
     </div>
   );
 }
