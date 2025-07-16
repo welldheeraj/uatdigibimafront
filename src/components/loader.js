@@ -1,6 +1,7 @@
 "use client";
 import { FaCar } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { FaMotorcycle } from "react-icons/fa";
 
 export default function CarInsuranceLoader() {
   return (
@@ -39,6 +40,63 @@ export function MotorCardSkeleton() {
           <div className="w-20 h-3 bg-blue-100 rounded" />
         </div>
       </div>
+    </div>
+  );
+}
+
+
+export  function BikeInsuranceLoader() {
+  return (
+    <div className="fixed inset-0 bg-gradient-to-br from-blue-100 to-purple-200 flex flex-col items-center justify-center z-[9999]">
+      {/* Animated Bike SVG */}
+      <motion.div
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="mb-4"
+      >
+        <svg
+          width="150"
+          height="150"
+          viewBox="0 0 64 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="animate-pulse"
+        >
+          <circle
+            cx="16"
+            cy="48"
+            r="10"
+            stroke="#2563EB"
+            strokeWidth="4"
+            className="animate-spin-slow origin-center"
+          />
+          <circle
+            cx="48"
+            cy="48"
+            r="10"
+            stroke="#2563EB"
+            strokeWidth="4"
+            className="animate-spin-slower origin-center"
+          />
+          <path
+            d="M16 48L28 20L36 34L48 20"
+            stroke="#1D4ED8"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </svg>
+      </motion.div>
+
+      {/* Text or Message */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="text-blue-800 text-lg font-medium mt-2"
+      >
+        Fetching the best bike insurance plans for you...
+      </motion.p>
     </div>
   );
 }

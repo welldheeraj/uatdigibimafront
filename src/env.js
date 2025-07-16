@@ -10,29 +10,30 @@ const constant = {
       HEALTHLOGIN: "/login?type=health",
       MOTORLOGIN: "/login?type=motor",
     },
-    HEALTH: {
-      // 'INDEX': '/health',
-      INSURE: "/health/common/insure",
-      ILLNESS: "/health/common/illness",
-      PLANS: "/health/common/plans",
-
-      CARESUPEREME: {
-        CHECKOUT: "/health/vendors/caresupereme/checkout",
-        PROPOSAL: "/health/vendors/caresupereme/journey",
-        PAYMENT: "/health/payment",
-      },
-
-      ULTIMATECARE: {
-        PROPOSAL: "/health/vendors/ultimatecare/journey",
-        PAYMENT: "/health/payment",
-      },
-
-      VENDOR: {
-        100: "/health/vendors/caresupereme/checkout",
-        102: "/health/vendors/ultimatecare/checkout",
-        101: "/health/vendors/Godigits/checkout",
-      },
-    },
+      HEALTH: {
+          // 'INDEX': '/health',
+          INSURE: "/health/common/insure",
+          ILLNESS: "/health/common/illness",
+          PLANS: "/health/common/plans",
+    
+          CARESUPEREME: {
+            CHECKOUT: "/health/vendors/caresupereme/checkout",
+            PROPOSAL: "/health/vendors/caresupereme/journey",
+            PAYMENT: "/health/payment",
+          },
+    
+          ULTIMATECARE: {
+            CHECKOUT: "/health/vendors/ultimatecare/checkout",
+            PROPOSAL: "/health/vendors/ultimatecare/journey",
+            PAYMENT: "/health/payment",
+          },
+    
+          VENDOR: {
+            100: "/health/vendors/caresupereme/checkout",
+            102: "/health/vendors/ultimatecare/checkout",
+            101: "/health/vendors/Godigits/checkout",
+          },
+        },
     MOTOR: {
       // 'INDEX': '/motor',
       SELECTVEHICLE: "/motor/select-vehicle-type",
@@ -52,14 +53,22 @@ const constant = {
         KNOWBIKESTEPTHREE: "/motor/bike/knowbikestep-three",
         NEWBIKE: "/motor/bike/new-bike",
         BIKEPLANS: "/motor/bike/plans",
-        SHRIRAM: {
+         SHRIRAM: {
           SHRIRAMJOURNEY: "/motor/bike/vendor/shriram/journey",
         },
       },
 
-      VENDOR: {
+      VENDOR :{
+      CAR: {
         101: "/motor/car/vendor/shriram/journey",
+        // Add other car vendors 
       },
+      BIKE: {
+        101: "/motor/bike/vendor/shriram/journey",
+        // Add other bike vendors 
+      },
+    },
+
     },
     USER: {
       INDEX: "/userpnlx",
@@ -149,7 +158,7 @@ const constant = {
         },
       },
 
-      BIKE: {
+       BIKE: {
         BIKESAVESTEPONE: "/api/motor-bike/kn-bike-details",
         KNOWBIKEDETAILSTWO: "/api/motor-bike/kn-bike-step-two",
         KNOWBIKEDETAILSTHREE: "/api/motor-bike/kn-bike-step-three",
@@ -163,6 +172,12 @@ const constant = {
         PACOVERREASON: "/api/motor-bike/pacoverreason",
         GETCACHEQUOTE: "/api/motor-bike/getcachebikequote",
         ACCESSORIES: "/api/motor-bike/accessories",
+        SHRIRAM: {
+          SAVEDATA: "/api/motor-bike-shriram/bike-journey",
+          UPLOADDOCUMENT: "/api/motor-car-shriram/uploadfile",
+          SAVESTEPONE: "/api/motor-bike-shriram/bikestepone",
+         
+        },
        
       },
     },

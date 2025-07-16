@@ -19,7 +19,7 @@ import Link from "next/link";
 
 export default function Main() {
   return (
-    <div className="min-h-screen bg-[#D3F0FF] flex items-center justify-center p-6">
+    <div className="min-h-screen bgcolor flex items-center justify-center p-6">
       <div className="bg-white rounded-3xl p-8 md:p-12 max-w-6xl w-full flex flex-col md:flex-row items-center gap-8">
         {/* Left Section */}
         <div className="flex-1 space-y-6">
@@ -30,7 +30,7 @@ export default function Main() {
             Our software is built on years of expertise and is designed to adapt to your evolving needs.
           </p>
 
-          <button className="bg-gradient-to-r from-[#1782FF] to-[#3A5DFF] text-white font-medium px-6 py-2 rounded-full shadow">
+          <button className="bg-[#7998F4]  text-white font-medium px-6 py-2 rounded-full shadow">
             Connect with us
           </button>
 
@@ -42,10 +42,10 @@ export default function Main() {
         {/* Right Section */}
         <div className="flex-1 grid grid-cols-2 gap-6">
           {[
-            { label: "Car", src: "/car.jpg" },
-            { label: "Bike", src: "/bike.jpg" },
-            { label: "Health", src: "/health.jpg" },
-            { label: "Commercial", src: "/commercial.jpg" },
+            { label: "Car", src: "/images/homepage/car.png" },
+            { label: "Bike", src: "/images/homepage/bike.png" },
+            { label: "Health", src: "/images/homepage/health.png" },
+            { label: "Commercial", src: "/images/homepage/commercial.png" },
           ].map(({ label, src }, index) => (
                <Link href={routesMap[label]} key={index}>
             <div key={index} className="text-center border-2 border-blue-300 rounded-xl overflow-hidden shadow-sm">
@@ -53,7 +53,7 @@ export default function Main() {
                 src={src}
                 alt={label}
                 width={200}
-                height={120}
+                height={100}
                 className="w-full h-[120px] object-cover"
               />
               <div className="py-2 font-medium text-lg">{label}</div>

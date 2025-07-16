@@ -88,7 +88,7 @@ export default function Header({ token, username, setUsername }) {
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen((prev) => !prev)}
-            className="flex items-center gap-2 bg-gradient-to-r from-purple-400 to-pink-400 px-4 py-2 rounded-full text-white"
+            className="flex items-center gap-2 bg-[#CF5DCD] px-4 py-2 rounded-full text-white"
           >
             <FaUserCircle className="text-lg" />
             <span>Hi,{username ? username : "Guest"}</span>
