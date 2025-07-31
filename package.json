@@ -21,6 +21,7 @@
     "datatables.net-dt": "^2.3.2",
     "datatables.net-react": "^1.0.1",
     "date-fns": "^4.1.0",
+    "formidable": "^3.5.4",
     "framer-motion": "^12.23.0",
     "idb": "^8.0.3",
     "iron-session": "^6.3.1",

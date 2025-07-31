@@ -1,3 +1,4 @@
+"use client";
 import { useForm } from "react-hook-form";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -5,8 +6,9 @@ import { showSuccess, showError } from "../layouts/toaster";
 import { CallApi } from "../api";
 import { CallNextApi } from "../pages/utils/helper";
 import constant from "../env";
-import { isNumber } from '../styles/js/validation';
-
+import { isNumber } from "../styles/js/validation";
+import Image from "next/image";
+import { healthOne } from "@/images/Image";
 
 export default function FormPage({ usersData, token }) {
   const {
@@ -25,10 +27,7 @@ export default function FormPage({ usersData, token }) {
   const [timer, setTimer] = useState(0);
   const [otp, setOtp] = useState("");
   const otpInputRef = useRef(null);
-  // const gender = watch("gender");
   const mobile = watch("mobile");
-  // const name = watch("name");
-  // const pincode = watch("pincode");
 
   const [cities, setCities] = useState({});
   const [error, setError] = useState("");
@@ -61,14 +60,14 @@ export default function FormPage({ usersData, token }) {
 
     window.addEventListener("auth-change", handleAuthChange);
     return () => window.removeEventListener("auth-change", handleAuthChange);
-  }, [reset]);
+  }, [reset]); // FIXED: Added reset as a dependency
 
   useEffect(() => {
     const getToken = token;
     console.log("token:", getToken);
     if (getToken) {
       setToken(getToken);
-      setIsOtpVerified(true)
+      setIsOtpVerified(true);
       const fetchData = async () => {
         try {
           if (usersData) {
@@ -91,7 +90,7 @@ export default function FormPage({ usersData, token }) {
     } else {
       setIsReadOnly(false);
     }
-  }, [usersData, token]);
+  }, [usersData, token, reset]);
 
   useEffect(() => {
     let interval;
@@ -101,7 +100,6 @@ export default function FormPage({ usersData, token }) {
     return () => clearInterval(interval);
   }, [timer]);
 
-  // Autofocus OTP Input
   useEffect(() => {
     if (otpVisible && otpInputRef.current) {
       otpInputRef.current.focus();
@@ -116,7 +114,7 @@ export default function FormPage({ usersData, token }) {
     };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
+  });
 
   const fetchCities = async (cleaned) => {
     if (/^\d{5,6}$/.test(cleaned)) {
@@ -154,14 +152,17 @@ export default function FormPage({ usersData, token }) {
     setIsLoading(true);
     try {
       const sendotpdata = { mobile };
-      const res = await CallApi(constant.API.HEALTH.SENDOTP, "POST", sendotpdata);
+      const res = await CallApi(
+        constant.API.HEALTH.SENDOTP,
+        "POST",
+        sendotpdata
+      );
       console.log(res);
       if (res.status) {
         setOtpVisible(true);
         setTimer(30);
         showSuccess("OTP sent to your mobile");
-      }
-      else {
+      } else {
         showError("OTP not sent to your mobile");
       }
     } catch (error) {
@@ -180,22 +181,23 @@ export default function FormPage({ usersData, token }) {
     setIsLoading(true);
     try {
       const verifyotpdata = { mobile, otp };
-      const res = await CallApi(constant.API.HEALTH.VERIFYOTP, "POST", verifyotpdata);
+      const res = await CallApi(
+        constant.API.HEALTH.VERIFYOTP,
+        "POST",
+        verifyotpdata
+      );
       console.log(res);
       if (res.status) {
         setIsOtpVerified(true);
         setOtpVisible(false);
         showSuccess("OTP Verified Successfully");
-      }
-      else {
+      } else {
         setIsOtpVerified(false);
         setOtpVisible(true);
         showError("OTP is not Verified ");
       }
     } catch (error) {
-      showError(
-        error.message || "Something went wrong during OTP verification"
-      );
+      showError(error.message || "Something went wrong during OTP verification");
     } finally {
       setIsLoading(false);
     }
@@ -225,10 +227,7 @@ export default function FormPage({ usersData, token }) {
       if (res.status) {
         localStorage.setItem("token", res.token);
         setToken(res.token);
-        await CallNextApi("/api/setsession",
-          "POST",
-          { token: res.token }
-        );
+        await CallNextApi("/api/setsession", "POST", { token: res.token });
         window.dispatchEvent(new Event("auth-change"));
       }
 
@@ -240,19 +239,19 @@ export default function FormPage({ usersData, token }) {
     }
   };
 
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="bg-[#C8EDFE] py-6 sm:py-10 flex justify-center items-center min-h-screen"
     >
       <div className="w-full max-w-6xl rounded-[64px] bg-white shadow-lg px-6 sm:px-8 md:px-10 py-6 sm:py-8 md:py-10 gap-6 flex flex-col md:flex-row items-center">
-
+        {/* Left Form Section */}
         <div className="w-full md:w-3/5 p-2 md:p-6">
           <h2 className="text-[#2F4A7E] text-2xl md:text-3xl font-semibold mb-2">
             Find Top Plans For You
           </h2>
 
+          {/* Gender Selection */}
           <div className="flex gap-2 mb-4">
             {["male", "female"].map((gender) => (
               <label key={gender}>
@@ -269,10 +268,11 @@ export default function FormPage({ usersData, token }) {
                   className="hidden"
                 />
                 <div
-                  className={`px-5 py-2 rounded border text-sm font-medium cursor-pointer transition ${selectedGender === gender
-                    ? "bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white"
-                    : "border border-gray-400 text-black bg-white"
-                    }`}
+                  className={`px-5 py-2 rounded border text-sm font-medium cursor-pointer transition ${
+                    selectedGender === gender
+                      ? "bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white"
+                      : "border border-gray-400 text-black bg-white"
+                  }`}
                 >
                   {gender.charAt(0).toUpperCase() + gender.slice(1)}
                 </div>
@@ -280,6 +280,7 @@ export default function FormPage({ usersData, token }) {
             ))}
           </div>
 
+          {/* Name & Mobile */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label
@@ -311,10 +312,11 @@ export default function FormPage({ usersData, token }) {
                     readOnly={isOtpVerified}
                     placeholder="Enter Mobile Number"
                     onInput={isNumber}
-                    className={`w-full border border-gray-400 px-4 py-2 rounded-md text-sm ${isOtpVerified
-                      ? "bg-white text-gray-700"
-                      : "border-gray-300 bg-white focus:ring-blue-100"
-                      }`}
+                    className={`w-full border border-gray-400 px-4 py-2 rounded-md text-sm ${
+                      isOtpVerified
+                        ? "bg-white text-gray-700"
+                        : "border-gray-300 bg-white focus:ring-blue-100"
+                    }`}
                   />
 
                   {!isOtpVerified && (
@@ -322,10 +324,11 @@ export default function FormPage({ usersData, token }) {
                       type="button"
                       disabled={mobile?.length !== 10 || isLoading || timer > 0}
                       onClick={sendOtp}
-                      className={`px-3 py-2 text-sm rounded-full bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${mobile?.length === 10 && timer === 0
-                        ? ""
-                        : "opacity-40 cursor-not-allowed"
-                        }`}
+                      className={`px-3 py-2 text-sm rounded-full bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${
+                        mobile?.length === 10 && timer === 0
+                          ? ""
+                          : "opacity-40 cursor-not-allowed"
+                      }`}
                     >
                       {timer > 0 ? "Resend" : "Verify"}
                     </button>
@@ -339,6 +342,7 @@ export default function FormPage({ usersData, token }) {
               </div>
             </div>
 
+            {/* OTP Section */}
             {otpVisible && (
               <div>
                 <label className="text-sm font-semibold text-blue-900 mb-1 block">
@@ -357,8 +361,9 @@ export default function FormPage({ usersData, token }) {
                     type="button"
                     onClick={verifyOtp}
                     disabled={otp.length !== 6 || isLoading || stoken}
-                    className={`px-3 py-2 text-sm rounded-full font-semibold shadow-md bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${otp.length === 6 ? "" : "opacity-40 cursor-not-allowed"
-                      }`}
+                    className={`px-3 py-2 text-sm rounded-full font-semibold shadow-md bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${
+                      otp.length === 6 ? "" : "opacity-40 cursor-not-allowed"
+                    }`}
                   >
                     {isLoading ? "Verifying..." : "Submit"}
                   </button>
@@ -366,11 +371,11 @@ export default function FormPage({ usersData, token }) {
               </div>
             )}
 
+            {/* Pincode */}
             <div>
               <label className="text-sm font-semibold text-blue-900 mb-1 block">
                 Pincode
               </label>
-
               <input
                 type="text"
                 {...register("pincode", {
@@ -408,15 +413,16 @@ export default function FormPage({ usersData, token }) {
                 </ul>
               )}
               {error && <p className="text-red-500 text-sm">{error}</p>}
-
             </div>
-
           </div>
+
+          {/* Continue Button */}
           <button
             type="submit"
             disabled={!(isOtpVerified || stoken)}
-            className={`px-10 py-2 thmbtn text-base ${isOtpVerified || stoken ? "" : "opacity-50 cursor-not-allowed"
-              }`}
+            className={`px-10 py-2 thmbtn text-base ${
+              isOtpVerified || stoken ? "" : "opacity-50 cursor-not-allowed"
+            }`}
           >
             Continue
           </button>
@@ -428,18 +434,15 @@ export default function FormPage({ usersData, token }) {
           </p>
         </div>
 
+        {/* Right Image Section */}
         <div className="hidden md:flex flex-col md:items-start gap-1 mt-2 w-full md:w-2/5 p-2 md:p-6 flex justify-center">
-          <img
-            src="/images/health/health-One.png"
+          <Image
+            src={healthOne}
             alt="Home with Umbrella"
             className="max-w-[280px] sm:max-w-xs w-full object-contain"
           />
         </div>
-
-
-
       </div>
     </form>
   );
-
 }

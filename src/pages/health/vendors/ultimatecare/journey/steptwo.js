@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import UniversalDatePicker from "../../../../datepicker/index";
 import { format, parse } from "date-fns";
 import { isNumber } from "@/styles/js/validation";
 import { CallApi } from "@/api";
 import constant from "@/env";
+import { Controller } from "react-hook-form";
 
 export default function StepTwoForm({
   step2Form,
@@ -13,23 +14,42 @@ export default function StepTwoForm({
   onSubmitStep,
   usersData,
 }) {
+  const [isSelfInitialized, setIsSelfInitialized] = useState(false);
+  const [isNomineeInitialized, setIsNomineeInitialized] = useState(false);
+  const [isMembersInitialized, setIsMembersInitialized] = useState(false);
   const [dates, setDates] = useState({});
   const [apiMembers, setApiMembers] = useState([]);
   let childCounter = 1;
 
-useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await CallApi(constant.API.HEALTH.ULTIMATECARE.SAVESTEPTWO, "GET");
+        const res = await CallApi(
+          constant.API.HEALTH.ULTIMATECARE.SAVESTEPTWO,
+          "GET"
+        );
         const savedData = res.data || [];
         console.log(savedData);
+        let bankData = {};
+        const raw = res.bank_details;
+
+        if (raw) {
+          bankData =
+            typeof raw === "object"
+              ? typeof raw.bank_details === "string"
+                ? JSON.parse(raw.bank_details)
+                : raw
+              : {};
+          step2Form.setValue("proposarbankaccount", bankData.account || "");
+          step2Form.setValue("proposarbankifsc", bankData.ifsc || "");
+        }
 
         if (savedData.length > 0) {
           const generatedMembers = savedData
             .filter(
               (item) =>
                 item.relation?.toLowerCase() !== "self" &&
-                  !item.relation?.toLowerCase().includes("(nominee)")
+                !item.relation?.toLowerCase().includes("(nominee)")
             )
             .map((item) => ({
               name: item.relation?.toLowerCase(),
@@ -44,37 +64,66 @@ useEffect(() => {
 
           setApiMembers(generatedMembers);
 
-          const selfData = savedData.find(
-            (item) => item.relation?.toLowerCase() === "self"
-          );
-          if (selfData) {
-            step2Form.setValue("proposername", selfData.name || "");
-            step2Form.setValue("proposerdob2", selfData.dob || "");
-            step2Form.setValue("proposerheight", selfData.height || "");
-            step2Form.setValue("proposerinches", selfData.inch || "");
-            step2Form.setValue("proposerweight", selfData.weight || "");
-            step2Form.setValue(
-              "proposeroccupation",
-              selfData.gender === "MALE" ? "Salaried" : "Unemployed"
+          if (!isSelfInitialized) {
+            const selfData = savedData.find(
+              (item) => item.relation?.toLowerCase() === "self"
             );
 
-            if (selfData.dob) {
-              const parsedDate = parse(selfData.dob, "dd-MM-yyyy", new Date());
-              setDates((prev) => ({ ...prev, self: { dob: parsedDate } }));
+            if (selfData) {
+              step2Form.setValue("proposername", selfData.name || "");
+              step2Form.setValue("proposerdob2", selfData.dob || "");
+              step2Form.setValue("proposerheight", selfData.height || "");
+              step2Form.setValue("proposerinches", selfData.inch || "");
+              step2Form.setValue("proposerweight", selfData.weight || "");
+              step2Form.setValue(
+                "proposeroccupation",
+                selfData.gender === "MALE" ? "Salaried" : "Unemployed"
+              );
+
+              if (selfData.dob) {
+                const parsedDate = parse(
+                  selfData.dob,
+                  "dd-MM-yyyy",
+                  new Date()
+                );
+                setDates((prev) => ({ ...prev, self: { dob: parsedDate } }));
+              }
+
+              setIsSelfInitialized(true);
             }
           }
+          if (!isNomineeInitialized) {
+            const nomineeData = savedData.find((item) =>
+              (item.relation || "").toLowerCase().includes("nominee")
+            );
 
-          const nomineeData = savedData.find(
-            (item) => item.relation?.toLowerCase() === "(nominee)"
-          );
-          if (nomineeData) {
-            step2Form.setValue("nomineename", nomineeData.name || "");
-            step2Form.setValue("nomineedob", nomineeData.dob || "");
-            // step2Form.setValue("nomineerelation", nomineeData.gender || "");
+            console.log("Fetched nomineeData:", nomineeData);
 
-            if (nomineeData.dob) {
-              const parsedDate = parse(nomineeData.dob, "dd-MM-yyyy", new Date());
-              setDates((prev) => ({ ...prev, nominee: { dob: parsedDate } }));
+            if (nomineeData) {
+              step2Form.setValue("nomineename", nomineeData.name || "");
+              step2Form.setValue("nomineedob", nomineeData.dob || "");
+
+              const cleanRelation = nomineeData.relation
+                ?.replace(/[^a-z]/gi, "")
+                .replace(/nominee/gi, "")
+                .trim();
+
+              const capitalizedRelation =
+                cleanRelation?.charAt(0).toUpperCase() +
+                cleanRelation?.slice(1).toLowerCase();
+
+              step2Form.setValue("nomineerelation", capitalizedRelation || "");
+
+              if (nomineeData.dob) {
+                const parsedDate = parse(
+                  nomineeData.dob,
+                  "dd-MM-yyyy",
+                  new Date()
+                );
+                setDates((prev) => ({ ...prev, nominee: { dob: parsedDate } }));
+              }
+
+              setIsNomineeInitialized(true);
             }
           }
         }
@@ -84,9 +133,10 @@ useEffect(() => {
     };
 
     fetchData();
-  }, []);
+  }, [step2Form, isSelfInitialized, isNomineeInitialized]);
+
   useEffect(() => {
-    if (apiMembers.length === 0) return;
+    if (apiMembers.length === 0 || isMembersInitialized) return;
 
     let tempChildCount = 1;
 
@@ -134,22 +184,19 @@ useEffect(() => {
         step2Form.setValue(dobFieldName, member.dob);
       }
     });
-  }, [apiMembers]);
+    setIsMembersInitialized(true);
+  }, [apiMembers, isMembersInitialized,step2Form]);
 
-  const handleDateChange = (key, fieldNameInForm) => (date) => {
+const handleDateChange = useCallback(
+  (key, fieldNameInForm) => (date) => {
     if (!date || isNaN(date)) return;
 
     const formatted = format(date, "dd-MM-yyyy");
-
-    setDates((prev) => ({
-      ...prev,
-      [key]: { ...prev[key], dob: date },
-    }));
-
-    step2Form.setValue(fieldNameInForm, formatted, {
-      shouldValidate: true,
-    });
-  };
+    setDates((prev) => ({ ...prev, [key]: { ...prev[key], dob: date } }));
+    step2Form.setValue(fieldNameInForm, formatted, { shouldValidate: true });
+  },
+  [step2Form]
+);
 
   const rawMembers = (steponedata?.members || []).filter(
     (m) => m.name?.toLowerCase() !== "self"
@@ -183,47 +230,45 @@ useEffect(() => {
 
   const finalMembers = apiMembers.length > 0 ? apiMembers : computedMembers;
 
-useEffect(() => {
-  const self = steponedata?.self?.[0] || {};
-  const u = usersData || {};
+  useEffect(() => {
+    const self = steponedata?.self?.[0] || {};
+    const u = usersData || {};
+    const alreadyFilled = step2Form.getValues("proposername");
+    if (alreadyFilled) return;
 
-  const getVal = (key) => self[key] || u[key] || "";
+    const getVal = (key) => self[key] || u[key] || "";
 
-  const fieldMap = {
-    proposername: "kyc_name",
-    proposerdob2: "dob",
-    proposerheight: "height",
-    proposerinches: "inch",
-    proposerweight: "weight",
-    proposeroccupation: "occupation",
-  };
+    const fieldMap = {
+      proposername: "kyc_name",
+      proposerdob2: "dob",
+      proposerheight: "height",
+      proposerinches: "inch",
+      proposerweight: "weight",
+      proposeroccupation: "occupation",
+    };
 
-  Object.entries(fieldMap).forEach(([formKey, dataKey]) => {
-    step2Form.setValue(formKey, getVal(dataKey));
-  });
+    Object.entries(fieldMap).forEach(([formKey, dataKey]) => {
+      step2Form.setValue(formKey, getVal(dataKey));
+    });
 
-  // Set DOB in date picker
-  if (getVal("dob")) {
-    const parsedDate = parse(getVal("dob"), "dd-MM-yyyy", new Date());
-    setDates((prev) => ({
-      ...prev,
-      self: { dob: parsedDate },
-    }));
-  }
+    // Set DOB in date picker
+    if (getVal("dob")) {
+      const parsedDate = parse(getVal("dob"), "dd-MM-yyyy", new Date());
+      setDates((prev) => ({
+        ...prev,
+        self: { dob: parsedDate },
+      }));
+    }
 
-  // Bank details
-  try {
-    const bank = u.bank_details ? JSON.parse(u.bank_details) : {};
-    step2Form.setValue("proposarbankaccount", bank.account || "");
-    step2Form.setValue("proposarbankifsc", bank.ifsc || "");
-  } catch (err) {
-    console.error("Bank details parse error", err);
-  }
-}, [steponedata, usersData]);
-
-
-
-
+    // Bank details
+    try {
+      const bank = u.bank_details ? JSON.parse(u.bank_details) : {};
+      step2Form.setValue("proposarbankaccount", bank.account || "");
+      step2Form.setValue("proposarbankifsc", bank.ifsc || "");
+    } catch (err) {
+      console.error("Bank details parse error", err);
+    }
+  }, [steponedata, usersData,step2Form]);
 
   childCounter = 1;
 
@@ -239,19 +284,29 @@ useEffect(() => {
           placeholder="Proposer Name"
           className={inputClass}
         />
-        <UniversalDatePicker
-          id="dobproposerdob2"
+        <Controller
+          control={step2Form.control}
           name="proposerdob2"
-          className={`proposerdob2 ...`}
-          value={dates?.self?.dob || null}
-          data-age={
-            steponedata?.members?.find((m) => m.name?.toLowerCase() === "self")
-              ?.age || ""
-          }
-          onChange={handleDateChange("self", "proposerdob2")}
-          placeholder="Pick a date"
-          error={!dates?.self?.dob}
-          errorText="Please select a valid date"
+          rules={{ required: "Proposer DOB required" }}
+          render={({ field, fieldState }) => (
+            <UniversalDatePicker
+              id="dobproposerdob2"
+              name="proposerdob2"
+              value={
+                field.value
+                  ? parse(field.value, "dd-MM-yyyy", new Date())
+                  : null
+              }
+              onChange={(date) => {
+                const formatted = date ? format(date, "dd-MM-yyyy") : "";
+                field.onChange(formatted);
+                handleDateChange("self", "proposerdob2")(date);
+              }}
+              error={!!fieldState.error}
+              errorText={fieldState.error?.message}
+              placeholder="Pick a date"
+            />
+          )}
         />
 
         <select
@@ -352,19 +407,34 @@ useEffect(() => {
                 className={inputClass}
               />
 
-              <UniversalDatePicker
-                id={dobFieldName}
+              <Controller
+                control={step2Form.control}
                 name={dobFieldName}
-                className={`${dobFieldName} ...`}
-                value={dates?.[`${fieldPrefix}${suffix}`]?.dob || null}
-                data-age={member.age}
-                onChange={handleDateChange(
-                  `${fieldPrefix}${suffix}`,
-                  dobFieldName
+                rules={{ required: "Please select a valid date" }}
+                render={({ field, fieldState }) => (
+                  <UniversalDatePicker
+                    id={dobFieldName}
+                    name={dobFieldName}
+                    className={`${dobFieldName} ...`}
+                    value={
+                      field.value
+                        ? parse(field.value, "dd-MM-yyyy", new Date())
+                        : null
+                    }
+                    data-age={member.age}
+                    onChange={(date) => {
+                      const formatted = date ? format(date, "dd-MM-yyyy") : "";
+                      field.onChange(formatted);
+                      handleDateChange(
+                        `${fieldPrefix}${suffix}`,
+                        dobFieldName
+                      )(date);
+                    }}
+                    placeholder="Pick a date"
+                    error={!!fieldState.error}
+                    errorText={fieldState.error?.message}
+                  />
                 )}
-                placeholder="Pick a date"
-                error={!dates?.[`${fieldPrefix}${suffix}`]?.dob}
-                errorText="Please select a valid date"
               />
 
               {isChild ? (
@@ -467,15 +537,29 @@ useEffect(() => {
           placeholder="Enter Nominee Full Name"
           className={inputClass}
         />
-        <UniversalDatePicker
-          id="nomineedob"
+        <Controller
+          control={step2Form.control}
           name="nomineedob"
-          className={`nomineedob ...`}
-          value={dates?.nominee?.dob || null}
-          data-age=""
-          onChange={handleDateChange("nominee", "nomineedob")}
-          placeholder="Pick a date"
-          error={!dates?.nominee?.dob}
+          rules={{ required: "Nominee DOB is required" }}
+          render={({ field, fieldState }) => (
+            <UniversalDatePicker
+              id="nomineedob"
+              name="nomineedob"
+              value={
+                field.value
+                  ? parse(field.value, "dd-MM-yyyy", new Date())
+                  : null
+              }
+              onChange={(date) => {
+                const formatted = date ? format(date, "dd-MM-yyyy") : "";
+                field.onChange(formatted); // updates RHF value
+                handleDateChange("nominee", "nomineedob")(date);
+              }}
+              error={!!fieldState.error}
+              errorText={fieldState.error?.message}
+              placeholder="Pick a date"
+            />
+          )}
         />
         <select
           {...step2Form.register("nomineerelation", {

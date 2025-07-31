@@ -35,32 +35,33 @@ export default function KnowCarSlideThree() {
   const odtpfromdate = watch("odtpfromdate");
   const tpfromdate = watch("tpfromdate");
 
-  useEffect(() => {
-    if (bdfromdate) setValue("bdtodate", calculateToDate(bdfromdate, false));
-  }, [bdfromdate]);
+useEffect(() => {
+  if (bdfromdate) setValue("bdtodate", calculateToDate(bdfromdate, false));
+}, [bdfromdate, setValue]);
 
-  useEffect(() => {
-    if (bdtpfromdate)
-      setValue("bdtptodate", calculateToDate(bdtpfromdate, true));
-  }, [bdtpfromdate]);
+useEffect(() => {
+  if (bdtpfromdate)
+    setValue("bdtptodate", calculateToDate(bdtpfromdate, true));
+}, [bdtpfromdate, setValue]);
 
-  useEffect(() => {
-    if (compfromdate)
-      setValue("comptodate", calculateToDate(compfromdate, false));
-  }, [compfromdate]);
+useEffect(() => {
+  if (compfromdate)
+    setValue("comptodate", calculateToDate(compfromdate, false));
+}, [compfromdate, setValue]);
 
-  useEffect(() => {
-    if (odfromdate) setValue("odtodate", calculateToDate(odfromdate, false));
-  }, [odfromdate]);
+useEffect(() => {
+  if (odfromdate) setValue("odtodate", calculateToDate(odfromdate, false));
+}, [odfromdate, setValue]);
 
-  useEffect(() => {
-    if (odtpfromdate)
-      setValue("odtptodate", calculateToDate(odtpfromdate, true));
-  }, [odtpfromdate]);
+useEffect(() => {
+  if (odtpfromdate)
+    setValue("odtptodate", calculateToDate(odtpfromdate, true));
+}, [odtpfromdate, setValue]);
 
-  useEffect(() => {
-    if (tpfromdate) setValue("tptodate", calculateToDate(tpfromdate, false));
-  }, [tpfromdate]);
+useEffect(() => {
+  if (tpfromdate) setValue("tptodate", calculateToDate(tpfromdate, false));
+}, [tpfromdate, setValue]);
+
 
   const requiredDates = {
     bundled: ["bdfromdate", "bdtodate", "bdtpfromdate", "bdtptodate"],

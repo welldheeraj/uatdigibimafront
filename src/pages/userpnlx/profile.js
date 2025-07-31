@@ -4,7 +4,7 @@ import Layout from "./component/layout";
 import constant from "../../env";
 import { CallApi } from "../../api";
 import { showSuccess , showError} from "@/layouts/toaster";
-
+import Image from "next/image";
 
 export function Input({
   label,
@@ -95,7 +95,7 @@ const Profile = ({ usersData }) => {
       dob: usersData?.dob || "",
     });
     console.log("udata", usersData);
-  }, [usersData]);
+  }, [usersData,reset]);
 
   return (
     <Layout >
@@ -109,7 +109,7 @@ const Profile = ({ usersData }) => {
             {/* Profile Card */}
             <div className="flex items-center gap-3 p-4 bg-[#f8f9fd] rounded-xl shadow-sm w-fit mt-4">
               <div className="bg-blue-100 p-2 rounded-full">
-                <img src="" alt="icon" className="w-6 h-6" />
+                <Image src="" alt="icon" className="w-6 h-6" />
               </div>
               <span className="text-gray-800 font-semibold text-md">
                 Personal details

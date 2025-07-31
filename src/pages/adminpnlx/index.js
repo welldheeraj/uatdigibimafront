@@ -5,13 +5,12 @@ import { showSuccess, showError } from "../../layouts/toaster";
 import { CallApi } from "../../api";
 import constant from "../../env";
 
-const index = () => {
+const Index = () => {  // FIXED: Component name changed to uppercase
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtp, setShowOtp] = useState(false);
   const [timer, setTimer] = useState(20);
   const [canResend, setCanResend] = useState(false);
-
 
   const router = useRouter();
 
@@ -32,37 +31,34 @@ const index = () => {
 
   const sendOTP = async () => {
     try {
-        if (!isValidMobile(mobile)) {
-      showError("Enter only Admin number");
-      return;
-    }
-
-    const payload = {mobile};
-    const response = await CallApi(constant.API.ADMIN.ADMINLOGIN, "POST",payload)
-
-    console.log(response)
-    
-   if(response.status === false){
-    showError(response.message);
-    return;
-   }
-
-    if(response.status === true){
-   
-const data = { mobile };
-      const response = await CallApi(constant.API.ADMIN.SENDOTP, "POST", data);
-      console.log(response);
-
-       if (response.status === true) {
-        showSuccess(response.message)
+      if (!isValidMobile(mobile)) {
+        showError("Enter only Admin number");
+        return;
       }
 
-        setShowOtp(true);
-      setTimer(20);
-      setCanResend(false);
-    }
+      const payload = { mobile };
+      const response = await CallApi(constant.API.ADMIN.ADMINLOGIN, "POST", payload);
 
- 
+      console.log(response);
+
+      if (response.status === false) {
+        showError(response.message);
+        return;
+      }
+
+      if (response.status === true) {
+        const data = { mobile };
+        const response = await CallApi(constant.API.ADMIN.SENDOTP, "POST", data);
+        console.log(response);
+
+        if (response.status === true) {
+          showSuccess(response.message);
+        }
+
+        setShowOtp(true);
+        setTimer(20);
+        setCanResend(false);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -121,10 +117,9 @@ const data = { mobile };
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="flex flex-col md:flex-row h-[500px] shadow-md ">
+      <div className="flex flex-col md:flex-row h-[500px] shadow-md">
         {/* Left Sign-in part */}
-
-        <div className="bg-white p-8 rounded  w-full  bg-white ">
+        <div className="bg-white p-8 rounded w-full">
           <div className="flex flex-col items-center justify-center h-[500px]">
             <h2 className="text-2xl font-bold mb-6 text-center">Sign-In</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -172,10 +167,10 @@ const data = { mobile };
                     </p>
                   ) : (
                     <p
-                      className="text-red-600 text-center cursor-pointer "
+                      className="text-red-600 text-center cursor-pointer"
                       onClick={handleResend}
                     >
-                      Didn't receive an OTP?{" "}
+                      Didn&apos;t receive an OTP?{" "}
                       <span className="text-blue-400">Resend</span>
                     </p>
                   )}
@@ -193,8 +188,8 @@ const data = { mobile };
           </div>
         </div>
 
-        {/* RightImage Part */}
-        <div className="bg-blue-200 w-full flex flex-col items-center justify-center ">
+        {/* Right Image Part */}
+        <div className="bg-blue-200 w-full flex flex-col items-center justify-center">
           <h2 className="font-semibold text-2xl">Welcome To DigiBima</h2>
           <p className="p-4 text-sm">
             Please enter your registered mobile number to access the admin
@@ -206,4 +201,4 @@ const data = { mobile };
   );
 };
 
-export default index;
+export default Index;

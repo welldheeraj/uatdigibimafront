@@ -1,12 +1,13 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useCallback } from "react";
 import { isAlpha, isNumber } from "@/styles/js/validation";
 import { FiLoader } from "react-icons/fi";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import UniversalDatePicker from "../../../../datepicker/index";
 import { CallApi } from "@/api";
 import constant from "@/env";
-import { format } from "date-fns";
+import { format,parse  } from "date-fns";
+  import { Controller } from "react-hook-form";
 export default function StepOneForm({
   step1Form,
   kycType,
@@ -27,17 +28,28 @@ export default function StepOneForm({
   setIsPanVerified,
   onSubmitStep,
   isPanVerified,
-  verifieddata,
+  verifiedData,
   setStepOneData,
-  usersData,
   kycData,
+  isPanKycHidden,
+  setIsPanKycHidden,
+  isAadharKycHidden,
+  setIsAadharKycHidden,
+  isOtherKycHidden,
+  setIsOtherKycHidden,
+  setQuoteData,
+  setOldPincode,
+  setNewPincode
 }) {
-  const isPanKyc = kycData?.kyctype?.toLowerCase() === "p";
-  const isOtherKyc = kycData?.kyctype?.toLowerCase() === "o";
+    const isPanAlreadyVerified = isPanVerified;
+const [priceChangeLoading, setPriceChangeLoading] = useState(false);
+  const [usersData, setUsersData] = useState(false);
+  const [isUserPrefilled, setIsUserPrefilled] = useState(false);
+  const [isVerifiedPrefilled, setIsVerifiedPrefilled] = useState(false);
+  const [userInteracted, setUserInteracted] = useState(false);
 
-  const isPanKycHidden = kycVerified && isPanKyc;
-  const isOtherKycHidden = kycVerified && isOtherKyc;
-  console.log(isOtherKycHidden);
+  const [fetchedPincode, setFetchedPincode] = useState("");
+  const [hasUserChangedPin, setHasUserChangedPin] = useState(false);
 
   const [dates, setDates] = useState({
     customerpancardno: "",
@@ -45,110 +57,157 @@ export default function StepOneForm({
     proposal: "",
   });
 
-  const handleDateChange = (key, field) => (date) => {
-    const formatted = format(date, "dd-MM-yyyy");
-    setDates((prev) => ({ ...prev, [key]: date }));
-    step1Form.setValue(field, formatted, { shouldValidate: true });
-  };
+    const handleDateChange = useCallback(
+      (key, field) => (date) => {
+        const formatted = format(date, "dd-MM-yyyy");
+        setDates((prev) => ({ ...prev, [key]: date }));
+        step1Form.setValue(field, formatted, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      },
+      [step1Form]
+    );
 
   useEffect(() => {
-    if (!usersData) return;
+    const fetchDataONE = async () => {
+      try {
+        const res = await CallApi(
+          constant.API.HEALTH.CARESUPEREME.SAVESTEPONE,
+          "GET"
+        );
+        console.log(res);
+        setUsersData(res);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchDataONE();
+  }, [step1Form]);
+
+
+
+  useEffect(() => {
+    if (!usersData || isUserPrefilled) return;
+
+    const user = usersData.data || {};
+    const userInfo = usersData.user?.[0] || {};
+    const contact = JSON.parse(user.contact_details || "{}");
+    const permanent = JSON.parse(user.permanent_address || "{}");
+    const comm = JSON.parse(user.comunication_address || "{}");
 
     const typeMap = {
       p: "PAN Card",
       a: "Aadhar ( Last 4 Digits )",
       o: "Others",
     };
-    // console.log(usersData)
-    const formatted = typeMap[kycData?.kyctype?.toLowerCase()];
-    if (formatted) {
-      setKycType(formatted);
-      step1Form.setValue("kycType", formatted, { shouldValidate: true });
 
+    const kycCode = usersData.cacheData?.toLowerCase();
+    const kycLabel = typeMap[kycCode];
+
+    if (kycLabel) {
+      setKycType(kycLabel);
+      step1Form.setValue("kycType", kycLabel, { shouldValidate: true });
       setKycVerified(true);
+
+      if (kycCode === "p") {
+        setIsPanVerified(true);
+        setIsPanKycHidden(true);
+      }
+      if (kycCode === "a") {
+        setIsPanVerified(true);
+        setIsAadharKycHidden(true);
+      }
+      if (kycCode === "o") {
+        setIsPanVerified(true);
+        setIsOtherKycHidden(true);
+      }
     }
 
     const set = step1Form.setValue;
-
     const directFields = {
-      proposername: "kyc_name",
-      mr_ms_gender: "mr_mrs",
-      contactemail: "email",
-      contactmobile: "mobile",
-      contactemergency: "emergency_mobile",
-      house: "house",
-      colony: "colony",
-      Landmark: "landmark",
-      City: "city",
-      State: "state",
-      Pincode: "pincode",
+      proposername: user.kyc_name,
+      mr_ms_gender: user.gender,
+      contactemail: userInfo.email,
+      contactmobile: userInfo.mobile,
+      contactemergency: contact.contactemergency,
+      house: permanent.address1,
+      colony: permanent.address2,
+      Landmark: permanent.landmark,
+      City: permanent.city,
+      State: permanent.state,
+      Pincode: userInfo.pincode,
     };
 
-    Object.entries(directFields).forEach(([formKey, userKey]) => {
-      if (usersData[userKey]) {
-        set(formKey, usersData[userKey], { shouldValidate: true });
-      }
-      if (formKey === "Pincode") {
-        handlePincodeInput({
-          target: { name: "Pincode", value: usersData[userKey] },
-        });
+    Object.entries(directFields).forEach(([formKey, value]) => {
+      const isDirty = step1Form.formState?.dirtyFields?.[formKey];
+      if (value && !isDirty) {
+        set(formKey, value, { shouldValidate: true });
+
+        if (formKey === "Pincode") {
+          set("oldpincode", value, { shouldValidate: true });
+          handlePincodeInput({ target: { name: "Pincode", value } });
+        }
       }
     });
 
-    if (usersData.panid) {
-      set("customerpancardno", usersData.panid, { shouldValidate: true });
-
-      // // PAN is available — mark as verified
-      // setIsPanVerified(true);
+    if (user.pan) {
+      set("customerpancardno", user.pan, { shouldValidate: true });
     }
 
-    if (usersData.dob) {
-      const [dd, mm, yyyy] = usersData.dob.split("-");
-      handleDateChange(
-        "customerpancardno",
-        "customerpancardDob"
-      )(new Date(`${yyyy}-${mm}-${dd}`));
-      handleDateChange(
-        "proposal",
-        "proposerdob1"
-      )(new Date(`${yyyy}-${mm}-${dd}`));
+    if (user.dob) {
+      const [dd, mm, yyyy] = user.dob.split("-");
+      const dob = new Date(`${yyyy}-${mm}-${dd}`);
+      handleDateChange("customerpancardno", "customerpancardDob")(dob);
+      handleDateChange("proposal", "proposerdob1")(dob);
     }
-    try {
-      const comm = JSON.parse(usersData.communication || "{}");
 
-      if (comm.status === "1") {
-        setSameAddress(false);
+    if (comm.status === "1") {
+      setSameAddress(false);
 
-        const commFields = {
-          commcurrenthouse: "comhouse",
-          commcurrentcolony: "comcolony",
-          commcurrentLandmark: "comlandmark",
-          commcurrentCity: "comcity",
-          commcurrentState: "comstate",
-          commcurrentPincode: "compincode",
-        };
+      const commFields = {
+        commcurrenthouse: comm.commcurrenthouse,
+        commcurrentcolony: comm.commcurrentcolony,
+        commcurrentLandmark: comm.commcurrentlandmark,
+        commcurrentCity: comm.commcurrentcity,
+        commcurrentState: comm.commcurrentstate,
+        commcurrentPincode: comm.commcurrentpincode,
+      };
 
-        Object.entries(commFields).forEach(([formKey, key]) => {
-          if (comm[key]) {
-            set(formKey, comm[key], { shouldValidate: true });
-
-            if (formKey === "commcurrentPincode") {
-              handlePincodeInput({
-                target: { name: "commcurrentPincode", value: comm[key] },
-              });
-            }
+      Object.entries(commFields).forEach(([formKey, value]) => {
+        if (value) {
+          set(formKey, value, { shouldValidate: true });
+          if (formKey === "commcurrentPincode") {
+            handlePincodeInput({
+              target: { name: "commcurrentPincode", value },
+            });
           }
-        });
-      }
-    } catch (err) {
-      console.error("Invalid communication JSON:", err);
+        }
+      });
     }
-  }, [usersData]);
 
-  const isPanAlreadyVerified = isPanVerified;
+    setIsUserPrefilled(true);
+  }, [
+    usersData,
+    isUserPrefilled,
+    setKycType,
+    setKycVerified,
+    setIsPanVerified,
+    setIsPanKycHidden,
+    setIsAadharKycHidden,
+    setIsOtherKycHidden,
+    step1Form,
+    handlePincodeInput,
+    handleDateChange,
+    setSameAddress,
+  ]);
+
+
 
   useEffect(() => {
-    if (!verifieddata || Object.keys(verifieddata).length === 0) return;
+    if (!verifiedData || Object.keys(verifiedData).length === 0 || isVerifiedPrefilled)
+      return;
+
     const set = step1Form.setValue;
 
     const map = {
@@ -167,75 +226,75 @@ export default function StepOneForm({
     };
 
     Object.entries(map).forEach(([apiKey, formKey]) => {
-      if (verifieddata[apiKey]) {
+      const isDirty = step1Form.formState?.dirtyFields?.[formKey];
+      if (verifiedData[apiKey] && !isDirty) {
         if (apiKey === "dob") {
-          const [dd, mm, yyyy] = verifieddata.dob.split("-");
+          const [dd, mm, yyyy] = verifiedData.dob.split("-");
           handleDateChange(
             "proposal",
             "proposerdob1"
           )(new Date(`${yyyy}-${mm}-${dd}`));
         } else if (apiKey === "gender") {
-          const g = verifieddata.gender?.toUpperCase();
+          const g = verifiedData.gender?.toUpperCase();
           set(formKey, g === "M" ? "Mr" : g === "F" ? "Ms" : "");
         } else {
-          set(formKey, verifieddata[apiKey]);
+          set(formKey, verifiedData[apiKey]);
         }
       }
     });
 
-    const fullName = `${verifieddata.firstName || ""} ${
-      verifieddata.lastName || ""
-    }`.trim();
-    if (fullName) {
-      set("proposername", fullName);
-      set("customerAadharName", fullName);
-    }
+    if (verifiedData.kyctype === "p") setIsPanKycHidden(true);
+    if (verifiedData.kyctype === "a") setIsAadharKycHidden(true);
+    if (verifiedData.kyctype === "o") setIsOtherKycHidden(true);
 
-    if (verifieddata.permCorresSameflag === "Y") {
-      setSameAddress(true);
-      ["house", "colony", "Landmark", "City", "State", "Pincode"].forEach(
-        (key) => {
-          set(`commcurrent${key}`, step1Form.getValues(key));
-        }
-      );
-    }
-  }, [verifieddata]);
+    setIsVerifiedPrefilled(true);
+  }, [
+    verifiedData,
+    isVerifiedPrefilled,
+    step1Form,
+    handleDateChange,
+    setIsPanKycHidden,
+    setIsAadharKycHidden,
+    setIsOtherKycHidden,
+  ]);
 
-  useEffect(() => {
-    if (!sameAddress) return;
+useEffect(() => {
+  if (!sameAddress || userInteracted) return; 
 
-    const get = step1Form.getValues;
-    const set = step1Form.setValue;
+  const get = step1Form.getValues;
+  const set = step1Form.setValue;
 
-    const syncFields = () => {
-      [
-        ["house", "commcurrenthouse"],
-        ["colony", "commcurrentcolony"],
-        ["Landmark", "commcurrentLandmark"],
-        ["City", "commcurrentCity"],
-        ["State", "commcurrentState"],
-        ["Pincode", "commcurrentPincode"],
-      ].forEach(([permanent, communication]) => {
-        set(communication, get(permanent));
-      });
-    };
-
-    const subscription = step1Form.watch((values, { name }) => {
-      const permKeys = [
-        "house",
-        "colony",
-        "Landmark",
-        "City",
-        "State",
-        "Pincode",
-      ];
-      if (permKeys.includes(name)) {
-        syncFields();
-      }
+  const syncFields = () => {
+    [
+      ["house", "commcurrenthouse"],
+      ["colony", "commcurrentcolony"],
+      ["Landmark", "commcurrentLandmark"],
+      ["City", "commcurrentCity"],
+      ["State", "commcurrentState"],
+      ["Pincode", "commcurrentPincode"],
+    ].forEach(([permanent, communication]) => {
+      set(communication, get(permanent), { shouldValidate: true });
     });
+  };
 
-    return () => subscription.unsubscribe();
-  }, [sameAddress]);
+  syncFields();
+
+  const subscription = step1Form.watch((values, { name }) => {
+    const permKeys = [
+      "house",
+      "colony",
+      "Landmark",
+      "City",
+      "State",
+      "Pincode",
+    ];
+    if (permKeys.includes(name)) {
+      syncFields();
+    }
+  });
+
+  return () => subscription.unsubscribe();
+}, [sameAddress, userInteracted,step1Form]);
 
   const fields = {
     identity: [
@@ -248,34 +307,70 @@ export default function StepOneForm({
     ],
     address: ["AADHAR", "PASSPORT", "VOTER ID", "DRIVING LICENSE", "FORM 60"],
   };
-  const handlePincodeInput = async (e) => {
-    const value = e.target.value;
-    const fieldId = e.target.name || e.target.id;
 
-    if (value.length === 6) {
+ const handlePincodeInput = useCallback(
+    async (e) => {
+      const value = e.target.value.trim();
+      const fieldId = e.target.name || e.target.id;
+
+      if (!/^\d{6}$/.test(value)) return;
+
       try {
-        const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {
-          pincode: value,
-        });
+        const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", { pincode: value });
 
         if (res?.length > 0) {
           const { state, district } = res[0];
-          console.log(res);
 
-          if (fieldId == "Pincode") {
-            console.log(fieldId, district, state);
+          if (fieldId === "Pincode") {
             step1Form.setValue("City", district);
             step1Form.setValue("State", state);
+
+            if (!fetchedPincode) {
+              setFetchedPincode(value);
+              setOldPincode(value);
+              setHasUserChangedPin(false);
+            } else if (value !== fetchedPincode) {
+              setHasUserChangedPin(true);
+              step1Form.setValue("newpincode", value);
+              setNewPincode(value);
+
+              try {
+                const quoteResponse = await CallApi(
+                  constant.API.HEALTH.ULTIMATECARE.CHANGEPINCODE,
+                  "POST",
+                  { newpincode: value }
+                );
+                console.log("CHANGEPINCODE Response:", quoteResponse);
+                if (quoteResponse?.status) {
+                  setQuoteData({
+                    totalpremium: quoteResponse.totalpremium,
+                    basepremium: quoteResponse.basepremium,
+                    coverage: quoteResponse.coverage,
+                  });
+                }
+              } catch (error) {
+                console.error("CHANGEPINCODE error:", error);
+              }
+            }
           } else if (fieldId === "commcurrentPincode") {
             step1Form.setValue("commcurrentCity", district);
             step1Form.setValue("commcurrentState", state);
           }
+        } else {
+          if (fieldId === "Pincode") {
+            step1Form.setValue("City", "");
+            step1Form.setValue("State", "");
+          } else if (fieldId === "commcurrentPincode") {
+            step1Form.setValue("commcurrentCity", "");
+            step1Form.setValue("commcurrentState", "");
+          }
         }
       } catch (error) {
-        console.error("Error fetching pincode info:", error);
+        console.error("Pincode API Error:", error);
       }
-    }
-  };
+    },
+    [fetchedPincode, step1Form, setOldPincode, setNewPincode, setQuoteData]
+  );
 
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -349,18 +444,27 @@ export default function StepOneForm({
               }}
             />
 
-            <UniversalDatePicker
-              id="customerpancardDob"
-              name="customerpancardDob"
-              value={dates.customerpancardno}
-              onChange={handleDateChange(
-                "customerpancardno",
-                "customerpancardDob"
-              )}
-              placeholder="Pick a start date"
-              error={!dates.pan}
-              errorText="Please select a valid date"
-            />
+              <Controller
+                         control={step1Form.control}
+                         name="customerpancardDob"
+                         rules={{ required: "Please select a valid date" }}
+                         render={({ field, fieldState }) => (
+                             <UniversalDatePicker
+                               id="customerpancardDob"
+                               name="customerpancardDob"
+                               className={inputClass}
+                               value={field.value ? parse(field.value, "dd-MM-yyyy", new Date()) : null}
+                               onChange={(date) => {
+                                 const formatted = format(date, "dd-MM-yyyy");
+                                 setDates((prev) => ({ ...prev, customerpancardno: date }));
+                                 field.onChange(formatted);
+                               }}
+                               placeholder="Pick a date"
+                               error={!!fieldState.error}
+                               errorText={fieldState.error?.message}
+                             />
+                           )}
+                       />
 
             <input
               type="button"
@@ -373,7 +477,7 @@ export default function StepOneForm({
                   ? "Verifying..."
                   : "VERIFY"
               }
-              className={`px-4 py-2 thmbtn
+              className={`px-4 py-2 thmbtn cursor-pointer
     ${isPanAlreadyVerified ? "bg-green-600 cursor-not-allowed" : ""}
     ${loading ? "opacity-70 cursor-not-allowed" : ""}
   `}
@@ -524,7 +628,7 @@ export default function StepOneForm({
       {kycVerified && (
         <div className="space-y-2">
           <label className="block font-semibold text-sm">
-            Proposer's details:
+             Proposer&apos;s details:
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
@@ -560,7 +664,7 @@ export default function StepOneForm({
       )}
 
       <label className="block font-semibold cursor-pointer">
-        Contact Details
+        Current Address
       </label>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {["house", "colony", "Landmark", "City", "State", "Pincode"].map(

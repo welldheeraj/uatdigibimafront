@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect,useMemo } from "react";
+import React, { useState, useEffect,useMemo,useCallback } from "react";
 import UniversalDatePicker from "../../../../../datepicker/index";
 import { format, parse } from "date-fns";
 import { Controller } from "react-hook-form";
@@ -27,74 +27,72 @@ export default function StepTwoForm({
   const [page, setPage] = useState(1);
   const { handleSubmit, control, register, setValue, formState } = step2Form;
 
-  useEffect(() => {
-    if (cardata?.prepolitype == "bundled") {
-      setValue("policyfdate", cardata.bdfromdate || "");
-      setValue("policytodate", cardata.bdtodate || "");
-      setValue("tppolicyfdate", cardata.bdtpfromdate || "");
-      setValue("tppolicytodate", cardata.bdtptodate || "");
+useEffect(() => {
+  if (cardata?.prepolitype === "bundled") {
+    setValue("policyfdate", cardata.bdfromdate || "");
+    setValue("policytodate", cardata.bdtodate || "");
+    setValue("tppolicyfdate", cardata.bdtpfromdate || "");
+    setValue("tppolicytodate", cardata.bdtptodate || "");
+  }
+  if (cardata?.prepolitype === "comprehensive") {
+    setValue("policyfdate", cardata.compfromdate || "");
+    setValue("policytodate", cardata.comptodate || "");
+  }
+  if (cardata?.prepolitype === "odonly") {
+    setValue("policyfdate", cardata.odfromdate || "");
+    setValue("policytodate", cardata.odtodate || "");
+    setValue("tppolicyfdate", cardata.odtpfromdate || "");
+    setValue("tppolicytodate", cardata.odtptodate || "");
+  }
+  if (cardata?.prepolitype === "tponly") {
+    setValue("policyfdate", cardata.tpfromdate || "");
+    setValue("policytodate", cardata.tptodate || "");
+  }
+
+  if (cardata?.prepolitype) {
+    setValue("policytype", cardata.prepolitype.toUpperCase());
+  }
+}, [cardata, setValue]);
+
+
+useEffect(() => {
+  if (!journeydata || Object.keys(journeydata).length === 0) return;
+
+  const safeParse = (val) => {
+    try {
+      return val ? JSON.parse(val) : {};
+    } catch {
+      return {};
     }
-    if (cardata?.prepolitype == "comprehensive") {
-      setValue("policyfdate", cardata.compfromdate || "");
-      setValue("policytodate", cardata.comptodate || "");
-    }
-    if (cardata?.prepolitype == "odonly") {
-      setValue("policyfdate", cardata.odfromdate || "");
-      setValue("policytodate", cardata.odtodate || "");
-      setValue("tppolicyfdate", cardata.odtpfromdate || "");
-      setValue("tppolicytodate", cardata.odtptodate || "");
-    }
-    if (cardata?.prepolitype == "tponly") {
-      setValue("policyfdate", cardata.tpfromdate || "");
-      setValue("policytodate", cardata.tptodate || "");
-    }
+  };
 
-    if (cardata?.prepolitype)
-      setValue("policytype", cardata.prepolitype.toUpperCase());
-    //  console.log(cardata)
-  }, [cardata]);
+  const bankDetails = safeParse(journeydata.bank_details);
+  const vehicleDetails = safeParse(journeydata.vehicle_details);
+  const policyDetails = safeParse(journeydata.pre_policy_details);
+  console.log(bankDetails);
 
-  useEffect(() => {
-    if (!journeydata || Object.keys(journeydata).length === 0) return;
+  if (bankDetails?.bankloantype || bankDetails?.financierbranch) {
+    setEnabled(true);
+    setValue("bankloantype", bankDetails.bankloantype || "");
+    setValue("financierbranch", bankDetails.financierbranch || "");
+  }
 
-    const safeParse = (val) => {
-      try {
-        return val ? JSON.parse(val) : {};
-      } catch {
-        return {};
-      }
-    };
+  setValue("enginenumber", vehicleDetails.Enginenumber || "");
+  setValue("chassisnumber", vehicleDetails.Chassisnumber || "");
+  setValue("prevInsurance", policyDetails.prevInsuranceId || "");
+  setValue(
+    "policytype",
+    policyDetails.policytype || cardata?.prepolitype?.toUpperCase() || ""
+  );
+  setValue("policynumber", policyDetails.policynumber || "");
 
-    const bankDetails = safeParse(journeydata.bank_details);
-    const vehicleDetails = safeParse(journeydata.vehicle_details);
-    const policyDetails = safeParse(journeydata.pre_policy_details);
-    console.log(bankDetails)
+  if (policyDetails.tpprevInsurance || policyDetails.tppolicynumber) {
+    setValue("tpprevInsurance", policyDetails.tpprevInsurance || "");
+    setValue("tppolicytype", policyDetails.tppolicytype || "ODONLY");
+    setValue("tppolicynumber", policyDetails.tppolicynumber || "");
+  }
+}, [journeydata, cardata, setValue, setEnabled]);
 
-    if (bankDetails?.bankloantype || bankDetails?.financierbranch) {
-      setEnabled(true);
-      setValue("bankloantype", bankDetails.bankloantype || "");
-      setValue("financierbranch", bankDetails.financierbranch || "");
-    }
-
-    setValue("enginenumber", vehicleDetails.Enginenumber || "");
-    setValue("chassisnumber", vehicleDetails.Chassisnumber || "");
-    setValue("prevInsurance", policyDetails.prevInsuranceId || "");
-    setValue(
-      "policytype",
-      policyDetails.policytype || cardata?.prepolitype?.toUpperCase() || ""
-    );
-    setValue("policynumber", policyDetails.policynumber || "");
-    // setValue("policyfdate", policyDetails.policyfdate || "");
-    // setValue("policytodate", policyDetails.policytodate || "");
-
-    if (policyDetails.tpprevInsurance || policyDetails.tppolicynumber) {
-      setValue("tpprevInsurance", policyDetails.tpprevInsurance || "");
-      setValue("tppolicytype", policyDetails.tppolicytype || "ODONLY");
-      setValue("tppolicynumber", policyDetails.tppolicynumber || "");
-      // setValue("tppolicyfdate", policyDetails.tppolicyfdate || "");
-      // setValue("tppolicytodate", policyDetails.tppolicytodate || "");
-    }
-  }, [journeydata]);
 
   const toggleLoan = () => {
     const newVal = !enabled;
@@ -106,18 +104,21 @@ export default function StepTwoForm({
   };
 
 
-  const getNextChunk = (page) => {
+ const getNextChunk = useCallback(
+  (page) => {
     const start = 0;
     const end = page * CHUNK_SIZE;
     return bankdata.slice(0, end).map((bank) => ({
       value: bank.id,
       label: bank.FIN_NAME,
     }));
-  };
+  },
+  [bankdata]
+);
 
-  useEffect(() => {
-    setOptionsChunk(getNextChunk(1));
-  }, [bankdata]);
+useEffect(() => {
+  setOptionsChunk(getNextChunk(1));
+}, [getNextChunk]);
 
   const loadMoreOptions = () => {
     const nextPage = page + 1;

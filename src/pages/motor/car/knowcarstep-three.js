@@ -8,6 +8,7 @@ import UniversalDatePicker from "../../datepicker/index";
 import { CallApi } from "@/api";
 import { format, parse } from "date-fns";
 import { showError } from "@/layouts/toaster";
+import { carTwo } from "@/images/Image";
 
 export default function KnowCarSlideThree() {
   const { control, register, handleSubmit, watch, setValue } = useForm({
@@ -73,32 +74,34 @@ export default function KnowCarSlideThree() {
     getDetails();
   }, [setValue]);
 
-  useEffect(() => {
-    if (bdfromdate) setValue("bdtodate", calculateToDate(bdfromdate, false));
-  }, [bdfromdate]);
+useEffect(() => {
+  if (bdfromdate) setValue("bdtodate", calculateToDate(bdfromdate, false));
+}, [bdfromdate, setValue]);
 
-  useEffect(() => {
-    if (bdtpfromdate)
-      setValue("bdtptodate", calculateToDate(bdtpfromdate, true));
-  }, [bdtpfromdate]);
 
-  useEffect(() => {
-    if (compfromdate)
-      setValue("comptodate", calculateToDate(compfromdate, false));
-  }, [compfromdate]);
+useEffect(() => {
+  if (bdtpfromdate)
+    setValue("bdtptodate", calculateToDate(bdtpfromdate, true));
+}, [bdtpfromdate, setValue]);
 
-  useEffect(() => {
-    if (odfromdate) setValue("odtodate", calculateToDate(odfromdate, false));
-  }, [odfromdate]);
 
-  useEffect(() => {
-    if (odtpfromdate)
-      setValue("odtptodate", calculateToDate(odtpfromdate, true));
-  }, [odtpfromdate]);
+useEffect(() => {
+  if (compfromdate)
+    setValue("comptodate", calculateToDate(compfromdate, false));
+}, [compfromdate, setValue]);
 
-  useEffect(() => {
-    if (tpfromdate) setValue("tptodate", calculateToDate(tpfromdate, false));
-  }, [tpfromdate]);
+useEffect(() => {
+  if (odfromdate) setValue("odtodate", calculateToDate(odfromdate, false));
+}, [odfromdate, setValue]);
+
+useEffect(() => {
+  if (odtpfromdate)
+    setValue("odtptodate", calculateToDate(odtpfromdate, true));
+}, [odtpfromdate, setValue]);
+
+useEffect(() => {
+  if (tpfromdate) setValue("tptodate", calculateToDate(tpfromdate, false));
+}, [tpfromdate, setValue]);
 
   const requiredDates = {
     bundled: ["bdfromdate", "bdtodate", "bdtpfromdate", "bdtptodate"],
@@ -189,7 +192,7 @@ export default function KnowCarSlideThree() {
   );
 
   return (
-    <div className="bg-[#C8EDFE] py-6 sm:py-10 min-h-screen flex items-center justify-center overflow-x-hidden">
+    <div className="bgcolor py-6 sm:py-10 min-h-screen flex items-center justify-center overflow-x-hidden">
       <div className="w-full max-w-6xl mx-auto rounded-[64px] bg-white shadow-lg px-4 sm:px-6 md:px-10 py-6 sm:py-8 md:py-10">
         <h2 className="text-2xl md:text-3xl font-bold mb-8 text-[#426D98] text-center">
           Motor insurance provides essential coverage against accidents.
@@ -198,8 +201,8 @@ export default function KnowCarSlideThree() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
           <div className="hidden md:col-span-2 md:flex justify-center items-center p-4">
             <div className="w-full max-w-[220px] sm:max-w-xs">
-              <img
-                src="/images/health/health-One.png"
+              <Image
+                src={carTwo}
                 alt="Home with Umbrella"
                 className="w-full h-auto object-contain"
               />

@@ -89,7 +89,7 @@ const handleEditStep = (stepNo) => {
             />
             <div className="flex-1">
               <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
-                Care Supreme —{" "}
+                Ultimate Care —{" "}
                 <span className="text-green-600 font-bold">₹{totalPremium}</span>{" "}
                 Coverage
               </h3>

@@ -1,5 +1,5 @@
 import React from "react";
-
+import Image from "next/image";
 export default function Dashboard({ usersData }) {
 
   const quoteOptions = [
@@ -57,7 +57,7 @@ export default function Dashboard({ usersData }) {
           </p>
         </div>
         <div className="mt-4 md:mt-0">
-          <img
+          <Image
             src=""
             alt="User"
             className="w-24 h-24"

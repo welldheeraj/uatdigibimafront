@@ -6,6 +6,8 @@ import { showSuccess, showError } from "../../layouts/toaster";
 import { CallApi, getUserinfo } from "../../api";
 import constant from "../../env";
 import { isNumber } from "../../styles/js/validation";
+import Image from "next/image";
+import { healthTwo } from "@/images/Image";
 
 export default function FormPage({ usersData }) {
   const {
@@ -110,7 +112,7 @@ export default function FormPage({ usersData }) {
     } else {
       setIsReadOnly(false);
     }
-  }, [usersData]);
+  }, [usersData, router, type, reset]);
 
 
   useEffect(() => {
@@ -357,7 +359,7 @@ export default function FormPage({ usersData }) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-[#C8EDFE] py-10 flex justify-center items-center min-h-screen"
+      className="bgcolor py-10 flex justify-center items-center min-h-screen"
     >
       <div className="w-full max-w-6xl rounded-[64px] bg-white shadow-lg px-10 py-8 gap-6 flex flex-col md:flex-row  items-center">
         <div className="w-full md:w-3/5 p-2 md:p-6">
@@ -382,7 +384,7 @@ export default function FormPage({ usersData }) {
                 />
                 <div
                   className={`px-5 py-2 rounded border text-sm font-medium cursor-pointer transition ${selectedGender === gender
-                    ? "bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white text-white"
+                    ? "bg-[#7998F4] text-white text-white"
                     : "border border-gray-400 text-black bg-white"
                     }`}
                 >
@@ -467,7 +469,7 @@ export default function FormPage({ usersData }) {
                       type="button"
                       disabled={mobile?.length !== 10 || isLoading || timer > 0}
                       onClick={sendOtp}
-                      className={`px-3 py-2 text-sm rounded-full bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${mobile?.length === 10 && timer === 0
+                      className={`px-3 py-2 text-sm rounded-full bg-[#7998F4] text-white ${mobile?.length === 10 && timer === 0
                         ? ""
                         : "opacity-40 cursor-not-allowed"
                         }`}
@@ -502,7 +504,7 @@ export default function FormPage({ usersData }) {
                     type="button"
                     onClick={verifyOtp}
                     disabled={otp.length !== 6 || isLoading || stoken}
-                    className={`px-3 py-2 text-sm rounded-full font-semibold shadow-md bg-gradient-to-r from-[#28A7E4] to-[#426D98] text-white ${otp.length === 6 ? "" : "opacity-40 cursor-not-allowed"
+                    className={`px-3 py-2 text-sm rounded-full font-semibold shadow-md bg-[#7998F4] text-white ${otp.length === 6 ? "" : "opacity-40 cursor-not-allowed"
                       }`}
                   >
                     {isLoading ? "Verifying..." : "Submit"}
@@ -576,8 +578,8 @@ export default function FormPage({ usersData }) {
           </div>
         </div>
         <div className="w-full md:w-2/5 p-2 md:p-6">
-          <img
-            src="/images/health/health-two.png"
+          <Image
+            src={healthTwo}
             alt="Home with Umbrella"
             className="max-w-xs w-full"
           />

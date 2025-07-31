@@ -90,7 +90,7 @@ export default function PaCoverModal({
           As per the <strong>Insurance Regulatory and Development Authority of India (IRDAI)</strong> notice, 
           <span className="text-red-600"> Personal Accident (PA) Cover is mandatory</span> if the car is owned by an individual 
           who does not have a <span className="text-red-600">Personal Accident cover of ₹15 Lakhs</span>. 
-          Please opt for 'Personal Accident (PA) Cover'.
+          Please opt for &apos;Personal Accident (PA) Cover&apos;.
         </p>
       )}
 

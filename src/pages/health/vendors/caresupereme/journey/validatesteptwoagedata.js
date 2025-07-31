@@ -13,7 +13,7 @@ export const calculateAgeFromDOB = (dobString) => {
   return age;
 };
 
-export const validateStepTwoData = (values, steponedata) => {
+ const validateStepTwoData = (values, steponedata) => {
   const selfMember = steponedata?.members?.find((m) => m.name?.toLowerCase() === "self");
   const selfDob = values.proposerdob2;
 
@@ -48,6 +48,7 @@ export const validateStepTwoData = (values, steponedata) => {
 
   let childIndex = 1;
   for (const member of steponedata?.members || []) {
+    console.log(member)
     const name = member.name?.toLowerCase();
     if (name === "self") continue;
 
@@ -55,6 +56,10 @@ export const validateStepTwoData = (values, steponedata) => {
     if (name === "wife" || name === "husband") key = "spousedob";
     else if (name === "father") key = "fatherdob";
     else if (name === "mother") key = "motherdob";
+    else if (name === "grandfather") key = "grandfatherdob";
+    else if (name === "grandmother") key = "grandmotherdob";
+    else if (name === "fatherinlaw") key = "fatherinlawdob";
+    else if (name === "motherinlaw") key = "motherinlawdob";
     else if (name === "son" || name === "daughter") key = `childdob${childIndex++}`;
     else continue;
 
@@ -86,3 +91,5 @@ const markInvalid = (fieldName) => {
     setTimeout(() => el.classList.remove("border-red-500"), 2500);
   }
 };
+
+export default validateStepTwoData;

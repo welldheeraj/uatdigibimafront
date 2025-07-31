@@ -4,6 +4,9 @@ import { useRouter } from "next/router";
 import constant from "@/env";
 import Modal from "@/components/modal";
 import { FiTag } from "react-icons/fi";
+import Image from "next/image";
+import { shriramimage } from "@/images/Image";
+
  
 export default function VendorCard({ data, onAddonsClick }) {
   const [showModal, setShowModal] = useState(false);
@@ -38,8 +41,8 @@ export default function VendorCard({ data, onAddonsClick }) {
             )}
           </div> */}
           <div className="w-28 h-25 rounded-xl bg-gradient-to-br from-white via-blue-50 to-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden hover:shadow-lg transition-all duration-300">
-            <img
-              src={`/images/motor/vendor/shriramimage.png`}
+            <Image
+              src={shriramimage}
               alt={data.title}
               className="h-auto w-[100%] object-contain"
             />

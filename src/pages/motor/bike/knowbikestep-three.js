@@ -9,6 +9,7 @@ import UniversalDatePicker from "../../datepicker/index";
 import { CallApi } from "@/api";
 import { format, parse } from "date-fns";
 import { showError } from "@/layouts/toaster";
+import { bikeOne } from "@/images/Image";
 
 const KnowBikeStepThree = () => {
  const { control, register, handleSubmit, watch, setValue } = useForm({
@@ -27,16 +28,19 @@ const KnowBikeStepThree = () => {
  const prePolicyType = watch("prepolitype");
   const bonusValue = watch("bonus-button");
 
-   const calculateToDate = (fromDateStr, isThreeYear) => {
-    if (!fromDateStr) return "";
-    const [dd, mm, yyyy] = fromDateStr.split("-").map(Number);
-    const fromDate = new Date(yyyy, mm - 1, dd);
-    if (isNaN(fromDate)) return "";
-    const toDate = new Date(fromDate);
-    toDate.setFullYear(toDate.getFullYear() + (isThreeYear ? 3 : 1));
-    toDate.setDate(toDate.getDate() - 1);
-    return format(toDate, "dd-MM-yyyy");
-  };
+const calculateToDate = (fromDateStr, isThreeYear = false, customYears = null) => {
+  if (!fromDateStr) return "";
+  const [dd, mm, yyyy] = fromDateStr.split("-").map(Number);
+  const fromDate = new Date(yyyy, mm - 1, dd);
+  if (isNaN(fromDate)) return "";
+
+  const toDate = new Date(fromDate);
+  const yearsToAdd = customYears || (isThreeYear ? 3 : 1);
+  toDate.setFullYear(toDate.getFullYear() + yearsToAdd);
+  toDate.setDate(toDate.getDate() - 1);
+  return format(toDate, "dd-MM-yyyy");
+};
+
 
   const bdfromdate = watch("bdfromdate");
   const bdtpfromdate = watch("bdtpfromdate");
@@ -79,30 +83,35 @@ const KnowBikeStepThree = () => {
 
  useEffect(() => {
     if (bdfromdate) setValue("bdtodate", calculateToDate(bdfromdate, false));
-  }, [bdfromdate]);
+  }, [bdfromdate, setValue]);
 
-  useEffect(() => {
-    if (bdtpfromdate)
-      setValue("bdtptodate", calculateToDate(bdtpfromdate, true));
-  }, [bdtpfromdate]);
+useEffect(() => {
+  if (bdtpfromdate)
+    setValue("bdtptodate", calculateToDate(bdtpfromdate, false, 5));
+}, [bdtpfromdate, setValue]);
 
-  useEffect(() => {
-    if (compfromdate)
-      setValue("comptodate", calculateToDate(compfromdate, false));
-  }, [compfromdate]);
 
-  useEffect(() => {
-    if (odfromdate) setValue("odtodate", calculateToDate(odfromdate, false));
-  }, [odfromdate]);
+useEffect(() => {
+  if (compfromdate)
+    setValue("comptodate", calculateToDate(compfromdate, false));
+}, [compfromdate, setValue]);
 
-  useEffect(() => {
-    if (odtpfromdate)
-      setValue("odtptodate", calculateToDate(odtpfromdate, true));
-  }, [odtpfromdate]);
 
-  useEffect(() => {
-    if (tpfromdate) setValue("tptodate", calculateToDate(tpfromdate, false));
-  }, [tpfromdate]);
+useEffect(() => {
+  if (odfromdate) setValue("odtodate", calculateToDate(odfromdate, false));
+}, [odfromdate, setValue]);
+
+
+useEffect(() => {
+  if (odtpfromdate)
+    setValue("odtptodate", calculateToDate(odtpfromdate, false, 5));
+}, [odtpfromdate, setValue]);
+
+
+useEffect(() => {
+  if (tpfromdate) setValue("tptodate", calculateToDate(tpfromdate, false));
+}, [tpfromdate, setValue]);
+
 
   const requiredDates = {
     bundled: ["bdfromdate", "bdtodate", "bdtpfromdate", "bdtptodate"],
@@ -197,7 +206,7 @@ const KnowBikeStepThree = () => {
 
 
   return (
-    <div className="bg-[#C8EDFE] py-6 sm:py-10 min-h-screen flex items-center justify-center overflow-x-hidden">
+    <div className="bgcolor py-6 sm:py-10 min-h-screen flex items-center justify-center overflow-x-hidden">
       <div className="w-full max-w-6xl mx-auto rounded-[64px] bg-white shadow-lg px-4 sm:px-6 md:px-10 py-6 sm:py-8 md:py-10">
         <h2 className="text-2xl md:text-3xl font-bold mb-8 text-[#426D98] text-center">
           Motor insurance provides essential coverage against accidents.
@@ -206,8 +215,8 @@ const KnowBikeStepThree = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
           <div className="hidden md:col-span-2 md:flex justify-center items-center p-4">
             <div className="w-full max-w-[220px] sm:max-w-xs">
-              <img
-                src="/images/health/health-One.png"
+              <Image
+                src={bikeOne}
                 alt="Home with Umbrella"
                 className="w-full h-auto object-contain"
               />
@@ -298,28 +307,33 @@ const KnowBikeStepThree = () => {
               )}
 
               {/* Ownership & Claim */}
-              <div className="grid md:grid-cols-2 gap-6">
+             <div className="grid md:grid-cols-2 gap-6">
                 {/* Ownership Transfer */}
                 <div>
                   <label className="labelcls">
                     Was there any ownership transfer in the previous year?
                   </label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={ownershipToggle}
-                      onChange={() => {
+                
+
+                   <input type="hidden" {...register("ownershiptoggle")} />
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={ownershipToggle}
+                         onChange={() => {
                         const value = !ownershipToggle ? "1" : "0";
                         setOwnershipToggle(!ownershipToggle);
                         setValue("ownershiptoggle", value);
                       }}
-                    />
-                    <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 relative transition-all">
-                      <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                    </div>
-                  </label>
-                  <input type="hidden" {...register("ownershiptoggle")} />
+                      />
+                      <div className="w-12 h-6 bg-gray-300 rounded-full peer-checked:bg-indigo-500 transition-colors" />
+                      <div
+                        className={`absolute left-0 top-0 w-6 h-6 bg-white border border-gray-200 rounded-full shadow transform transition-transform ${
+                          ownershipToggle ? "translate-x-6" : ""
+                        }`}
+                      />
+                    </label>
                 </div>
 
                 {/* Policy Claim */}
@@ -327,22 +341,27 @@ const KnowBikeStepThree = () => {
                   <label className="labelcls">
                     Did you make a claim in your previous policy period?
                   </label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={policyToggle}
-                      onChange={() => {
+                 
+
+                   <input type="hidden" {...register("policyclaim")} />
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={policyToggle}
+                          onChange={() => {
                         const value = !policyToggle ? "1" : "0";
                         setPolicyToggle(!policyToggle);
                         setValue("policyclaim", value);
                       }}
-                    />
-                    <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 relative transition-all">
-                      <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                    </div>
-                  </label>
-                  <input type="hidden" {...register("policyclaim")} />
+                      />
+                      <div className="w-12 h-6 bg-gray-300 rounded-full peer-checked:bg-indigo-500 transition-colors" />
+                      <div
+                        className={`absolute left-0 top-0 w-6 h-6 bg-white border border-gray-200 rounded-full shadow transform transition-transform ${
+                          policyToggle ? "translate-x-6" : ""
+                        }`}
+                      />
+                    </label>
                 </div>
               </div>
 

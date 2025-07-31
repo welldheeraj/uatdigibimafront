@@ -11,8 +11,11 @@ export default function PaymentPage() {
   const sProdCode = searchParams.get("productcode");
   const nQuoteId = searchParams.get("polSysId");
   const nPremium = searchParams.get("premium");
-  const returnURL = "https://test.digibima.com/";
+  const returnURL = "https://stage.digibima.com/return/api/shriramcarthankyou.php";
   const gatewayURL = "http://novaapi.shriramgi.com/Novapymt/MyDefaultCC.aspx";
+  // const gatewayURL = "http://novaapiuat.shriramgi.com/uatnovapymt/MyDefaultCC.aspx";
+  // http://novaapi.shriramgi.com/Novapymt/MyDefaultCC.aspx
+  //const gatewayURL = "https://www.google.com/";
   const gateway = "CCAVENUE";
 
   return (
@@ -25,7 +28,7 @@ export default function PaymentPage() {
         </h2>
         <p className="text-sm text-gray-600">
           Thank you for choosing us for your motor insurance needs. After your
-          payment is processed, you'll receive a confirmation email with your
+          payment is processed, you&apos;ll receive a confirmation email with your
           policy details.
         </p>
 
@@ -35,7 +38,7 @@ export default function PaymentPage() {
           name="token"
           className="w-full border border-gray-300 p-3 rounded-md"
         />
-        <form action={gatewayURL} method="post" className="space-y-4">
+        <form action={gatewayURL} method="POST" className="space-y-4">
           <input name="createdBy" value="LC331" readOnly className="hidden" />
           <input type="hidden" name="paymentFrom" value={gateway} />
           <input type="hidden" name="prodCode" value={sProdCode} />

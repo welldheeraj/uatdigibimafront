@@ -37,8 +37,8 @@ export default function ProposalUI() {
   const [kycRequired, setKycRequired] = useState(false);
 
   const [isSlideOpen, setIsSlideOpen] = useState(false);
-  const [pincode, setPincode] = useState("302013");
-  const [memberName, setMemberName] = useState("Ravi & Family");
+  const [pincode, setPincode] = useState("");
+  const [memberName, setMemberName] = useState("");
 
   const [applyClicked, setApplyClicked] = useState(false);
   const [isAddOnsModified, setIsAddOnsModified] = useState(false);
@@ -60,6 +60,7 @@ export default function ProposalUI() {
         setCompulsoryAddons(res.compulsoryaddon || []);
         setCoverageOptions(res.coveragelist || []);
         setCoverAmount(res.coverage || "");
+         setPincode(res.pincode || "");
         setTotalPremium(res.totalamount || "");
         setTenureOptions(res.tenureList || []);
         setTenure(res.tenure || "");
@@ -67,6 +68,9 @@ export default function ProposalUI() {
         setChildList(res.child || []);
         setGender(res.gender || "");
         setKycRequired(res.kyc === "1");
+        const allMembers = res.aInsureData || [];
+      const memberCount = allMembers.length;
+      setMemberName(`Self(${memberCount})`);
       })
       .catch((err) => console.error("Checkout error:", err))
       .finally(() => setLoading(false));
@@ -122,14 +126,14 @@ export default function ProposalUI() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#C8EDFE]">
+      <div className="min-h-screen flex items-center justify-center bgcolor">
         <HealthInsuranceLoader />
       </div>
     );
   }
 
   return (
-    <div className="bg-[#C8EDFE] min-h-screen px-3 sm:px-10 lg:px-20 py-6">
+    <div className="bgcolor min-h-screen px-3 sm:px-10 lg:px-20 py-6">
       <button
         type="button"
         onClick={() => router.push("/health/common/plans")}

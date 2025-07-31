@@ -1,9 +1,10 @@
 "use client";
 import React from "react";
-import { Modal } from "@mui/material";
+import { FiCheckCircle } from "react-icons/fi";
+import Modal from "@/components/modal";
 
 export default function AddonModal({
- open,
+  open,
   onClose,
   activeTab,
   setActiveTab,
@@ -13,7 +14,7 @@ export default function AddonModal({
   handleSaveAddons,
   showAccessories,
   setShowAccessories,
-  onSaveAccessories 
+  onSaveAccessories,
 }) {
   const [accessoryData, setAccessoryData] = React.useState([
     { type: "electrical", checked: false, amount: "" },
@@ -37,159 +38,213 @@ export default function AddonModal({
     );
   };
 
+  // onConfirm logic (optional if not needed)
+  const handleConfirm = () => {
+    if (activeTab === "Tab1") {
+      handleSaveAddons();
+    } else if (activeTab === "Tab2") {
+      const accessoriesPayload = accessoryData
+        .filter((item) => item.checked && item.amount)
+        .map(({ type, amount }) => ({
+          type: type.toLowerCase(),
+          amount,
+        }));
+
+      onSaveAccessories(accessoriesPayload);
+      onClose();
+    }
+  };
+
   return (
-    <Modal open={open} onClose={onClose}>
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="bg-white p-6 rounded-lg shadow-lg w-[1000px] max-w-full">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-lg">Add Addons</h2>
-            <button onClick={onClose} className="text-3xl">
-              ×
-            </button>
-          </div>
-          <div className="w-full mx-auto mt-1">
-            <div className="flex border-b">
-              <button
-                className={`px-4 py-2 ${
-                  activeTab === "Tab1"
-                    ? "border-b-2 border-blue-500 text-blue-600"
-                    : "text-blue-400"
-                }`}
-                onClick={() => setActiveTab("Tab1")}
-              >
-                Addons
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  activeTab === "Tab2"
-                    ? "border-b-2 border-blue-500 text-blue-600"
-                    : "text-blue-400"
-                }`}
-                onClick={() => setActiveTab("Tab2")}
-              >
-                Accessories
-              </button>
-            </div>
-
-            <div className="mt-4">
-              {activeTab === "Tab1" &&  (
-                <div className="p-2">
-                  <p className="mb-4 text-gray-600">
-                    Select the addons you'd like to add.
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    
-                    {addons && addons.map((addon) => (
-                      <div
-                        key={addon.id}
-                        className="bg-blue-50 hover:bg-blue-100 cursor-pointer flex items-center p-2 rounded-md border"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedAddon.includes(addon.id)}
-                          onChange={() => handleAddonChange(addon.id)}
-                          className="mr-2"
-                        />
-                        <label className="text-sm font-medium truncate">
-                          {addon.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 flex items-center justify-center">
-                    <button
-                      onClick={handleSaveAddons}
-                      className="py-2 px-8 text-white font-semibold rounded"
-                      style={{
-                        background:
-                          "linear-gradient(to bottom, #426D98, #28A7E4)",
-                      }}
-                    >
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "Tab2" && (
-                <div className="p-2">
-                  <p className="mb-4 text-gray-600">
-                    Choose Your Additional Accessories
-                  </p>
-                  <label className="inline-flex items-center mb-4">
-                    <input
-                      type="checkbox"
-                      checked={showAccessories}
-                      onChange={(e) => setShowAccessories(e.target.checked)}
-                      className="mr-2"
-                    />
-                    <span className="font-medium text-blue-600">
-                      Additional Accessories
-                    </span>
-                  </label>
-
-                  {showAccessories && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {accessoryData.map((item) => (
-                        <div
-                          key={item.type}
-                          className="bg-blue-50 p-3 rounded-md border"
-                        >
-                          <label className="flex items-center">
-                            <input
-                              type="checkbox"
-                              className="mr-2"
-                              checked={item.checked}
-                              onChange={() => handleAccessoryCheck(item.type)}
-                            />
-                            <span className="text-sm font-medium capitalize">
-                              {item.type}
-                            </span>
-                          </label>
-                          {item.checked && (
-                            <input
-                              type="number"
-                              placeholder="Enter amount"
-                              value={item.amount}
-                              onChange={(e) =>
-                                handleAmountChange(item.type, e.target.value)
-                              }
-                              className="mt-2 border rounded px-2 py-1 w-full"
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex items-center justify-center">
-                    <button
-                      onClick={() => {
-                        const accessoriesPayload = accessoryData
-                          .filter((item) => item.checked && item.amount)
-                          .map(({ type, amount }) => ({
-                            type: type.toLowerCase(),
-                            amount,
-                          }));
-
-                        onSaveAccessories(accessoriesPayload);
-                        onClose();
-                      }}
-                      className="py-2 px-8 text-white font-semibold rounded"
-                      style={{
-                        background:
-                          "linear-gradient(to bottom, #426D98, #28A7E4)",
-                      }}
-                    >
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+    <Modal
+      isOpen={open}
+      onClose={onClose}
+      title="Add Addons"
+      onConfirm={handleConfirm}
+      confirmText="Save Changes"
+      showConfirmButton={false}
+      showCancelButton={false}
+      width="max-w-5xl"
+    >
+      <div className="w-full">
+        {/* Tabs */}
+        <div className="flex border-b mb-4">
+          <button
+            className={`px-4 py-2 ${
+              activeTab === "Tab1"
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-blue-400"
+            }`}
+            onClick={() => setActiveTab("Tab1")}
+          >
+            Addons
+          </button>
+          <button
+            className={`px-4 py-2 ${
+              activeTab === "Tab2"
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-blue-400"
+            }`}
+            onClick={() => setActiveTab("Tab2")}
+          >
+            Accessories
+          </button>
         </div>
+
+        {/* Tab 1: Addons */}
+        {activeTab === "Tab1" && (
+          <div>
+           <p className="mb-4 text-gray-600">
+            Select the addons you&apos;d like to add.
+          </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {addons?.map((addon) => (
+                <div
+                  key={addon.id}
+                  onClick={() => handleAddonChange(addon.id)}
+                  className={`bg-blue-50 hover:bg-blue-100 cursor-pointer flex items-center p-2 rounded-md border ${
+                    selectedAddon.includes(addon.id) ? "border-blue-500" : ""
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedAddon.includes(addon.id)}
+                    onChange={() => {}}
+                    className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
+                  />
+                  <label className="text-sm font-medium truncate">
+                    {addon.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex justify-center">
+              <button onClick={handleSaveAddons} className="py-2 px-8 thmbtn">
+                Save Changes
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Accessories */}
+        {activeTab === "Tab2" && (
+          <div>
+            <p className="mb-4 text-gray-600">
+              Choose Your Additional Accessories
+            </p>
+            <label className="inline-flex items-center mb-4">
+              <input
+                type="checkbox"
+                checked={showAccessories}
+                onChange={(e) => setShowAccessories(e.target.checked)}
+                className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
+              />
+              <span className="font-medium text-blue-600 cursor-pointer">
+                Additional Accessories
+              </span>
+            </label>
+
+            {showAccessories && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {accessoryData.map((item) => (
+                  <div
+                    key={item.type}
+                    className="bg-blue-50 p-3 rounded-md border"
+                  >
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
+                        checked={item.checked}
+                        onChange={() => handleAccessoryCheck(item.type)}
+                      />
+                      <span className="text-sm font-medium capitalize">
+                        {item.type}
+                      </span>
+                    </label>
+                    {item.checked && (
+                      <input
+                        type="text"
+                        placeholder="Enter amount"
+                        value={item.amount}
+                        onChange={(e) =>
+                          handleAmountChange(item.type, e.target.value)
+                        }
+                        className="mt-2 border rounded px-2 py-1 w-full"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() => {
+                  const accessoriesPayload = accessoryData
+                    .filter((item) => item.checked && item.amount)
+                    .map(({ type, amount }) => ({
+                      type: type.toLowerCase(),
+                      amount,
+                    }));
+
+                  onSaveAccessories(accessoriesPayload);
+                  onClose();
+                }}
+                className="py-2 px-8 thmbtn"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+    </Modal>
+  );
+}
+
+export function VendorAddonModal({
+  isOpen,
+  onClose,
+  selectedPlan,
+  fullAddonsName,
+}) {
+  // console.log(fullAddonsName);
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Vendor Addons"
+      showConfirmButton={false}
+      showCancelButton={true}
+      cancelText="Close"
+      width="max-w-5xl"
+    >
+      {selectedPlan?.addons && Object.keys(selectedPlan.addons).length > 0 ? (
+        <ul className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {Object.entries(selectedPlan.addons).map(([addonId, price]) => (
+            <li
+              key={addonId}
+              className="flex items-start p-2 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all"
+            >
+              <FiCheckCircle className="text-green-500 mt-1 mr-3" size={20} />
+              <div>
+                <p className="text-sm font-semibold text-gray-800">
+                  {fullAddonsName[addonId] || `Addon ${addonId}`}
+                </p>
+                <span className="inline-block mt-1 text-xs font-medium bg-blue-100 text-blue-700 px-2 py-1 rounded-md">
+                  ₹ {price}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-gray-600">
+          No addons available for this plan.
+        </p>
+      )}
     </Modal>
   );
 }

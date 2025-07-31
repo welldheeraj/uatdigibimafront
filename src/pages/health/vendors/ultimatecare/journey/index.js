@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { FaChevronLeft, FaCheck } from "react-icons/fa";
@@ -11,7 +11,7 @@ import StepFourForm from "./stepfour.js";
 import SummaryCard from "../checkout/rightsection.js";
 import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "@/styles/js/validation.js";
-import { validateStepTwoData } from "./validatesteptwoagedata.js";
+import  validateStepTwoData  from "./validatesteptwoagedata.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
@@ -29,11 +29,21 @@ export default function StepperForm({ usersData, kycData }) {
   const [fileNames, setFileNames] = useState({});
   const [kycVerified, setKycVerified] = useState(false);
   const [isPanVerified, setIsPanVerified] = useState(false);
-  const [verifieddata, setVerifiedData] = useState([]);
+  const [verifiedData, setVerifiedData] = useState([]);
   const [steponedata, setStepOneData] = useState([]);
   const [steptwodata, setStepTwoData] = useState([]);
   const [stepthreedata, setStepThreeData] = useState([]);
-   const [totalPremium, setTotalPremium] = useState("");
+  const [totalPremium, setTotalPremium] = useState("");
+  const [isPanKycHidden, setIsPanKycHidden] = useState(false);
+  const [isAadharKycHidden, setIsAadharKycHidden] = useState(false);
+  const [isOtherKycHidden, setIsOtherKycHidden] = useState(false);
+  const [quoteData, setQuoteData] = useState({
+    totalpremium: "",
+    basepremium: "",
+    coverage: "",
+  });
+  const [oldPincode, setOldPincode] = useState("");
+  const [newPincode, setNewPincode] = useState("");
   const searchParams = useSearchParams();
   // console.log("User Data:", kycData);
   const summaryData = useMemo(() => {
@@ -56,18 +66,18 @@ export default function StepperForm({ usersData, kycData }) {
       fullAddonsName: getParsed("fullAddonsName"),
     };
   }, [searchParams]);
-    useEffect(() => {
+  useEffect(() => {
     if (summaryData?.totalPremium) {
       setTotalPremium(summaryData.totalPremium);
     }
   }, [summaryData]);
-  
+
   useEffect(() => {
-  const stepFromQuery = parseInt(searchParams.get("step"));
-  if (stepFromQuery >= 1 && stepFromQuery <= 4) {
-    setCurrentStep(stepFromQuery);
-  }
-}, [searchParams]);
+    const stepFromQuery = parseInt(searchParams.get("step"));
+    if (stepFromQuery >= 1 && stepFromQuery <= 4) {
+      setCurrentStep(stepFromQuery);
+    }
+  }, [searchParams]);
 
   const step1Form = useForm();
   const step2Form = useForm();
@@ -101,10 +111,10 @@ export default function StepperForm({ usersData, kycData }) {
     //   setVerifiedData
     // );
     // if (!result) return false;
-      if (!kycVerified) {
-    showError("Please complete KYC verification before proceeding.");
-    return false;
-  }
+    if (!kycVerified) {
+      showError("Please complete KYC verification before proceeding.");
+      return false;
+    }
 
     const fieldsValid = await validateFields(step1Form);
     if (!fieldsValid) return false;
@@ -387,9 +397,15 @@ export default function StepperForm({ usersData, kycData }) {
     // console.log("Ram")
     setLoading(true);
     try {
-      const res = await CallApi(constant.API.HEALTH.ULTIMATECARE.CREATEPOLICY, "POST");
+      const res = await CallApi(
+        constant.API.HEALTH.ULTIMATECARE.CREATEPOLICY,
+        "POST"
+      );
       if (res === 1 || res?.status) {
-        const response = await CallApi(constant.API.HEALTH.ULTIMATECARE.GETPROPOSAL, "POST");
+        const response = await CallApi(
+          constant.API.HEALTH.ULTIMATECARE.GETPROPOSAL,
+          "POST"
+        );
         if (response.proposalNumber) {
           router.push(
             `/health/payment?proposalNumber=${response.proposalNumber}`
@@ -442,7 +458,10 @@ export default function StepperForm({ usersData, kycData }) {
       setKycVerified,
       kycVerified,
       setIsPanVerified,
-      setVerifiedData
+      setVerifiedData,
+      setIsPanKycHidden,
+      setIsAadharKycHidden,
+      setIsOtherKycHidden
     );
   };
 
@@ -456,7 +475,10 @@ export default function StepperForm({ usersData, kycData }) {
       setKycVerified,
       kycVerified,
       undefined,
-      setVerifiedData
+      setVerifiedData,
+      setIsPanKycHidden,
+      setIsAadharKycHidden,
+      setIsOtherKycHidden
     );
   };
 
@@ -470,137 +492,159 @@ export default function StepperForm({ usersData, kycData }) {
       setKycVerified,
       kycVerified,
       undefined,
-      setVerifiedData
+      setVerifiedData,
+      setIsPanKycHidden,
+      setIsAadharKycHidden,
+      setIsOtherKycHidden
     );
   };
-
+  useEffect(() => {
+    if (quoteData.totalpremium) {
+      console.log("Updated Quote Data:", quoteData);
+    }
+  }, [quoteData]);
   return (
-  <>
-    {loading ? (
-      <HealthInsuranceLoader />
-    ) : (
-      <div className="min-h-screen bg-[#C8EDFE] p-4 sm:p-8">
-        <button
-          onClick={back}
-          className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
-        >
-          <FaChevronLeft /> Go back to Previous
-        </button>
+    <>
+      {loading ? (
+        <HealthInsuranceLoader />
+      ) : (
+        <div className="min-h-screen bgcolor p-4 sm:p-8">
+          <button
+            onClick={back}
+            className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
+          >
+            <FaChevronLeft /> Go back to Previous
+          </button>
 
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
-          <div className="flex-1 bg-white rounded-[32px] shadow p-8">
-            {/* Stepper */}
-            <div className="flex justify-between items-center">
-              {steps.map((label, i) => {
-                const sn = i + 1;
-                const active = sn === currentStep;
-                const done = sn < currentStep;
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 bg-white rounded-[32px] shadow p-8">
+              {/* Stepper */}
+              <div className="flex justify-between items-center">
+                {steps.map((label, i) => {
+                  const sn = i + 1;
+                  const active = sn === currentStep;
+                  const done = sn < currentStep;
 
-                return (
-                  <div
-                    key={sn}
-                    className={`flex items-center ${sn !== steps.length ? "w-full" : ""}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-8 h-8 rounded-full border flex justify-center items-center text-sm font-medium ${
-                          done || active
-                            ? "thmbtn text-white border-white-600"
-                            : "bg-white text-gray-700 border-gray-300"
-                        }`}
-                      >
-                        {done ? <FaCheck size={12} /> : sn}
+                  return (
+                    <div
+                      key={sn}
+                      className={`flex items-center ${
+                        sn !== steps.length ? "w-full" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-8 h-8 rounded-full border flex justify-center items-center text-sm font-medium ${
+                            done || active
+                              ? "thmbtn text-white border-white-600"
+                              : "bg-white text-gray-700 border-gray-300"
+                          }`}
+                        >
+                          {done ? <FaCheck size={12} /> : sn}
+                        </div>
+                        {label && (
+                          <span className="text-sm text-gray-700">{label}</span>
+                        )}
                       </div>
-                      {label && (
-                        <span className="text-sm text-gray-700">{label}</span>
+                      {sn !== steps.length && (
+                        <div
+                          className={`flex-1 h-0.5 mx-2 ${
+                            done ? "thmbtn" : "bg-gray-200"
+                          }`}
+                        />
                       )}
                     </div>
-                    {sn !== steps.length && (
-                      <div
-                        className={`flex-1 h-0.5 mx-2 ${done ? "thmbtn" : "bg-gray-200"}`}
-                      />
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              {/* Step Content */}
+              <div className="mt-10">
+                {currentStep === 1 && (
+                  <StepOneForm
+                    step1Form={step1Form}
+                    kycType={kycType}
+                    setKycType={setKycType}
+                    handleVerifyPan={handleVerifyPan}
+                    handleVerifyAadhar={handleVerifyAadhar}
+                    handleVerifyOther={handleVerifyOther}
+                    loading={loading}
+                    sameAddress={sameAddress}
+                    setSameAddress={setSameAddress}
+                    fileNames={fileNames}
+                    setFileNames={setFileNames}
+                    proofs={proofs}
+                    setProofs={setProofs}
+                    inputClass={inputClass}
+                    onSubmitStep={onSubmitStep}
+                    kycVerified={kycVerified}
+                    setKycVerified={setKycVerified}
+                    setIsPanVerified={setIsPanVerified}
+                    isPanVerified={isPanVerified}
+                    verifiedData={verifiedData}
+                    usersData={usersData}
+                    kycData={kycData}
+                    isPanKycHidden={isPanKycHidden}
+                    setIsPanKycHidden={setIsPanKycHidden}
+                    isAadharKycHidden={isAadharKycHidden}
+                    setIsAadharKycHidden={setIsAadharKycHidden}
+                    isOtherKycHidden={isOtherKycHidden}
+                    setIsOtherKycHidden={setIsOtherKycHidden}
+                    setQuoteData={setQuoteData}
+                    setNewPincode={setNewPincode}
+                    setOldPincode={setOldPincode}
+                  />
+                )}
+                {currentStep === 2 && (
+                  <StepTwoForm
+                    step2Form={step2Form}
+                    steponedata={steponedata}
+                    inputClass={inputClass}
+                    onSubmitStep={onSubmitStep}
+                    usersData={usersData}
+                  />
+                )}
+                {currentStep === 3 && (
+                  <StepThreeForm
+                    step3Form={step3Form}
+                    steptwodata={steptwodata}
+                    inputClass={inputClass}
+                    onSubmitStep={onSubmitStep}
+                  />
+                )}
+                {currentStep === 4 && (
+                  <StepFourForm
+                    step4Form={step4Form}
+                    stepthreedata={stepthreedata}
+                    onSubmitStep={onSubmitStep}
+                    currentStep={currentStep}
+                    totalPremium={totalPremium}
+                    onGoToPayment={GoToPayment}
+                  />
+                )}
+              </div>
             </div>
 
-            {/* Step Content */}
-            <div className="mt-10">
-              {currentStep === 1 && (
-                <StepOneForm
-                  step1Form={step1Form}
-                  kycType={kycType}
-                  setKycType={setKycType}
-                  handleVerifyPan={handleVerifyPan}
-                  handleVerifyAadhar={handleVerifyAadhar}
-                  handleVerifyOther={handleVerifyOther}
-                  loading={loading}
-                  sameAddress={sameAddress}
-                  setSameAddress={setSameAddress}
-                  fileNames={fileNames}
-                  setFileNames={setFileNames}
-                  proofs={proofs}
-                  setProofs={setProofs}
-                  inputClass={inputClass}
-                  onSubmitStep={onSubmitStep}
-                  kycVerified={kycVerified}
-                  setKycVerified={setKycVerified}
-                  setIsPanVerified={setIsPanVerified}
-                  isPanVerified={isPanVerified}
-                  verifieddata={verifieddata}
-                  usersData={usersData}
-                  kycData={kycData}
-                />
-              )}
-              {currentStep === 2 && (
-                <StepTwoForm
-                  step2Form={step2Form}
-                  steponedata={steponedata}
-                  inputClass={inputClass}
-                  onSubmitStep={onSubmitStep}
-                  usersData={usersData}
-                />
-              )}
-              {currentStep === 3 && (
-                <StepThreeForm
-                  step3Form={step3Form}
-                  steptwodata={steptwodata}
-                  inputClass={inputClass}
-                  onSubmitStep={onSubmitStep}
-                />
-              )}
-              {currentStep === 4 && (
-                <StepFourForm
-                  step4Form={step4Form}
-                  stepthreedata={stepthreedata}
-                  onSubmitStep={onSubmitStep}
-                  currentStep={currentStep}
-                  totalPremium={totalPremium}
-                  onGoToPayment={GoToPayment}
-                  
-                />
-              )}
-            </div>
+            {/* Summary Card */}
+            <SummaryCard
+              tenure={summaryData.tenure}
+              coverAmount={summaryData.coverAmount}
+              totalPremium={quoteData.totalpremium || summaryData.totalPremium}
+              basePremium={quoteData.basepremium || summaryData.basepremium}
+              coverage={quoteData.coverage || summaryData.coverage}
+              selectedAddons={summaryData.selectedAddons}
+              compulsoryAddons={summaryData.compulsoryAddons}
+              tenurePrices={summaryData.tenurePrices}
+              addons={summaryData.addons}
+              fullAddonsName={summaryData.fullAddonsName}
+              currentStep={currentStep}
+              onGoToPayment={GoToPayment}
+              newPincode={newPincode}
+              oldPincode={oldPincode}
+            />
           </div>
-
-          {/* Summary Card */}
-          <SummaryCard
-            tenure={summaryData.tenure}
-            coverAmount={summaryData.coverAmount}
-            totalPremium={summaryData.totalPremium}
-            selectedAddons={summaryData.selectedAddons}
-            compulsoryAddons={summaryData.compulsoryAddons}
-            tenurePrices={summaryData.tenurePrices}
-            addons={summaryData.addons}
-            fullAddonsName={summaryData.fullAddonsName}
-            currentStep={currentStep}
-            onGoToPayment={GoToPayment}
-          />
         </div>
-      </div>
-    )}
-  </>
-);
-
+      )}
+    </>
+  );
 }

@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { showSuccess, showError } from "../../layouts/toaster";
 import { useForm } from "react-hook-form";
@@ -7,6 +7,8 @@ import { useRouter } from "next/router";
 import constant from "../../env";
 import { CallApi, isAuth } from "../../api";
 import { FaCar, FaMotorcycle, FaTractor } from "react-icons/fa6";
+import { homecommercial } from "@/images/Image";
+
 
 export default function VehicleSelect({ usersData }) {
   const [carnumber, setCarnumber] = useState();
@@ -46,7 +48,7 @@ export default function VehicleSelect({ usersData }) {
       }
     }
     getAuth();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     reset({
@@ -58,7 +60,7 @@ export default function VehicleSelect({ usersData }) {
       carRegNumber: carnumber,
       bikeRegNumber: bikenumber,
     });
-  }, [usersData, carnumber, bikenumber]);
+  }, [usersData, carnumber, bikenumber,reset]);
 
   useEffect(() => {
     async function getSavedResponse() {
@@ -294,7 +296,7 @@ export default function VehicleSelect({ usersData }) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-[#C2EBFF] py-6 sm:py-10"
+      className="bgcolor py-6 sm:py-10"
     >
       <div className="flex justify-center items-center min-h-screen">
         <div className="w-full max-w-6xl rounded-[64px] bg-white shadow-lg px-6 sm:px-8 md:px-10 py-6 sm:py-8 md:py-10 gap-6 flex flex-col md:flex-row items-center">
@@ -302,8 +304,8 @@ export default function VehicleSelect({ usersData }) {
 
           {/* Right Section (Image) */}
           <div className="hidden md:flex flex-col md:items-start gap-1 mt-2 w-full md:w-2/5 p-2 md:p-6 justify-center">
-            <img
-              src="/images/health/health-One.png"
+            <Image
+              src={homecommercial}
               alt="Home with Umbrella"
               className="max-w-[280px] sm:max-w-xs w-full object-contain"
             />
@@ -330,9 +332,7 @@ export default function VehicleSelect({ usersData }) {
                     <div
                       className="px-4 py-2 rounded-full border 
                       bg-white text-black 
-                      peer-checked:bg-gradient-to-r 
-                      peer-checked:from-[#28A7E4] 
-                      peer-checked:to-[#426D98] 
+                      peer-checked:bg-[#7998F4] 
                       peer-checked:text-white 
                       transition-colors duration-200"
                     >
@@ -365,9 +365,7 @@ export default function VehicleSelect({ usersData }) {
       px-5 py-1.5 rounded-full text-sm font-semibold
       text-[#195BDA] hover:bg-[#d3e6ff]
       transition-all duration-300 ease-in-out
-      peer-checked:bg-gradient-to-b 
-      peer-checked:from-[#426D98] 
-      peer-checked:to-[#28A7E4] 
+      peer-checked:bg-[#7998F4] 
       peer-checked:text-white
     ">
       Know car No.
@@ -383,12 +381,10 @@ export default function VehicleSelect({ usersData }) {
       className="peer hidden"
     />
     <div className="
-      px-5 py-1.5 rounded-full text-sm font-semibold
+       px-5 py-1.5 rounded-full text-sm font-semibold
       text-[#195BDA] hover:bg-[#d3e6ff]
       transition-all duration-300 ease-in-out
-      peer-checked:bg-gradient-to-b 
-      peer-checked:from-[#426D98] 
-      peer-checked:to-[#28A7E4] 
+      peer-checked:bg-[#7998F4] 
       peer-checked:text-white
     ">
       New car
@@ -529,12 +525,10 @@ export default function VehicleSelect({ usersData }) {
                           className="peer hidden"
                         />
                         <div className="
-                         px-5 py-1.5 rounded-full text-sm font-semibold capitalize
+                          px-5 py-1.5 rounded-full text-sm font-semibold capitalize
                               text-[#2F4A7E] hover:bg-[#d3e6ff]
                               transition-all duration-300 ease-in-out
-                              peer-checked:bg-gradient-to-b 
-                              peer-checked:from-[#426D98] 
-                              peer-checked:to-[#28A7E4] 
+                              peer-checked:bg-[#7998F4]
                               peer-checked:text-white
                         ">
                           Know Bike No.
@@ -551,9 +545,7 @@ export default function VehicleSelect({ usersData }) {
      px-5 py-1.5 rounded-full text-sm font-semibold capitalize
                               text-[#2F4A7E] hover:bg-[#d3e6ff]
                               transition-all duration-300 ease-in-out
-                              peer-checked:bg-gradient-to-b 
-                              peer-checked:from-[#426D98] 
-                              peer-checked:to-[#28A7E4] 
+                              peer-checked:bg-[#7998F4] 
                               peer-checked:text-white
     ">
       New Bike
@@ -782,7 +774,7 @@ export default function VehicleSelect({ usersData }) {
                   onClick={() => router.push("/")}
                   className="px-6 py-2 text-white rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                   style={{
-                    background: "linear-gradient(to bottom, #426D98, #28A7E4)",
+                    background: "#7998F4",
                   }}
                 >
                   Back
@@ -792,7 +784,7 @@ export default function VehicleSelect({ usersData }) {
                    onClick={handleSubmit(onSubmit, onInvalid)}
                   className="px-6 py-2 text-white rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                   style={{
-                    background: "linear-gradient(to bottom, #426D98, #28A7E4)",
+                     background: "#7998F4",
                   }}
                 >
                   Continue

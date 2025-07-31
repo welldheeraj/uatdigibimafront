@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect,useMemo } from "react";
+import React, { useState, useEffect,useMemo ,useCallback } from "react";
 import UniversalDatePicker from "../../../../../datepicker/index";
 import { format, parse } from "date-fns";
 import { Controller } from "react-hook-form";
@@ -13,12 +13,12 @@ export default function StepTwoForm({
   inputClass,
   onSubmitStep,
   usersData,
-  cardata,
+  bikedata,
   journeydata,
   bankdata,
   prevInsurdata,
 }) {
-  console.log("motor type",motortype)
+  console.log("motor type wqeewreewrrerwe",bikedata)
   //  const policyDetails = JSON.parse(journeydata.pre_policy_details || "{}");
   // console.log("prevInsuranceId as string:", String(policyDetails.prevInsuranceId));
   console.log(bankdata);
@@ -28,31 +28,31 @@ export default function StepTwoForm({
   const { handleSubmit, control, register, setValue, formState } = step2Form;
 
   useEffect(() => {
-    if (cardata?.prepolitype == "bundled") {
-      setValue("policyfdate", cardata.bdfromdate || "");
-      setValue("policytodate", cardata.bdtodate || "");
-      setValue("tppolicyfdate", cardata.bdtpfromdate || "");
-      setValue("tppolicytodate", cardata.bdtptodate || "");
+    if (bikedata?.prepolitype == "bundled") {
+      setValue("policyfdate", bikedata.bdfromdate || "");
+      setValue("policytodate", bikedata.bdtodate || "");
+      setValue("tppolicyfdate", bikedata.bdtpfromdate || "");
+      setValue("tppolicytodate", bikedata.bdtptodate || "");
     }
-    if (cardata?.prepolitype == "comprehensive") {
-      setValue("policyfdate", cardata.compfromdate || "");
-      setValue("policytodate", cardata.comptodate || "");
+    if (bikedata?.prepolitype == "comprehensive") {
+      setValue("policyfdate", bikedata.compfromdate || "");
+      setValue("policytodate", bikedata.comptodate || "");
     }
-    if (cardata?.prepolitype == "odonly") {
-      setValue("policyfdate", cardata.odfromdate || "");
-      setValue("policytodate", cardata.odtodate || "");
-      setValue("tppolicyfdate", cardata.odtpfromdate || "");
-      setValue("tppolicytodate", cardata.odtptodate || "");
+    if (bikedata?.prepolitype == "odonly") {
+      setValue("policyfdate", bikedata.odfromdate || "");
+      setValue("policytodate", bikedata.odtodate || "");
+      setValue("tppolicyfdate", bikedata.odtpfromdate || "");
+      setValue("tppolicytodate", bikedata.odtptodate || "");
     }
-    if (cardata?.prepolitype == "tponly") {
-      setValue("policyfdate", cardata.tpfromdate || "");
-      setValue("policytodate", cardata.tptodate || "");
+    if (bikedata?.prepolitype == "tponly") {
+      setValue("policyfdate", bikedata.tpfromdate || "");
+      setValue("policytodate", bikedata.tptodate || "");
     }
 
-    if (cardata?.prepolitype)
-      setValue("policytype", cardata.prepolitype.toUpperCase());
-    //  console.log(cardata)
-  }, [cardata]);
+    if (bikedata?.prepolitype)
+      setValue("policytype", bikedata.prepolitype.toUpperCase());
+    //  console.log(bikedata)
+  },[bikedata, setValue]);
 
   useEffect(() => {
     if (!journeydata || Object.keys(journeydata).length === 0) return;
@@ -81,7 +81,7 @@ export default function StepTwoForm({
     setValue("prevInsurance", policyDetails.prevInsuranceId || "");
     setValue(
       "policytype",
-      policyDetails.policytype || cardata?.prepolitype?.toUpperCase() || ""
+      policyDetails.policytype || bikedata?.prepolitype?.toUpperCase() || ""
     );
     setValue("policynumber", policyDetails.policynumber || "");
     // setValue("policyfdate", policyDetails.policyfdate || "");
@@ -94,7 +94,7 @@ export default function StepTwoForm({
       // setValue("tppolicyfdate", policyDetails.tppolicyfdate || "");
       // setValue("tppolicytodate", policyDetails.tppolicytodate || "");
     }
-  }, [journeydata]);
+  }, [journeydata, bikedata?.prepolitype, setValue]);
 
   const toggleLoan = () => {
     const newVal = !enabled;
@@ -106,18 +106,21 @@ export default function StepTwoForm({
   };
 
 
-  const getNextChunk = (page) => {
+  const getNextChunk = useCallback(
+  (page) => {
     const start = 0;
     const end = page * CHUNK_SIZE;
     return bankdata.slice(0, end).map((bank) => ({
       value: bank.id,
       label: bank.FIN_NAME,
     }));
-  };
+  },
+  [bankdata]
+);
 
-  useEffect(() => {
-    setOptionsChunk(getNextChunk(1));
-  }, [bankdata]);
+useEffect(() => {
+  setOptionsChunk(getNextChunk(1));
+}, [getNextChunk]);
 
   const loadMoreOptions = () => {
     const nextPage = page + 1;
@@ -231,7 +234,7 @@ export default function StepTwoForm({
         </div>
       </div>
 
-      {motortype !== "newcar" && (
+      {motortype !== "newbike" && (
       <div>
         <h3 className="text-md font-semibold mb-2">
           Previous Policy Details <span className="text-red-500">*</span>
@@ -339,8 +342,8 @@ export default function StepTwoForm({
      )}
       {/* TP Policy (conditional) */}
       
-   {motortype !== "newcar" &&
-  (cardata?.prepolitype === "odonly" || cardata?.prepolitype === "bundled") && (
+   {motortype !== "newbike" &&
+  (bikedata?.prepolitype === "odonly" || bikedata?.prepolitype === "bundled") && (
         <div>
           <h3 className="text-md font-semibold mb-2">
             TP Policy Details <span className="text-red-500">*</span>

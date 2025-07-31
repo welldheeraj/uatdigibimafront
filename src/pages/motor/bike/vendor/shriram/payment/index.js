@@ -11,13 +11,12 @@ export default function PaymentPage() {
   const sProdCode = searchParams.get("productcode");
   const nQuoteId = searchParams.get("polSysId");
   const nPremium = searchParams.get("premium");
-  const returnURL = "https://test.digibima.com/";
-const gatewayURL = "http://novaapi.shriramgi.com/Novapymt/MyDefaultCC.aspx";
-  //const gatewayURL = "https://www.google.com/";
+  const returnURL = "https://stage.digibima.com/return/api/shrirambikethank.php";
+  const gatewayURL = "http://novaapiuat.shriramgi.com/uatnovapymt/MyDefaultCC.aspx";
   const gateway = "CCAVENUE";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#C8EDFE] to-[#D4E0FF] flex items-center justify-center p-4 sm:p-8">
+    <div className="min-h-screen bgcolor flex items-center justify-center p-4 sm:p-8">
       <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-6 text-center border border-blue-100">
         <MdCheckCircle className="text-green-500 text-5xl mx-auto" />
         <h2 className="text-2xl font-bold text-gray-800">
@@ -26,7 +25,7 @@ const gatewayURL = "http://novaapi.shriramgi.com/Novapymt/MyDefaultCC.aspx";
         </h2>
         <p className="text-sm text-gray-600">
           Thank you for choosing us for your motor insurance needs. After your
-          payment is processed, you'll receive a confirmation email with your
+          payment is processed, you&apos;ll receive a confirmation email with your
           policy details.
         </p>
 
@@ -36,7 +35,7 @@ const gatewayURL = "http://novaapi.shriramgi.com/Novapymt/MyDefaultCC.aspx";
           name="token"
           className="w-full border border-gray-300 p-3 rounded-md"
         />
-        <form action={gatewayURL} method="POST" className="space-y-4">
+        <form action={gatewayURL} method="post" className="space-y-4">
           <input name="createdBy" value="LC331" readOnly className="hidden" />
           <input type="hidden" name="paymentFrom" value={gateway} />
           <input type="hidden" name="prodCode" value={sProdCode} />
@@ -49,7 +48,7 @@ const gatewayURL = "http://novaapi.shriramgi.com/Novapymt/MyDefaultCC.aspx";
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-[#426D98] to-[#28A7E4] text-white font-semibold py-3 rounded-md flex items-center justify-center gap-2 hover:from-[#3a5f85] hover:to-[#1f91c6] transition-all"
+            className="w-full thmbtn text-white font-semibold py-3 rounded-md flex items-center justify-center gap-2 "
           >
             <FaRegCreditCard className="text-lg" />
             Pay ₹{nPremium || "-"} Now

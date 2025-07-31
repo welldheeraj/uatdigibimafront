@@ -1,18 +1,17 @@
 // pages/_app.js
-// import '@mui/x-data-grid/index.css';
+
+// Import necessary modules and styles
 import "@/styles/globals.css";
 import "@/styles/css/digibima.css";
 import Header from "./partial/header";
 import Footer from "./partial/footer";
 import { Toaster } from "react-hot-toast";
-import { useState, useEffect, React } from "react";
+import { useState, useEffect } from "react";
 import { Poppins } from "next/font/google";
 import HealthInsuranceLoader from "./health/loader";
 import { useRouter } from "next/router";
-import { VerifyToken } from "../api";
+import { VerifyToken, getUserinfo } from "../api";
 import constant from "../env";
-import { CallApi, getUserinfo } from "../api";
-import { CallNextApi } from "./utils/helper";
 import { PrimeReactProvider } from 'primereact/api';
 
 const poppins = Poppins({
@@ -23,41 +22,20 @@ const poppins = Poppins({
 
 export default function App({ Component, pageProps }) {
   const [token, setToken] = useState(null);
-  const [authkey, setAuthkey] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [Username, setUsername] = useState(null);
-  const [userMobile, setUserMobile] = useState(null);
   const [userData, setUserData] = useState(null);
   const [kycData, setKycData] = useState({ status: null, kyctype: null });
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const route = router.pathname;
   const splitRoute = route.trim().split("/").filter(segment => segment !== "")[0];
-  async function getSession() {
-    let status = false;
-    let tokenresponse = await CallNextApi("/api/getsession",
-      "GET"
-    );
-    //tokenresponse= await tokenresponse.json();
-    console.log('token', localStorage.getItem('token'), 'cookie', tokenresponse);
-    //setAuthkey(tokenresponse.authkey);
-    // if(tokenresponse.authkey && localStorage.getItem("token") && tokenresponse.authkey == localStorage.getItem("token") )
-    // {
-    //   // console.log('tkn',true);
-    //   status=true;
-    // }
-    // else{console.log('tkn',false);
-    // }
-    // return status;
-  }
+
   useEffect(() => {
     const verifyAuth = async () => {
       const storedToken = localStorage.getItem("token");
-      //svar storedCookie = await getSession();
-      // console.log('gettokenresponse',storedCookie);
+
       if (!storedToken) {
         setToken(null);
-        //setAuthkey(null);
         setLoading(false);
         if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
           router.push(constant.ROUTES.HEALTH.INDEX);
@@ -67,6 +45,7 @@ export default function App({ Component, pageProps }) {
         }
         return;
       }
+
       try {
         const res = await VerifyToken(storedToken);
         const data = await res.json();
@@ -85,7 +64,6 @@ export default function App({ Component, pageProps }) {
       } catch (error) {
         console.error("Token verification failed:", error);
         localStorage.removeItem("token");
-        setAuthkey(null);
         setToken(null);
         if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
           router.push(constant.ROUTES.HEALTH.INDEX);
@@ -97,33 +75,28 @@ export default function App({ Component, pageProps }) {
         setLoading(false);
       }
     };
+
     verifyAuth();
+
     const handleAuthChange = () => {
       const updatedToken = localStorage.getItem("token");
-      //const updatedCookie = getSession().status ? getSession().authkey : null;
       setToken(updatedToken);
-      //setAuthkey(updatedCookie);
     };
+
     window.addEventListener("auth-change", handleAuthChange);
     return () => window.removeEventListener("auth-change", handleAuthChange);
-  }, []);
+  }, [router, splitRoute]); // Include router and splitRoute in the dependency array
 
   useEffect(() => {
-
     if (token) {
       const fetchData = async () => {
         try {
           setIsLoading(true);
           const response = await getUserinfo(token);
           const data = await response.json();
-          // console.log('ghgh',data);
-          setKycData(data.kyctype, data.status);
+          setKycData({ status: data.status, kyctype: data.kyctype });
           if (data.status && data.user?.name) {
             setUserData(data.user);
-            setKycData({
-              status: data.status,
-              kyctype: data.kyctype, // example: 'p' or 'a'
-            });
           } else {
             setUserData(null);
             setKycData({ status: false, kyctype: null });
@@ -139,52 +112,22 @@ export default function App({ Component, pageProps }) {
     }
   }, [token]);
 
-  // useEffect(() => {
-  //   // console.log('uuuatttu1', userData);
-  // }, [userData]);
   return (
     <div className={poppins.className}>
-      <Header
-        token={token}
-        username={userData?.name}
-        setUsername={setUserData}
-      />
+      <Header token={token} username={userData?.name} setUsername={setUserData} />
 
       {/* Conditional Rendering */}
       {loading ? (
-        <div>
-          <HealthInsuranceLoader />
-        </div>
+        <HealthInsuranceLoader />
       ) : (
         <>
-          < PrimeReactProvider />
-          <Toaster />
-          <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
+          <PrimeReactProvider>
+            <Toaster />
+            <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
+          </PrimeReactProvider>
           <Footer />
         </>
       )}
     </div>
   );
 }
-
-// const responseSession = await fetch("/api/setsession", {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify({ token: "456" }),
-//         });
-//         const sessionData = await responseSession.json();
-//         console.log("Session Data:", sessionData);
-
-//         // Fetch token data
-//         const responseToken = await fetch("/api/getsession");
-//         const tokenData = await responseToken.json();
-//         console.log("Token Data:", tokenData);
-// export async function getServerSideProps(context) {
-//   return {
-//     props: {
-//       abc:'ffgfg'
-//     },
-//   };
-// }

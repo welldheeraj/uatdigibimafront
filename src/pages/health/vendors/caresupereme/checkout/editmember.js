@@ -6,7 +6,7 @@ export default function MemberDetails({ memberName = "Akash", count = 1, onEdit 
       <div>
         <div className="font-semibold text-base text-black">Members Covered</div>
         <div className="text-sm text-gray-600 mt-1">
-          {memberName} ({count})
+          {memberName}
         </div>
       </div>
       <button

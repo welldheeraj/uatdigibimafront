@@ -10,6 +10,7 @@ import UniversalDatePicker from "../../datepicker/index";
 import { format, parse } from "date-fns";
 import DropdownWithSearch from "../../lib/DropdownWithSearch";
 import { showSuccess, showError } from "../../../layouts/toaster";
+import { carTwo } from "@/images/Image";
 
 export default function KnowCarStepTwo() {
   const {
@@ -102,7 +103,7 @@ export default function KnowCarStepTwo() {
         });
       }
     }
-  }, [savedPageData]);
+  }, [savedPageData,reset]);
 
   const handleDateChange = (key) => (date) => {
     if (!date || isNaN(date.getTime())) return;
@@ -140,7 +141,7 @@ export default function KnowCarStepTwo() {
       }
     };
     if (selectedBrand) handleGetModels();
-  }, [selectedBrand]);
+  }, [selectedBrand,reset]);
 
   const onSubmit = async (data) => {
     console.log("Submitted Data:", data);
@@ -176,7 +177,7 @@ export default function KnowCarStepTwo() {
 
   return (
     <>
-      <div className="bg-[#C8EDFE] py-6 sm:py-10 min-h-screen flex items-center justify-center overflow-x-hidden">
+      <div className="bgcolor py-6 sm:py-10 min-h-screen flex items-center justify-center overflow-x-hidden">
         <div className="w-full max-w-6xl mx-auto rounded-[64px] bg-white shadow-lg px-4 sm:px-6 md:px-10 py-6 sm:py-8 md:py-10">
           {/* Heading */}
           <h2 className="text-2xl md:text-3xl font-bold mb-8 text-[#426D98] text-center">
@@ -188,8 +189,8 @@ export default function KnowCarStepTwo() {
             {/* Left Side: Image */}
             <div className="hidden md:col-span-2 md:flex justify-center items-center p-4">
               <div className="w-full max-w-[220px] sm:max-w-xs">
-                <img
-                  src="/images/health/health-One.png"
+                <Image
+                  src={carTwo}
                   alt="Home with Umbrella"
                   className="w-full h-auto object-contain"
                 />
@@ -224,9 +225,7 @@ export default function KnowCarStepTwo() {
                               px-5 py-1.5 rounded-full text-sm font-semibold capitalize
                               text-[#2F4A7E] hover:bg-[#d3e6ff]
                               transition-all duration-300 ease-in-out
-                              peer-checked:bg-gradient-to-b 
-                              peer-checked:from-[#426D98] 
-                              peer-checked:to-[#28A7E4] 
+                              peer-checked:bg-[#7998F4] 
                               peer-checked:text-white
                             `}
                         >
@@ -320,8 +319,7 @@ export default function KnowCarStepTwo() {
                     }
                     className="px-6 py-2 text-white rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                     style={{
-                      background:
-                        "linear-gradient(to bottom, #426D98, #28A7E4)",
+                      background: "#7998F4",
                     }}
                   >
                     Back
@@ -330,8 +328,7 @@ export default function KnowCarStepTwo() {
                     type="submit"
                     className="px-6 py-2 text-white rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                     style={{
-                      background:
-                        "linear-gradient(to bottom, #426D98, #28A7E4)",
+                      background: "#7998F4",
                     }}
                   >
                     Continue

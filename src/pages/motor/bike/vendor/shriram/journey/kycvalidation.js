@@ -11,8 +11,11 @@ export default async function validateKycStep(
   data,
   setKycVerified,
   kycVerified,
-  setIsPanVerified,
-  setVerifiedData
+   setIsPanVerified,
+  setVerifiedData,
+  setIsPanKycHidden, 
+  setIsAadharKycHidden, 
+  setIsOtherKycHidden 
 ) {
   // if (kycVerified) return true;
   if (!kycType) return showError("Please select a KYC type."), false;
@@ -40,20 +43,17 @@ export default async function validateKycStep(
       res = await CallApi(constant.API.HEALTH.PANVERIFY, "POST", payload);
       console.log("PAN API Response:", res);
 
-      if (res?.status && res?.kyc === "1") {
+       if (res?.status && res?.kyc === "1") {
         showSuccess("PAN verified");
         setKycVerified(true);
         setIsPanVerified?.(true);
+        setVerifiedData?.({ kyctype: "p" });
+        setIsPanKycHidden?.(true);
 
         const pd =
           res?.pandata?.getCkycEkycInputIO?.kycDetails?.personalIdentifiableData
             ?.personalDetails;
-        if (pd) {
-          console.log("Auto-filling from KYC data:", pd);
-          setVerifiedData(pd);
-        } else {
-          console.warn("No personal details found in PAN KYC response.");
-        }
+        if (pd) setVerifiedData(pd);
         return true;
       }
 
@@ -94,6 +94,8 @@ export default async function validateKycStep(
       if (res?.status) {
         showSuccess("Aadhar verified");
         setKycVerified(true);
+        setVerifiedData?.({ kyctype: "a" });
+        setIsAadharKycHidden?.(true); 
         return true;
       }
 
@@ -156,12 +158,13 @@ export default async function validateKycStep(
       const res = await UploadDocument(constant.API.MOTOR.CAR.SHRIRAM.UPLOADDOCUMENT, "POST", formData);
       console.log(res);
 
-      if (res?.status) {
-        showSuccess("Documents verified");
-        setKycVerified(true); 
-        setIsPanVerified?.(true);
-        return true;
-      }
+ if (res?.status) {
+          showSuccess("Documents verified");
+          setKycVerified(true);
+          setVerifiedData?.({ kyctype: "o" });
+          setIsOtherKycHidden?.(true); 
+          return true;
+        }
 
       showError(res?.message || "Document verification failed");
     } catch (err) {
@@ -173,10 +176,10 @@ export default async function validateKycStep(
       return false;
     }
 
-    setKycVerified(false);
+  setKycVerified(false);
     return false;
   } catch (error) {
-    console.error(`${kycType} verification error:`, error);
+     console.error(`${kycType} verification error:`, error);
     showError(`Server error during ${kycType} verification`);
     setKycVerified(false);
     return false;

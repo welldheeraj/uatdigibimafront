@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useCallback  } from "react";
 import { isAlpha, isNumber } from "@/styles/js/validation";
 import { FiLoader } from "react-icons/fi";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -9,6 +9,8 @@ import constant from "@/env";
 import { format, parse } from "date-fns";
 import { Controller } from "react-hook-form";
 import { showSuccess, showError } from "@/layouts/toaster";
+import Image from "next/image";
+import { dummyUploadimage } from "@/images/Image";
 
 export default function StepOneForm({
   step1Form,
@@ -34,23 +36,30 @@ export default function StepOneForm({
   setStepOneData,
   usersData,
   kycData,
-  cardata,
+  bikedata,
   sameAddress,
   setSameAddress,
-  journeydata
+  journeydata,
+    userinfodata,
   // fileNames,
   // setFileNames,
+   isPanKycHidden,
+  setIsPanKycHidden,
+  isAadharKycHidden,
+  setIsAadharKycHidden,
+  isOtherKycHidden,
+  setIsOtherKycHidden,
 }) {
   //  console.log("step One data",journeydata);
-  // console.log("car data aa gya", cardata);
+  console.log("car data aa gya", bikedata);
   // const [proofs, setProofs] = useState({});
   const [mediaPreview, setMediaPreview] = useState(null);
 
-  const isPanKyc = kycData?.kyctype?.toLowerCase() === "p";
-  const isOtherKyc = kycData?.kyctype?.toLowerCase() === "o";
+  // const isPanKyc = kycData?.kyctype?.toLowerCase() === "p";
+  // const isOtherKyc = kycData?.kyctype?.toLowerCase() === "o";
 
-  const isPanKycHidden = kycVerified && isPanKyc;
-  const isOtherKycHidden = kycVerified && isOtherKyc;
+  // const isPanKycHidden = kycVerified && isPanKyc;
+  // const isOtherKycHidden = kycVerified && isOtherKyc;
   // console.log(isOtherKycHidden);
 
   const [dates, setDates] = useState({
@@ -59,21 +68,47 @@ export default function StepOneForm({
     proposal: "",
   });
 
-  const handleDateChange = (key, field) => (date) => {
+const handleDateChange = useCallback(
+  (key, field) => (date) => {
     const formatted = format(date, "dd-MM-yyyy");
     setDates((prev) => ({ ...prev, [key]: date }));
     step1Form.setValue(field, formatted, { shouldValidate: true });
-  };
+  },
+  [step1Form] // Dependencies
+);
 
+   const hasPrefilledUsersData = React.useRef(false);
   useEffect(() => {
-    if (!usersData) return;
+    if (!kycData) return;
 
     const typeMap = {
       p: "PAN Card",
       a: "Aadhar ( Last 4 Digits )",
       o: "Others",
     };
-    // console.log(usersData)
+
+    const kycCode = kycData.kyctype?.toLowerCase();
+    const kycLabel = typeMap[kycCode];
+
+    if (kycLabel) {
+      setKycType(kycLabel);
+      step1Form.setValue("kycType", kycLabel, { shouldValidate: true });
+      setKycVerified(true);
+
+      if (kycCode === "p") {
+        setIsPanVerified(true);
+        setIsPanKycHidden(true);
+      }
+      if (kycCode === "a") {
+        setIsPanVerified(true);
+        setIsAadharKycHidden(true);
+      }
+      if (kycCode === "o") {
+        setIsPanVerified(true);
+        setIsOtherKycHidden(true);
+      }
+    }
+      // console.log(usersData)
     const formatted = typeMap[kycData?.kyctype?.toLowerCase()];
     if (formatted) {
       setKycType(formatted);
@@ -81,6 +116,28 @@ export default function StepOneForm({
 
       setKycVerified(true);
     }
+  },  [
+  kycData,
+  setKycType,
+  step1Form,
+  setKycVerified,
+  setIsPanVerified,
+  setIsPanKycHidden,
+  setIsAadharKycHidden,
+  setIsOtherKycHidden,
+]);
+
+    useEffect(() => {
+      if (!userinfodata) return;
+      if(bikedata?.under == "individual"){
+        step1Form.setValue("proposaldob", userinfodata.userdob || "");
+      step1Form.setValue("name", userinfodata.username || "");
+      }
+    },  [userinfodata, bikedata?.under, step1Form]);
+
+  useEffect(() => {
+     if (!usersData || hasPrefilledUsersData.current) return;
+
 
     const set = step1Form.setValue;
 
@@ -109,9 +166,9 @@ export default function StepOneForm({
     //   }
     // });
 
- 
-    
-  }, [usersData]);
+   
+    step1Form.setValue("email", usersData.email || "");
+  }, [usersData,step1Form]);
 
   const isPanAlreadyVerified = isPanVerified;
 
@@ -167,7 +224,7 @@ export default function StepOneForm({
         }
       );
     }
-  }, [verifieddata]);
+  },[verifieddata, handleDateChange, setSameAddress, step1Form]);
 
   useEffect(() => {
     if (!sameAddress) return;
@@ -203,7 +260,7 @@ export default function StepOneForm({
     });
 
     return () => subscription.unsubscribe();
-  }, [sameAddress]);
+  }, [sameAddress,step1Form]);
 
   const fields = {
     identity: [
@@ -264,9 +321,14 @@ export default function StepOneForm({
       }
     };
 
-    step1Form.setValue("name", journeydata.name || "");
-    step1Form.setValue("proposaldob", journeydata.dob || "");
-
+     if (journeydata.under === "individual") {
+    // step1Form.setValue("name", journeydata.name || "");
+    // step1Form.setValue("proposaldob", journeydata.dob || "");
+     }
+       step1Form.setValue("mr_ms_gender", journeydata.gender || "");
+    step1Form.setValue("proposername",journeydata.name || "" || "");
+  
+      step1Form.setValue("proposerdob1", journeydata.dob || "");
     const contact = safeParse(journeydata.contact_details);
     step1Form.setValue("contactmobile", contact.contactmobile || "");
     step1Form.setValue("contactemergency", contact.contactemergency || "");
@@ -297,7 +359,7 @@ export default function StepOneForm({
       step1Form.setValue("gstnumber", company.gstnumber || "");
     }
   }
-}, [journeydata]);
+}, [journeydata,step1Form]);
 
 
   return (
@@ -307,45 +369,55 @@ export default function StepOneForm({
       </h2>
       <p className="text-gray-500">We’ll begin with some basic information.</p>
       <input type="hidden" {...step1Form.register("step")} value="one" />
-       {cardata?.under == "individual" && (
-      <div>
-        <label className="block font-semibold cursor-pointer">
-          Name & DOB *
-        </label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-          <input
-            {...step1Form.register("name")}
-            placeholder="Full Name as per your ID Card"
-            className={inputClass}
-          />
+   {bikedata?.under === "individual" && (
+        <div>
+          <label className="block font-semibold cursor-pointer">
+            Name & DOB *
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+             <input
+        {...step1Form.register("name", {
+          required:
+            bikedata?.under === "individual"
+              ? "Name is required"
+              : false,
+        })}
+        placeholder="Full Name as per your ID Card"
+        className={inputClass}
+      />
 
-          <Controller
-            control={step1Form.control}
-            name="proposaldob"
-            rules={{ required: "Please select a valid date" }}
-            render={({ field, fieldState }) => (
-              <UniversalDatePicker
-                id="proposaldob"
-                name="proposaldob"
-                className={inputClass}
-                value={
-                  field.value
-                    ? parse(field.value, "dd-MM-yyyy", new Date())
-                    : null
-                }
-                onChange={(date) =>
-                  field.onChange(date ? format(date, "dd-MM-yyyy") : "")
-                }
-                placeholder="Pick a date"
-                error={!!fieldState.error}
-                errorText={fieldState.error?.message}
-              />
-            )}
-          />
+            <Controller
+              control={step1Form.control}
+              name="proposaldob"
+              rules={
+                bikedata?.under === "individual"
+                  ? { required: "Please select a valid date" }
+                  : {}
+              }
+              render={({ field, fieldState }) => (
+                <UniversalDatePicker
+                  id="proposaldob"
+                  name="proposaldob"
+                  className={inputClass}
+                  value={
+                    field.value
+                      ? parse(field.value, "dd-MM-yyyy", new Date())
+                      : null
+                  }
+                  onChange={(date) =>
+                    field.onChange(date ? format(date, "dd-MM-yyyy") : "")
+                  }
+                  placeholder="Pick a date"
+                  error={!!fieldState.error}
+                  errorText={fieldState.error?.message}
+                />
+              )}
+            />
+          </div>
         </div>
-      </div>
       )}
-      {cardata?.under == "company" && (
+
+      {bikedata?.under === "company" && (
         <div>
           <label className="block font-semibold text-sm mb-1">
             Name & Date of Incorporation<span className="text-red-500">*</span>
@@ -354,7 +426,12 @@ export default function StepOneForm({
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
             {/* M/S Select */}
             <select
-              {...step1Form.register("ms")}
+              {...step1Form.register("ms", {
+                required:
+                  bikedata?.under === "company"
+                    ? "Please select a prefix (Mr/Ms)"
+                    : false,
+              })}
               className={`text-sm md:col-span-2 ${inputClass}`}
             >
               <option value="">Mr/Ms</option>
@@ -365,7 +442,12 @@ export default function StepOneForm({
 
             {/* Company Name */}
             <input
-              {...step1Form.register("companyname")}
+              {...step1Form.register("companyname", {
+                required:
+                  bikedata?.under === "company"
+                    ? "Company name is required"
+                    : false,
+              })}
               placeholder="Company Name"
               className={`text-sm w-full md:col-span-6 ${inputClass}`}
             />
@@ -375,7 +457,11 @@ export default function StepOneForm({
               <Controller
                 control={step1Form.control}
                 name="dobincorporation"
-                rules={{ required: "Please select a valid date" }}
+                rules={
+                  bikedata?.under === "company"
+                    ? { required: "Please select a valid date" }
+                    : {}
+                }
                 render={({ field, fieldState }) => (
                   <UniversalDatePicker
                     id="dobincorporation"
@@ -399,6 +485,7 @@ export default function StepOneForm({
           </div>
         </div>
       )}
+
 
       <label className="block font-semibold cursor-pointer">Proposer KYC</label>
       <div className="flex flex-col sm:flex-row gap-3">
@@ -551,7 +638,7 @@ export default function StepOneForm({
   <div className="space-y-6">
     {/* Father's Name */}
     <div className="max-w-xs w-full">
-      <label className="labelcls">Father's Name</label>
+      <label className="labelcls">Father&apos;s Name</label>
       <input
         type="text"
         className={inputClass}
@@ -614,8 +701,8 @@ export default function StepOneForm({
                     {fileNames[`${type}-${proofs[type]}`]?.length > 30 ? "..." : ""}
                   </span>
                 </span>
-                <img
-                  src={`/images/dummyupload.jpg`}
+                <Image
+                  src={dummyUploadimage}
                   className="h-5 w-5 ml-2 flex-shrink-0"
                   alt="Upload"
                 />
@@ -696,7 +783,7 @@ export default function StepOneForm({
             Choose Photo
           </label>
           {mediaPreview && (
-            <img
+            <Image
               name="insurephoto"
               src={mediaPreview}
               alt="Preview"
@@ -773,7 +860,7 @@ export default function StepOneForm({
       {kycVerified && (
         <div className="space-y-2">
           <label className="block font-semibold text-sm">
-            Proposer's details:
+            Proposer&apos;s details:
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
@@ -831,7 +918,7 @@ export default function StepOneForm({
         </div>
       )}
 
-       {cardata?.under == "company" && (
+       {bikedata?.under == "company" && (
       <div>
         <label className="block font-semibold text-sm mb-1">GST Number</label>
 

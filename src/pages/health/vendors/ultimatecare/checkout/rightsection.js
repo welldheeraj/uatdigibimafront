@@ -4,6 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { BsArrowRight } from "react-icons/bs";
 import { useState, useEffect, useRef } from "react";
 import { showSuccess, showError }  from "@/layouts/toaster";
+import { FiInfo } from "react-icons/fi";
 import { CallApi } from "@/api";
 import constant from "@/env.js";
 export default function SummaryCard({
@@ -15,12 +16,16 @@ export default function SummaryCard({
   fullAddonsName = {},
   addons = {},
   totalPremium = 0,
+  basePremium = 0,    // NEW
+  coverage = 0,       // NEW
   currentStep = 1,
   onGoToPayment,
   applyClicked,
   isAddOnsModified,
+  oldPincode,
+  newPincode
 }) {
-
+  const [priceChangeMsg, setPriceChangeMsg] = useState("");
   const router = useRouter();
   const pathname = usePathname();
   const isStepFour = currentStep === 4;
@@ -65,13 +70,17 @@ export default function SummaryCard({
     }
   }, [addons, compulsoryAddons]);
 
-  // useEffect(() => {
-  //   if (prevTotalRef.current !== totalPremium) {
-  //     setTotalLoading(true);
-  //     prevTotalRef.current = totalPremium;
-  //     setTimeout(() => setTotalLoading(false), 600);
-  //   }
-  // }, [totalPremium]);
+useEffect(() => {
+  if (prevTotalRef.current && prevTotalRef.current !== totalPremium) {
+    const oldPrice = formatPrice(prevTotalRef.current);
+    const newPrice = formatPrice(totalPremium);
+
+    setPriceChangeMsg(
+      `The PIN code in your address (${oldPincode}) is different from the PIN code you chose while taking quote (${newPincode}). Hence, the total premium is revised from ${oldPrice} to ${newPrice}.`
+    );
+  }
+  prevTotalRef.current = totalPremium;
+},  [totalPremium, oldPincode, newPincode]);
  
 
   const handleProceed = () => {
@@ -110,14 +119,14 @@ console.log('hello total' ,totalPremium)
             <div className="w-2 h-2 bg-gray-500 rounded-full delay-300" />
           </span>
         ) : (
-          <span>{formatPrice(selectedTenurePrice)}</span>
+          <span>{formatPrice(basePremium || selectedTenurePrice)}</span>
         )}
       </div>
 
       <div className="flex justify-between text-sm">
         <span className="text-gray-600">Coverage</span>
         <span className="font-semibold text-black">
-          {formatAmount(coverAmount)}
+           {formatAmount(coverage || coverAmount)}
         </span>
       </div>
 
@@ -187,18 +196,36 @@ console.log('hello total' ,totalPremium)
         </>
       )}
 
-      <div className="mt-4 flex justify-between border-t pt-3 font-semibold text-black">
-        <span>Total Premium</span>
-        {totalLoading ? (
-          <span className="flex items-center space-x-1 animate-bounce">
-            <div className="w-2 h-2 bg-gray-500 rounded-full" />
-            <div className="w-2 h-2 bg-gray-500 rounded-full delay-150" />
-            <div className="w-2 h-2 bg-gray-500 rounded-full delay-300" />
-          </span>
-        ) : (
-          <span>{formatPrice(totalPremium)}</span>
-        )}
+   <div className="mt-4 border-t pt-3 font-semibold text-black relative">
+
+  {/* Why Price Change */}
+    {priceChangeMsg && (
+  <div className="flex justify-end mb-3 relative">
+    <div className="flex items-center gap-1 group cursor-pointer">
+      <span className="text-blue-600 text-sm underline">Why Price Change</span>
+     <span className="text-gray-400 text-xs">
+  <FiInfo size={14} />
+</span>
+
+      {/* Tooltip Box */}
+      <div className="absolute right-0 top-5 w-100 p-4 bg-gradient-to-br from-teal-100 to-blue-50 
+        text-gray-800 text-sm rounded-xl shadow-lg border border-blue-200 
+        opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 
+        transition-all duration-300 ease-out z-10">
+        <p className="leading-relaxed text-[13px]">
+          {priceChangeMsg}
+        </p>
       </div>
+    </div>
+  </div>
+     )}
+
+  {/* Total Premium */}
+  <div className="flex justify-between">
+    <span>Total Premium</span>
+    <span>{formatPrice(totalPremium)}</span>
+  </div>
+</div>
 
       {!isJourneyPage && (
         <button

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect,useCallback  } from "react";
 import { useRouter } from "next/router";
 import { CallApi } from "@/api";
 import constant from "@/env";
@@ -36,7 +36,8 @@ export default function Plans() {
   const [paCoverChecked, setPaCoverChecked] = useState(false);
   const [vehicleDetails, setVehicleDetails] = useState([]);
   const [idv,setIdv] = useState();
-   const [motortype, setMotorType] = useState([]);
+  const [motortype, setMotorType] = useState([]);
+  const[Addonlist,setAddonlist] = useState([]);
 
   const router = useRouter();
 
@@ -82,40 +83,42 @@ export default function Plans() {
     getDetails();
   }, []);
 
-  const getQuote = async () => {
-    if (!vendorList.length) return;
-    try {
-      const allPlans = [];
-      for (let i = 0; i < vendorList.length; i++) {
-        const payload = vendorList[i];
-        const response = await CallApi(
-          constant.API.MOTOR.CAR.QUOTE,
-          "POST",
-          payload
-        );
-        if (response?.status == "1" && response?.data) {
-          if (allPlans.length === 0) {
-            const data = response.data;
-            setIdvMin(data.minrange);
-            setIdvMax(data.maxrange);
-            setIdv(data.idv);
-            setSelectedIdv(data.selectedvalue);
-          }
-
-          allPlans.push({ ...response.data, vendorId: payload.vid });
+const getQuote = useCallback(async () => {
+  if (!vendorList.length) return;
+  try {
+    const allPlans = [];
+    for (let i = 0; i < vendorList.length; i++) {
+      const payload = vendorList[i];
+      const response = await CallApi(
+        constant.API.MOTOR.CAR.QUOTE,
+        "POST",
+        payload
+      );
+      if (response?.status == "1" && response?.data) {
+        if (allPlans.length === 0) {
+          const data = response.data;
+          setIdvMin(data.minrange);
+          setIdvMax(data.maxrange);
+          setIdv(data.idv);
+          setSelectedIdv(data.selectedvalue);
         }
+        allPlans.push({ ...response.data, vendorId: payload.vid });
       }
-      setVendorPlans(allPlans);
-      console.log(vendorPlans);
-      
-    } catch (error) {
-      console.error("Error loading quote:", error);
     }
-  };
+    setVendorPlans(allPlans);
+    console.log(allPlans);
+  } catch (error) {
+    console.error("Error loading quote:", error);
+  }
+}, [vendorList]);
+
+useEffect(() => {
+  getQuote();
+}, [getQuote]);
 
   useEffect(() => {
-    getQuote();
-  }, [vendorList]);
+   console.log("addon update ",Addonlist );
+  }, [Addonlist]);
 
   const handleIdvUpdate = async () => {
     try {
@@ -172,7 +175,7 @@ export default function Plans() {
         pacover: paCoverChecked ? "1" : "0",
         planetype: newPlanType,
       });
-
+     console.log(selectedPlanType);
       const allPlans = [];
       for (let i = 0; i < vendorList.length; i++) {
         const vendorPayload = vendorList[i];
@@ -181,8 +184,12 @@ export default function Plans() {
           "POST",
           vendorPayload
         );
+         console.log("third party adons" ,response)
         if (response?.status === "1" && response?.data) {
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
+        }
+        if (response?.status == "1" && response?.addonlist) {
+          setAddonlist(response?.addonlist)
         }
       }
       setVendorPlans(allPlans);
@@ -194,6 +201,7 @@ export default function Plans() {
    const getCacheQuote = async () => {
     try {
       const allPlans = [];
+      //const addonlist =[];
       for (let i = 0; i < vendorList.length; i++) {
         const vendorPayload = vendorList[i];
         const response = await CallApi(
@@ -201,8 +209,11 @@ export default function Plans() {
           "POST",
           vendorPayload
         );
-        if (response?.status === "1" && response?.data) {
+        
+        if (response?.status) {
+          
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
+          setAddonlist(response.addonlist);
         }
       }
       setVendorPlans(allPlans);
@@ -231,7 +242,9 @@ export default function Plans() {
           "POST",
           vendorPayload
         );
+       
         if (response?.status === "1" && response?.data) {
+          
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
         }
       }
@@ -268,12 +281,25 @@ export default function Plans() {
   }
 }, [vendorPlans]);
 
+const handleRedirect = () => {
+  if (motortype === "knowcar" || motortype === "") {
+    // console.log("➡ Redirecting to KNOWCARSTEPTHREE");
+    router.push(constant.ROUTES.MOTOR.CAR.KNOWCARSTEPTHREE);
+  } else if (motortype === "newcar") {
+    // console.log("➡ Redirecting to NEWCARDETAILSTWO");
+    router.push(constant.ROUTES.MOTOR.CAR.NEWCAR);
+  } else {
+    // console.log("⚠ Unhandled motortype:", motortype);
+  }
+};
+
+
 
   return (
-    <div className="bg-[#C8EDFE] p-6  min-h-screen  overflow-x-hidden">
+    <div className="bgcolor p-6  min-h-screen  overflow-x-hidden">
       <div className="mb-1">
        <button
-          onClick={() => router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTHREE)}
+          onClick={handleRedirect}
           className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
         >
           <FaChevronLeft /> Go back to Previous
@@ -334,13 +360,13 @@ export default function Plans() {
             <div className="flex gap-4">
               <button
                 onClick={() => setIsUpdateModalOpen(true)}
-                className="bg-gradient-to-r from-[#426D98] to-[#28A7E4] text-white px-6 py-2 rounded-xl shadow-md hover:scale-105 hover:shadow-lg transition text-sm font-semibold"
+                className="thmbtn text-white px-6 py-2 rounded-xl"
               >
                 Update
               </button>
               <button
                 onClick={() => setIsAddonModalOpen(true)}
-                className="bg-gradient-to-r from-[#426D98] to-[#28A7E4] text-white px-6 py-2 rounded-xl shadow-md hover:scale-105 hover:shadow-lg transition text-sm font-semibold"
+                className="thmbtn text-white px-6 py-2 rounded-xl"
               >
                 Addons
               </button>
@@ -374,6 +400,8 @@ export default function Plans() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         addons={addons}
+        tpaddonslist={Addonlist}
+        selectedPlanType ={selectedPlanType}
         selectedAddon={selectedAddon}
         handleAddonChange={handleAddonChange}
         handleSaveAddons={handleSaveAddons}

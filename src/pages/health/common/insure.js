@@ -1,28 +1,23 @@
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { HiPlus, HiMinus } from "react-icons/hi";
-import { showSuccess, showError } from  "@/layouts/toaster";
+import { showSuccess, showError } from "@/layouts/toaster";
 import { CallApi, VerifyToken } from "../../../api";
 import constant from "../../../env";
-
-
+import Image from "next/image";
+import { healthTwo } from "@/images/Image";
 
 export default function InsurePage() {
-  //console.log(userdata);
   const router = useRouter();
   const { reset } = useForm();
 
   const [gender, setGender] = useState("male");
   const [members, setMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [children, setChildren] = useState([]);
+  const [childrenList, setChildrenList] = useState([]); // renamed from children
   const [isChildChecked, setIsChildChecked] = useState(false);
   const maxChildren = 4;
-
-  //const showError = (msg) => alert(msg);
-  //const showSuccess = (msg) => alert(msg);
 
   useEffect(() => {
     const getInsureData = async () => {
@@ -38,38 +33,39 @@ export default function InsurePage() {
             },
             {
               name: gender === "male" ? "wife" : "husband",
-              age: apiData.find((item) => item.name === (gender === "male" ? "wife" : "husband"))?.age || "",
+              age:
+                apiData.find(
+                  (item) =>
+                    item.name === (gender === "male" ? "wife" : "husband")
+                )?.age || "",
             },
-            ...["father", "mother", "grandfather", "grandmother", "fatherinlaw", "motherinlaw"].map((m) => ({
+            ...[
+              "father",
+              "mother",
+              "grandfather",
+              "grandmother",
+              "fatherinlaw",
+              "motherinlaw",
+            ].map((m) => ({
               name: m,
               age: apiData.find((item) => item.name === m)?.age || "",
             })),
-            // {
-            //   name:"Son",
-            //   age
-            // }
           ];
-           const childData = apiData
-          .filter((item) => item.name === "Son" || item.name === "Daughter")
-          .map((item) => ({
-            name: item.name,
-            age: item.age,
-          }));
-          setChildren(childData); 
+
+          const childData = apiData
+            .filter((item) => item.name === "Son" || item.name === "Daughter")
+            .map((item) => ({
+              name: item.name,
+              age: item.age,
+            }));
+          setChildrenList(childData);
           setIsChildChecked(childData.length > 0);
           setMembers(updatedMembers);
-          // reset({
-          //   name: apiData[0]?.name || "",
-          //   mobile: apiData[0]?.mobile || "",
-          //   pincode: apiData[0]?.pincode || "",
-          //   gender: apiData[0]?.gender || "",
-          // });
 
-         const selected = apiData
-          .filter((item) => item.name !== "Son" && item.name !== "Daughter")
-          .map((m) => m.name);
+          const selected = apiData
+            .filter((item) => item.name !== "Son" && item.name !== "Daughter")
+            .map((m) => m.name);
           setSelectedMembers(selected);
-
         } else {
           showError("Failed to fetch data.");
         }
@@ -83,53 +79,54 @@ export default function InsurePage() {
   }, [gender, reset]);
 
   const addChild = () => {
-    if (children.length < maxChildren) {
-      setChildren([...children, { name: "", age: "" }]);
+    if (childrenList.length < maxChildren) {
+      setChildrenList([...childrenList, { name: "", age: "" }]);
     } else {
       showError("Maximum Four Children Allowed");
     }
   };
 
   const removeChild = () => {
-    setChildren(children.slice(0, -1));
+    setChildrenList(childrenList.slice(0, -1));
   };
 
   const childChange = (index, field, value) => {
-    const updated = [...children];
+    const updated = [...childrenList];
     updated[index][field] = value;
-    setChildren(updated);
+    setChildrenList(updated);
   };
 
   const toggleChildCheckbox = () => {
     setIsChildChecked((prev) => {
       const newChecked = !prev;
-      setChildren(newChecked ? [{ name: "", age: "" }] : []);
+      setChildrenList(newChecked ? [{ name: "", age: "" }] : []);
       return newChecked;
     });
   };
 
   const handleToggle = (name) => {
-  setSelectedMembers((prev) => {
-    const updatedSelection = prev.includes(name)
-      ? prev.filter((m) => m !== name)
-      : [...prev, name];
-    
-    console.log("Updated selected members:", updatedSelection); // Log state change
-    return updatedSelection;
-  });
-};
+    setSelectedMembers((prev) => {
+      const updatedSelection = prev.includes(name)
+        ? prev.filter((m) => m !== name)
+        : [...prev, name];
+
+      console.log("Updated selected members:", updatedSelection);
+      return updatedSelection;
+    });
+  };
 
   const ageChange = (name, age) => {
-  setMembers((prev) => {
-    const updatedMembers = prev.map((m) =>
-      m.name === name ? { ...m, age } : m
-    );
-    console.log("Updated members:", updatedMembers);  // Log members state
-    return updatedMembers;
-  });
-};
+    setMembers((prev) => {
+      const updatedMembers = prev.map((m) =>
+        m.name === name ? { ...m, age } : m
+      );
+      console.log("Updated members:", updatedMembers);
+      return updatedMembers;
+    });
+  };
 
-  const getAge = (name) => parseInt(members.find((m) => m.name === name)?.age || "", 10) || null;
+  const getAge = (name) =>
+    parseInt(members.find((m) => m.name === name)?.age || "", 10) || null;
   const isSelected = (name) => selectedMembers.includes(name);
 
   const checkGap = (older, younger, gap, label) => {
@@ -143,17 +140,47 @@ export default function InsurePage() {
   const validateAgeGaps = () => {
     const agePairs = [
       ["father", "self", 18, "Self and Father"],
-      ["father", gender === "male" ? "wife" : "husband", 18, "Spouse and Father"],
+      [
+        "father",
+        gender === "male" ? "wife" : "husband",
+        18,
+        "Spouse and Father",
+      ],
       ["mother", "self", 18, "Self and Mother"],
-      ["mother", gender === "male" ? "wife" : "husband", 18, "Spouse and Mother"],
+      [
+        "mother",
+        gender === "male" ? "wife" : "husband",
+        18,
+        "Spouse and Mother",
+      ],
       ["fatherinlaw", "self", 18, "Self and Father-in-law"],
-      ["fatherinlaw", gender === "male" ? "wife" : "husband", 18, "Spouse and Father-in-law"],
+      [
+        "fatherinlaw",
+        gender === "male" ? "wife" : "husband",
+        18,
+        "Spouse and Father-in-law",
+      ],
       ["motherinlaw", "self", 18, "Self and Mother-in-law"],
-      ["motherinlaw", gender === "male" ? "wife" : "husband", 18, "Spouse and Mother-in-law"],
+      [
+        "motherinlaw",
+        gender === "male" ? "wife" : "husband",
+        18,
+        "Spouse and Mother-in-law",
+      ],
       ["grandfather", "self", 36, "Self and Grandfather"],
-      ["grandfather", gender === "male" ? "wife" : "husband", 18, "Spouse and Grandfather"],
+      [
+        "grandfather",
+        gender === "male" ? "wife" : "husband",
+        18,
+        "Spouse and Grandfather",
+      ],
       ["grandmother", "self", 36, "Self and Grandmother"],
-      ["grandmother", gender === "male" ? "wife" : "husband", 18, "Spouse and Grandmother"],
+      [
+        "grandmother",
+        gender === "male" ? "wife" : "husband",
+        18,
+        "Spouse and Grandmother",
+      ],
       ["grandfather", "father", 18, "Father and Grandfather"],
       ["grandmother", "father", 18, "Father and Grandmother"],
       ["grandfather", "mother", 18, "Mother and Grandfather"],
@@ -167,66 +194,72 @@ export default function InsurePage() {
     }
     return true;
   };
-const handleSubmit = async () => {
-  const selected = members.filter((m) => selectedMembers.includes(m.name));
-  if (selected.length === 0) {
-    return showError("Please select at least one family member.");
-  }
-  for (const m of selected) {
-    if (!m.age) {
-      return showError(`Please select age for ${m.name}`);
-    }
-  }
 
-  if (!validateAgeGaps()) return;
-  if (isChildChecked) {
-    for (let i = 0; i < children.length; i++) {
-      const { name, age } = children[i];
-      if (!name || !age) {
-        return showError(`Child ${i + 1}: Please fill both name and age`);
-      }
-      const ageNum = parseInt(age, 10);
-      if (ageNum < 1 || ageNum > 18) {
-        return showError(`Child ${i + 1}: Age must be between 1 and 18`);
+  const handleSubmit = async () => {
+    const selected = members.filter((m) => selectedMembers.includes(m.name));
+    if (selected.length === 0) {
+      return showError("Please select at least one family member.");
+    }
+    for (const m of selected) {
+      if (!m.age) {
+        return showError(`Please select age for ${m.name}`);
       }
     }
-  }
 
-  let childdd=children.map((child) => ({ name: child.name, age: child.age }));
-  let membersss= selected.map((m) => ({ name: m.name, age: m.age })); 
-  const formData =[...childdd,...membersss];
-  console.log("Submitting form data:", formData);
-
-  try {
-    const response = await CallApi(constant.API.HEALTH.ILLNESS, "POST", formData);
-    console.log("Server response:", response);
-    if (response.status) {
-      showSuccess("Data saved!");
-      router.push(constant.ROUTES.HEALTH.ILLNESS);
-    } else {
-      showError(response.error || "Failed to submit data. Please try again.");
+    if (!validateAgeGaps()) return;
+    if (isChildChecked) {
+      for (let i = 0; i < childrenList.length; i++) {
+        const { name, age } = childrenList[i];
+        if (!name || !age) {
+          return showError(`Child ${i + 1}: Please fill both name and age`);
+        }
+        const ageNum = parseInt(age, 10);
+        if (ageNum < 1 || ageNum > 18) {
+          return showError(`Child ${i + 1}: Age must be between 1 and 18`);
+        }
+      }
     }
-  } catch (err) {
-    console.error("API error:", err);
-    showError("Failed to submit data. Please try again.");
-  }
-};
 
+    let childdd = childrenList.map((child) => ({
+      name: child.name,
+      age: child.age,
+    }));
+    let membersss = selected.map((m) => ({ name: m.name, age: m.age }));
+    const formData = [...childdd, ...membersss];
+    console.log("Submitting form data:", formData);
+
+    try {
+      const response = await CallApi(
+        constant.API.HEALTH.ILLNESS,
+        "POST",
+        formData
+      );
+      console.log("Server response:", response);
+      if (response.status) {
+        showSuccess("Data saved!");
+        router.push(constant.ROUTES.HEALTH.ILLNESS);
+      } else {
+        showError(response.error || "Failed to submit data. Please try again.");
+      }
+    } catch (err) {
+      console.error("API error:", err);
+      showError("Failed to submit data. Please try again.");
+    }
+  };
 
   return (
-    <div className="bg-[#C8EDFE] px-4 py-10 min-h-screen flex items-center justify-center">
+    <div className="bgcolor px-4 py-10 min-h-screen flex items-center justify-center">
       <section
         id="slide3"
         className=" max-w-9xl rounded-[64px] bg-[#fff] text-white grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 md:p-10 gap-6"
       >
         <div className="hidden md:flex items-center justify-center">
-          <img
-            src="/images/health/health-two.png"
+          <Image
+            src={healthTwo}
             alt="Family Health"
             className="max-w-[350px] w-full h-auto object-contain"
           />
         </div>
-
 
         <div className="w-full">
           <h2 className="text-[24px] md:text-[28px] font-bold mb-8 text-[#426D98] text-center md:text-left">
@@ -249,7 +282,7 @@ const handleSubmit = async () => {
                 <ChildrenSection
                   isChildChecked={isChildChecked}
                   toggleChildCheckbox={toggleChildCheckbox}
-                  children={children}
+                  childrenList={childrenList} // updated prop name
                   addChild={addChild}
                   removeChild={removeChild}
                   childChange={childChange}
@@ -273,20 +306,14 @@ const handleSubmit = async () => {
               <button
                 type="button"
                 onClick={() => router.push("/")}
-                className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
-                style={{
-                  background: "linear-gradient(to bottom, #426D98, #28A7E4)",
-                }}
+                className="px-6 py-2 thmbtn rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
               >
                 Back
               </button>
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="px-6 py-2 rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
-                style={{
-                  background: "linear-gradient(to bottom, #426D98, #28A7E4)",
-                }}
+                className="px-6 py-2 thmbtn rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
               >
                 Continue
               </button>
@@ -304,16 +331,13 @@ function MemberCard({ member, selectedMembers, handleToggle, ageChange }) {
       onClick={() => handleToggle(member.name)}
       className="flex items-center justify-between gap-2 bg-white px-4 py-2 rounded-xl text-black w-full relative border border-gray-400"
     >
-      {/* {selectedMembers.includes(member.name) && (
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping opacity-70"></span>
-      )} */}
       <input
-      type="checkbox"
-      checked={selectedMembers.includes(member.name)} 
-      onChange={() => handleToggle(member.name)}
-      className="form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
-      onClick={(e) => e.stopPropagation()}
-    />
+        type="checkbox"
+        checked={selectedMembers.includes(member.name)}
+        onChange={() => handleToggle(member.name)}
+        className="form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
+        onClick={(e) => e.stopPropagation()}
+      />
       <label
         className="text-sm font-medium text-gray-800 capitalize cursor-pointer"
         onClick={(e) => e.stopPropagation()}
@@ -342,7 +366,7 @@ function MemberCard({ member, selectedMembers, handleToggle, ageChange }) {
 function ChildrenSection({
   isChildChecked,
   toggleChildCheckbox,
-  children,
+  childrenList, // updated prop name
   addChild,
   removeChild,
   childChange,
@@ -354,9 +378,6 @@ function ChildrenSection({
         onClick={toggleChildCheckbox}
         className="flex items-center justify-between gap-2 bg-white px-4 py-3 rounded-xl text-black w-full relative border border-gray-400"
       >
-        {/* {isChildChecked && (
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping opacity-70"></span>
-        )} */}
         <label
           className="flex items-center space-x-2 cursor-pointer"
           onClick={(e) => e.stopPropagation()}
@@ -368,7 +389,7 @@ function ChildrenSection({
               e.stopPropagation();
               toggleChildCheckbox();
             }}
-            className="form-checkbox accent-pink-500 h-4 w-4  "
+            className="form-checkbox accent-pink-500 h-4 w-4"
           />
           <span className="text-sm font-medium text-gray-800">Children</span>
         </label>
@@ -380,16 +401,18 @@ function ChildrenSection({
             <button
               onClick={removeChild}
               type="button"
-              disabled={children.length === 0}
+              disabled={childrenList.length === 0}
               className="thmbtn rounded disabled:opacity-50"
             >
               <HiMinus className="text-xl text-white" />
             </button>
-            <span className="font-medium text-gray-700">{children.length}</span>
+            <span className="font-medium text-gray-700">
+              {childrenList.length}
+            </span>
             <button
               onClick={addChild}
               type="button"
-              disabled={children.length >= maxChildren}
+              disabled={childrenList.length >= maxChildren}
               className="thmbtn rounded disabled:opacity-50"
             >
               <HiPlus className="text-xl text-white" />
@@ -402,7 +425,7 @@ function ChildrenSection({
           className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4"
           id="childContainer"
         >
-          {children.map((child, index) => (
+          {childrenList.map((child, index) => (
             <div
               key={index}
               className="flex items-center gap-3 border border-gray-400 p-2 rounded-xl bg-white shadow-sm"
@@ -412,7 +435,6 @@ function ChildrenSection({
                 value={child.name}
                 onChange={(e) => childChange(index, "name", e.target.value)}
               >
-                
                 <option value="">Select Child</option>
                 <option value="Son">Son</option>
                 <option value="Daughter">Daughter</option>

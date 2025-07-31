@@ -23,8 +23,8 @@ export default function HealthPlan() {
   const [isSlideOpen, setIsSlideOpen] = useState(false);
   const [showPincodePanel, setShowPincodePanel] = useState(false);
   const [showMemberPanel, setShowMemberPanel] = useState(false);
-  const [pincode, setPincode] = useState("110065");
-  const [memberName, setMemberName] = useState("Gfggf");
+  const [pincode, setPincode] = useState("");
+  const [memberName, setMemberName] = useState("");
 
   const router = useRouter();
   const { register, handleSubmit, reset } = useForm();
@@ -75,10 +75,14 @@ export default function HealthPlan() {
         setVendorData(res.vendor || []);
         setCoveragelist(res.coveragelist || []);
         setTenurelist(res.tenurelist || []);
+        setPincode(res.pincode || "")
         setFilters({
           coverage: res.coverage?.toString() || "",
           tenure: res.tenure?.toString() || "",
         });
+        const allMembers = res.aInsureData || [];
+      const memberCount = allMembers.length;
+      setMemberName(`Self(${memberCount})`);
         setShouldRefetch(false);
       })
       .catch(console.error);
@@ -173,7 +177,7 @@ export default function HealthPlan() {
   // }
 
   return (
-    <div className="bg-[#C8EDFE] min-h-screen px-4 sm:px-10 lg:px-20 py-6">
+    <div className="bgcolor min-h-screen px-4 sm:px-10 lg:px-20 py-6">
       <button
         type="button"
         onClick={() => router.push("/health/common/illness")}

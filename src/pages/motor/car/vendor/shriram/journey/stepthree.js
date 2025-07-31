@@ -54,7 +54,7 @@ useEffect(() => {
   } catch (err) {
     console.error("Invalid nominee_details JSON", err);
   }
-}, [journeydata]);
+}, [journeydata,step3Form]);
 useEffect(() => {
   step3Form.setValue("physicalpolicy", "0");
 }, [step3Form]);

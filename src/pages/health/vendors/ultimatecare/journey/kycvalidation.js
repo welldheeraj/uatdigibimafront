@@ -5,14 +5,17 @@ import constant from "@/env";
 import { showSuccess, showError }  from "@/layouts/toaster";
 
 export default async function validateKycStep(
-  step1Form,
+step1Form,
   kycType,
   values,
   proofs,
   setKycVerified,
   kycVerified,
   setIsPanVerified,
-  setVerifiedData
+  setVerifiedData,
+  setIsPanKycHidden, 
+  setIsAadharKycHidden, 
+  setIsOtherKycHidden 
 ) {
   if (kycVerified) return true;
   if (!kycType) return showError("Please select a KYC type."), false;
@@ -37,27 +40,27 @@ export default async function validateKycStep(
         customerpancardDob,
       };
 
-      res = await CallApi(constant.API.HEALTH.PANVERIFY, "POST", payload);
+      res = await CallApi(constant.API.HEALTH.ULTIMATECARE.PANVERIFY, "POST", payload);
       console.log("PAN API Response:", res);
 
-      if (res?.status && res?.kyc === "1") {
+       if (res?.status && res?.kyc === "1") {
         showSuccess("PAN verified");
         setKycVerified(true);
         setIsPanVerified?.(true);
+        setVerifiedData?.({ kyctype: "p" });
+        setIsPanKycHidden?.(true);
 
         const pd =
           res?.pandata?.getCkycEkycInputIO?.kycDetails?.personalIdentifiableData
             ?.personalDetails;
-        if (pd) {
-          console.log("Auto-filling from KYC data:", pd);
-          setVerifiedData(pd);
-        } else {
-          console.warn("No personal details found in PAN KYC response.");
-        }
+        if (pd) setVerifiedData(pd);
         return true;
       }
 
-      showError(res?.responseData?.message || "PAN verification failed");
+      showError(
+        res?.responseData?.message || res?.message || "PAN verification failed"
+      );
+      return false;
     }
 
     // Aadhar Verification
@@ -91,9 +94,11 @@ export default async function validateKycStep(
       };
 
       res = await CallApi(constant.API.HEALTH.AADHARVERIFY, "POST", payload);
-      if (res?.status) {
+       if (res?.status) {
         showSuccess("Aadhar verified");
         setKycVerified(true);
+        setVerifiedData?.({ kyctype: "a" });
+        setIsAadharKycHidden?.(true); 
         return true;
       }
 
@@ -102,6 +107,7 @@ export default async function validateKycStep(
           res?.message ||
           "Aadhar verification failed"
       );
+      return false;
     }
 
     // Others Verification
@@ -138,21 +144,22 @@ export default async function validateKycStep(
     console.log(formData);
 
     try {
-      const res = await UploadDocument(constant.API.HEALTH.UPLOADDOCUMENT, "POST", formData);
+      const res = await UploadDocument(constant.API.HEALTH.ULTIMATECARE.UPLOADDOCUMENT, "POST", formData);
       console.log(res);
 
-      if (res?.status) {
-        showSuccess("Documents verified");
-        setKycVerified(true); 
-        setIsPanVerified?.(true);
-        return true;
-      }
+     if (res?.status) {
+          showSuccess("Documents verified");
+          setKycVerified(true);
+          setVerifiedData?.({ kyctype: "o" });
+          setIsOtherKycHidden?.(true); 
+          return true;
+        }
 
-      showError(res?.message || "Document verification failed");
-    } catch (err) {
-      console.error("Upload error:", err);
-      showError("Something went wrong during upload");
-    }
+        showError(res?.message || "Document verification failed");
+      } catch (err) {
+        console.error("Upload error:", err);
+        showError("Something went wrong during upload");
+      }
   }
 
     setKycVerified(false);

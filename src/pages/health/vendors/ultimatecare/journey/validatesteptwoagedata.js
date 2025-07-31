@@ -13,7 +13,7 @@ export const calculateAgeFromDOB = (dobString) => {
   return age;
 };
 
-export const validateStepTwoData = (values, steponedata) => {
+ const validateStepTwoData = (values, steponedata) => {
   const selfMember = steponedata?.members?.find((m) => m.name?.toLowerCase() === "self");
   const selfDob = values.proposerdob2;
 
@@ -86,3 +86,4 @@ const markInvalid = (fieldName) => {
     setTimeout(() => el.classList.remove("border-red-500"), 2500);
   }
 };
+export default validateStepTwoData;

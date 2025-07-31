@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+ 
   reactStrictMode: false,
   productionBrowserSourceMaps: false,
   async rewrites() {
     return [
       {
+        
         source: "/api/:path*",
         destination: "https://stage.digibima.com/api/:path*", // note /api here
       },

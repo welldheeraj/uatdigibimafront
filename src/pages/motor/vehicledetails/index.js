@@ -12,7 +12,7 @@ export default function VehicleCard({
   const router = useRouter();
   const pathname = usePathname();
   const isStepFour = currentStep === 4;
-  const isJourneyPage = pathname.includes("/motor/car/vendor/shriram/journey");
+  const isJourneyPage = pathname.includes("/motor/car/vendor/shriram/journey") ||pathname.includes("/motor/bike/vendor/shriram/journey") ;
   if (!vehicleDetails) return null;
 
   return (

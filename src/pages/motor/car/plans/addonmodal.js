@@ -9,6 +9,8 @@ export default function AddonModal({
   activeTab,
   setActiveTab,
   addons,
+  selectedPlanType,
+  tpaddonslist,
   selectedAddon,
   handleAddonChange,
   handleSaveAddons,
@@ -16,6 +18,7 @@ export default function AddonModal({
   setShowAccessories,
   onSaveAccessories,
 }) {
+  console.log("hello", selectedPlanType, tpaddonslist);
   const [accessoryData, setAccessoryData] = React.useState([
     { type: "electrical", checked: false, amount: "" },
     { type: "non-electrical", checked: false, amount: "" },
@@ -41,6 +44,7 @@ export default function AddonModal({
   // onConfirm logic (optional if not needed)
   const handleConfirm = () => {
     if (activeTab === "Tab1") {
+      console.log(selectedPlanType, data);
       handleSaveAddons();
     } else if (activeTab === "Tab2") {
       const accessoriesPayload = accessoryData
@@ -95,10 +99,16 @@ export default function AddonModal({
         {activeTab === "Tab1" && (
           <div>
             <p className="mb-4 text-gray-600">
-              Select the addons you'd like to add.
+              Select the addons you&apos;d like to add.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {addons?.map((addon) => (
+              {(String(selectedPlanType) === "3"
+                ? Object.entries(tpaddonslist || {}).map(([id, label]) => ({
+                    id: parseInt(id),
+                    label,
+                  }))
+                : addons || []
+              ).map((addon) => (
                 <div
                   key={addon.id}
                   onClick={() => handleAddonChange(addon.id)}
@@ -118,6 +128,29 @@ export default function AddonModal({
                 </div>
               ))}
             </div>
+
+            {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {addons?.map((addon) => (
+                <div
+                  key={addon.id}
+                  onClick={() => handleAddonChange(addon.id)}
+                  className={`bg-blue-50 hover:bg-blue-100 cursor-pointer flex items-center p-2 rounded-md border ${
+                    selectedAddon.includes(addon.id) ? "border-blue-500" : ""
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedAddon.includes(addon.id)}
+                    onChange={() => {}}
+                    className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
+                  />
+                  <label className="text-sm font-medium truncate">
+                    {addon.label}
+                  </label>
+                </div>
+              ))}
+            </div> */}
+
             <div className="mt-6 flex justify-center">
               <button onClick={handleSaveAddons} className="py-2 px-8 thmbtn">
                 Save Changes
@@ -209,7 +242,7 @@ export function VendorAddonModal({
   selectedPlan,
   fullAddonsName,
 }) {
-  console.log(fullAddonsName);
+  console.log(selectedPlan, fullAddonsName);
   return (
     <Modal
       isOpen={isOpen}

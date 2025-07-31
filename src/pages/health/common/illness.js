@@ -38,7 +38,7 @@ export default function IllnessForm() {
       }
     }
     getAuth();
-  },[]);
+  },[router]);
 
   useEffect(() => {
     const getToken = localStorage.getItem("token");
@@ -103,7 +103,7 @@ export default function IllnessForm() {
   };
 
   return (
-    <div className="bg-[#C8EDFE] px-2 sm:px-4 py-6 sm:py-10">
+    <div className="bgcolor px-2 sm:px-4 py-6 sm:py-10">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="max-w-[1100px] mx-auto mt-5 mb-10 px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 py-8 rounded-[64px] bg-[#FFFF] text-white text-center"

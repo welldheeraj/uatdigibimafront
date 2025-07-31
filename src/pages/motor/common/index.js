@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { showSuccess, showError } from "../../../layouts/toaster";
 import { useForm } from "react-hook-form";
@@ -30,17 +30,18 @@ const cityRef = useRef(null);
     },
   });
 
-  useEffect(() => {
-    reset({
-      vehicle: "car",
-      carOption: "knowcar",
-      bikeOption: "knowbike",
-      commercialOption: "knowcommercial",
-      mobile: usersData?.mobile,
-      carRegNumber: carnumber,
-      carCity : cities,
-    });
-  }, [usersData, carnumber]);
+useEffect(() => {
+  reset({
+    vehicle: "car",
+    carOption: "knowcar",
+    bikeOption: "knowbike",
+    commercialOption: "knowcommercial",
+    mobile: usersData?.mobile,
+    carRegNumber: carnumber,
+    carCity: cities,
+  });
+}, [usersData, carnumber, cities, reset]);
+
 
   useEffect(() => {
     async function getSavedResponse() {
@@ -184,7 +185,7 @@ useEffect(() => {
             {/* image section */}
             <div className="w-full md:w-1/2 mb-6 flex justify-center ">
               <div className="w-32 h-20 bg-gray-100 flex items-center justify-center rounded">
-                <img src="#" alt="Vehicle" className="object-contain h-full" />
+                <Image src="#" alt="Vehicle" className="object-contain h-full" />
               </div>
             </div>
 

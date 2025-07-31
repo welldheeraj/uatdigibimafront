@@ -8,13 +8,12 @@ import { Toaster } from "react-hot-toast";
 import { useState, useEffect, React } from "react";
 import { Poppins } from "next/font/google";
 import HealthInsuranceLoader from "./health/loader";
-import CarInsuranceLoader,{BikeInsuranceLoader} from "@/components/loader";
+import CarInsuranceLoader, { BikeInsuranceLoader } from "@/components/loader";
 import { useRouter } from "next/router";
 import { VerifyToken } from "../api";
 import constant from "../env";
 import { CallApi, getUserinfo } from "../api";
-import { CallNextApi } from "./utils/helper";
-import { PrimeReactProvider } from 'primereact/api';
+import { PrimeReactProvider } from "primereact/api";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -26,7 +25,7 @@ export default function App({ Component, pageProps }) {
   const [token, setToken] = useState(null);
   const [authkey, setAuthkey] = useState(null);
   const [loading, setLoading] = useState(true);
-   const [pageLoading, setPageLoading] = useState(false); 
+  const [pageLoading, setPageLoading] = useState(false);
   const [Username, setUsername] = useState(null);
   const [userMobile, setUserMobile] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -34,14 +33,20 @@ export default function App({ Component, pageProps }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const route = router.pathname;
-  const splitRoute = route.trim().split("/").filter(segment => segment !== "")[0];
+  const splitRoute = route
+    .trim()
+    .split("/")
+    .filter((segment) => segment !== "")[0];
   async function getSession() {
     let status = false;
-    let tokenresponse = await CallNextApi("/api/getsession",
-      "GET"
-    );
+
     //tokenresponse= await tokenresponse.json();
-    console.log('token', localStorage.getItem('token'), 'cookie', tokenresponse);
+    console.log(
+      "token",
+      localStorage.getItem("token"),
+      "cookie",
+      tokenresponse
+    );
     //setAuthkey(tokenresponse.authkey);
     // if(tokenresponse.authkey && localStorage.getItem("token") && tokenresponse.authkey == localStorage.getItem("token") )
     // {
@@ -61,10 +66,10 @@ export default function App({ Component, pageProps }) {
         setToken(null);
         //setAuthkey(null);
         setLoading(false);
-        if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
           router.push(constant.ROUTES.HEALTH.INDEX);
         }
-        if ('/' + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
           router.push(constant.ROUTES.MOTOR.INDEX);
         }
         return;
@@ -77,10 +82,10 @@ export default function App({ Component, pageProps }) {
         } else {
           localStorage.removeItem("token");
           setToken(null);
-          if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
             router.push(constant.ROUTES.HEALTH.INDEX);
           }
-          if ('/' + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
             router.push(constant.ROUTES.MOTOR.INDEX);
           }
         }
@@ -89,10 +94,10 @@ export default function App({ Component, pageProps }) {
         localStorage.removeItem("token");
         setAuthkey(null);
         setToken(null);
-        if ('/' + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
           router.push(constant.ROUTES.HEALTH.INDEX);
         }
-        if ('/' + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
           router.push(constant.ROUTES.MOTOR.INDEX);
         }
       } finally {
@@ -108,10 +113,9 @@ export default function App({ Component, pageProps }) {
     };
     window.addEventListener("auth-change", handleAuthChange);
     return () => window.removeEventListener("auth-change", handleAuthChange);
-  }, []);
+  }, [router,splitRoute]);
 
   useEffect(() => {
-
     if (token) {
       const fetchData = async () => {
         try {
@@ -140,51 +144,56 @@ export default function App({ Component, pageProps }) {
       fetchData();
     }
   }, [token]);
-    useEffect(() => {
-  const handleStart = () => setPageLoading(true);
-  const handleComplete = () => setPageLoading(false);
-  const handleError = () => setPageLoading(false);
+  useEffect(() => {
+    const handleStart = () => setPageLoading(true);
+    const handleComplete = () => setPageLoading(false);
+    const handleError = () => setPageLoading(false);
 
-  router.events.on("routeChangeStart", handleStart);
-  router.events.on("routeChangeComplete", handleComplete);
-  router.events.on("routeChangeError", handleError);
+    router.events.on("routeChangeStart", handleStart);
+    router.events.on("routeChangeComplete", handleComplete);
+    router.events.on("routeChangeError", handleError);
 
-  return () => {
-    router.events.off("routeChangeStart", handleStart);
-    router.events.off("routeChangeComplete", handleComplete);
-    router.events.off("routeChangeError", handleError);
+    return () => {
+      router.events.off("routeChangeStart", handleStart);
+      router.events.off("routeChangeComplete", handleComplete);
+      router.events.off("routeChangeError", handleError);
+    };
+  }, [router]);
+  const renderLoader = () => {
+    if (route.startsWith("/health")) return <HealthInsuranceLoader />;
+    if (route.startsWith("/motor")) return <HealthInsuranceLoader />;
+
+    if (route.startsWith("/motor/bike")) return <BikeInsuranceLoader />;
+
+    if (route.startsWith("/motor/car")) return <CarInsuranceLoader />;
+
+    return;
   };
-}, [router]);
-const renderLoader = () => {
-  if (route.startsWith("/health")) return <HealthInsuranceLoader />;
-  if (route.startsWith("/motor")) return <HealthInsuranceLoader />;
-
-  if (route.startsWith("/motor/bike")) return <BikeInsuranceLoader />;
-
-  if (route.startsWith("/motor/car")) return <CarInsuranceLoader />;
-
-  return ;
-};
 
   // useEffect(() => {
   //   // console.log('uuuatttu1', userData);
   // }, [userData]);
   return (
-   <div className={poppins.className}>
+    <div className={poppins.className}>
       <Header
-      token={token}
+        token={token}
         username={userData?.name}
         setUsername={setUserData}
       />
 
       {/* Conditional Rendering */}
-      {(loading || pageLoading) ? (
-      renderLoader()
-    )   : (
+      {loading || pageLoading ? (
+        renderLoader()
+      ) : (
         <>
-          < PrimeReactProvider />
+          <PrimeReactProvider />
           <Toaster />
-          <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
+          <Component
+            {...pageProps}
+            usersData={userData}
+            kycData={kycData}
+            token={token}
+          />
           <Footer />
         </>
       )}

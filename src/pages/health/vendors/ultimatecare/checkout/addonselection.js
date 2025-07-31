@@ -14,24 +14,40 @@ export default function AddOnSelection({
   setApplyClicked,
   setIsAddOnsModified,
 }) {
-  const { register, handleSubmit, control,setValue  } = useForm();
-  const [loading, setLoading] = useState(false);
+  const normalizedAddons = Array.isArray(selectedAddons)
+    ? selectedAddons
+    : typeof selectedAddons === "string" && selectedAddons.startsWith("[")
+    ? JSON.parse(selectedAddons)
+    : Object.values(selectedAddons || {});
 
-  // Extract tb value like "2", "3", etc.
-  const tbAddon = (Array.isArray(selectedAddons) ? selectedAddons : []).find(
+  const tbAddon = normalizedAddons.find(
     (val) => val.startsWith("tb") && val !== "tb"
   );
   const tbValueFromSelectedAddon = tbAddon?.replace("tb", "") || "";
-  const isTbChecked = !!tbAddon;
+  const isTbChecked = normalizedAddons.includes("tb") || !!tbAddon;
 
-  const isPedSelected = useWatch({ name: "addons.tb", control });
-  
+  const { register, handleSubmit, control, setValue } = useForm({
+    defaultValues: {
+      addons: { tb: isTbChecked },
+      tbaddonvalue: tbValueFromSelectedAddon,
+    },
+  });
+
+  const [hasUserChanged, setHasUserChanged] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const isTbSelected = useWatch({ control, name: "addons.tb" });
 
   const onSubmit = async (data) => {
     let selectedKeys = [];
     const addonsData = data.addons || {};
     const istbChecked = addonsData.tb;
     const tbValue = data.tbaddonvalue;
+
+    if (!hasUserChanged) {
+      showError("Please modify at least one add-on before applying.");
+      return;
+    }
 
     Object.entries(addonsData).forEach(([key, checked]) => {
       if (checked && key !== "tb") {
@@ -41,23 +57,15 @@ export default function AddOnSelection({
 
     if (istbChecked) {
       if (!tbValue) {
-        showError("Please select a value for PED Wait Period Modification.");
+        showError("Please select a value for TB Duration.");
         return;
       }
-
-      if (["2", "3", "4"].includes(tbValue)) {
-        selectedKeys.push(`tb${tbValue}`);
-      }
-    } else {
-      selectedKeys = selectedKeys.filter(
-        (val) => val !== "2" && val !== "3" && val !== "4"
-      );
+      selectedKeys.push(`tb${tbValue}`);
     }
 
     try {
       setLoading(true);
       const payload = { addon: selectedKeys };
-      console.log(payload);
 
       const response = await CallApi(
         constant.API.HEALTH.ULTIMATECARE.ADDADDONS,
@@ -67,10 +75,12 @@ export default function AddOnSelection({
       console.log("AddOns Applied:", response);
 
       if (typeof setApplyClicked === "function") setApplyClicked(true);
-      if (typeof setIsAddOnsModified === "function") setIsAddOnsModified(false);
+      if (typeof setIsAddOnsModified === "function")
+        setIsAddOnsModified(false);
 
       if (getCheckoutData) getCheckoutData();
       showSuccess("Add-Ons applied successfully.");
+      setHasUserChanged(false);
     } catch (error) {
       console.error("Apply failed:", error);
       showError("Failed to apply add-ons.");
@@ -108,10 +118,9 @@ export default function AddOnSelection({
         </div>
 
         {optionalAddOns.map(([key, price]) => {
-          const selectedNames = Object.values(selectedAddons).map((v) =>
+          const selectedNames = normalizedAddons.map((v) =>
             v.toLowerCase().trim()
           );
-
           const isTb = key.toLowerCase() === "tb";
           const isChecked = isTb
             ? isTbChecked
@@ -148,7 +157,9 @@ export default function AddOnSelection({
                     {...register(`addons.${key}`)}
                     defaultChecked={isChecked}
                     className="accent-purple-500 w-4 h-4"
-                    onChange={() => {
+                    onChange={(e) => {
+                      setValue(`addons.${key}`, e.target.checked);
+                      setHasUserChanged(true);
                       if (typeof setIsAddOnsModified === "function")
                         setIsAddOnsModified(true);
                       if (typeof setApplyClicked === "function")
@@ -161,7 +172,9 @@ export default function AddOnSelection({
                       {...register("tbaddonvalue")}
                       className="border rounded-md text-sm"
                       defaultValue={tbValueFromSelectedAddon}
+                      disabled={!isTbSelected}
                       onChange={() => {
+                        setHasUserChanged(true);
                         if (typeof setIsAddOnsModified === "function")
                           setIsAddOnsModified(true);
                         if (typeof setApplyClicked === "function")

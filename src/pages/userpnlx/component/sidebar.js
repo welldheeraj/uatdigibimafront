@@ -26,7 +26,7 @@ const SidebarItem = ({ icon, title, link }) => {
   );
 };
 
-export const Sidebar = () => {
+ const Sidebar = () => {
   return (
     <div className="flex flex-col h-screen w-[200px]">
       <SidebarItem
@@ -53,3 +53,4 @@ export const Sidebar = () => {
     </div>
   );
 };
+export default Sidebar;

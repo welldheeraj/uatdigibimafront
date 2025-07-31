@@ -1,8 +1,8 @@
 "use client";
 
-import { CallApi,UploadDocument } from "@/api";
+import { CallApi, UploadDocument } from "@/api";
 import constant from "@/env";
-import { showSuccess, showError }  from "@/layouts/toaster";
+import { showSuccess, showError } from "@/layouts/toaster";
 
 export default async function validateKycStep(
   step1Form,
@@ -12,9 +12,11 @@ export default async function validateKycStep(
   setKycVerified,
   kycVerified,
   setIsPanVerified,
-  setVerifiedData
+  setVerifiedData,
+  setIsPanKycHidden, 
+  setIsAadharKycHidden, 
+  setIsOtherKycHidden 
 ) {
-  if (kycVerified) return true;
   if (!kycType) return showError("Please select a KYC type."), false;
 
   try {
@@ -23,7 +25,6 @@ export default async function validateKycStep(
     // PAN Verification
     if (kycType === "PAN Card") {
       const { customerpancardno, customerpancardDob } = values;
-      console.log(customerpancardno, customerpancardDob, values);
       if (!customerpancardno || !customerpancardDob)
         return showError("PAN Number and DOB are required."), false;
 
@@ -32,32 +33,31 @@ export default async function validateKycStep(
       )
         return showError("Invalid PAN number (e.g., ABCDE1234F)."), false;
 
-      payload = {
-        customerpancardno,
-        customerpancardDob,
-      };
-
-      res = await CallApi(constant.API.HEALTH.CARESUPEREME.PANVERIFY, "POST", payload);
-      console.log("PAN API Response:", res);
+      payload = { customerpancardno, customerpancardDob };
+      res = await CallApi(
+        constant.API.HEALTH.CARESUPEREME.PANVERIFY,
+        "POST",
+        payload
+      );
 
       if (res?.status && res?.kyc === "1") {
         showSuccess("PAN verified");
         setKycVerified(true);
         setIsPanVerified?.(true);
+        setVerifiedData?.({ kyctype: "p" });
+        setIsPanKycHidden?.(true);
 
         const pd =
           res?.pandata?.getCkycEkycInputIO?.kycDetails?.personalIdentifiableData
             ?.personalDetails;
-        if (pd) {
-          console.log("Auto-filling from KYC data:", pd);
-          setVerifiedData(pd);
-        } else {
-          console.warn("No personal details found in PAN KYC response.");
-        }
+        if (pd) setVerifiedData(pd);
         return true;
       }
 
-      showError(res?.responseData?.message || "PAN verification failed");
+      showError(
+        res?.responseData?.message || res?.message || "PAN verification failed"
+      );
+      return false;
     }
 
     // Aadhar Verification
@@ -89,11 +89,13 @@ export default async function validateKycStep(
         customerAadharName,
         customerAadharDob,
       };
-
       res = await CallApi(constant.API.HEALTH.AADHARVERIFY, "POST", payload);
+
       if (res?.status) {
         showSuccess("Aadhar verified");
         setKycVerified(true);
+        setVerifiedData?.({ kyctype: "a" });
+        setIsAadharKycHidden?.(true); 
         return true;
       }
 
@@ -102,58 +104,51 @@ export default async function validateKycStep(
           res?.message ||
           "Aadhar verification failed"
       );
+      return false;
     }
-
+  
     // Others Verification
-     else if (kycType === "Others") {
-    console.log("Ram");
+    else if (kycType === "Others") {
+      const { identity, address } = proofs;
+      const identityFile = document.getElementById(`identity-${identity}`)
+        ?.files?.[0];
+      const addressFile = document.getElementById(`address-${address}`)
+        ?.files?.[0];
 
-    const { identity, address } = proofs;
-
-    const identityFile = document.getElementById(`identity-${identity}`)?.files?.[0];
-    const addressFile = document.getElementById(`address-${address}`)?.files?.[0];
-
-    console.log(identityFile, addressFile, identity, address);
-
-    if (!identity || !address) {
-      showError("Select both proof types.");
-      return false;
-    }
-
-    if (!identityFile || !addressFile) {
-      showError("Upload both documents.");
-      return false;
-    }
-
-    const formData = new FormData();
-
-
-    formData.append("identityfront", identityFile);
-    formData.append("addressfront", addressFile);
-
-    // // (Optional) Also append type if needed
-    // formData.append("identityType", identity);
-    // formData.append("addressType", address);
-
-    console.log(formData);
-
-    try {
-      const res = await UploadDocument(constant.API.HEALTH.UPLOADDOCUMENT, "POST", formData);
-      console.log(res);
-
-      if (res?.status) {
-        showSuccess("Documents verified");
-        setKycVerified(true); 
-        setIsPanVerified?.(true);
-        return true;
+      if (!identity || !address) {
+        showError("Select both proof types.");
+        return false;
       }
 
-      showError(res?.message || "Document verification failed");
-    } catch (err) {
-      console.error("Upload error:", err);
-      showError("Something went wrong during upload");
+      if (!identityFile || !addressFile) {
+        showError("Upload both documents.");
+        return false;
+      }
+
+      const formData = new FormData();
+      formData.append("identityfront", identityFile);
+      formData.append("addressfront", addressFile);
+
+      try {
+        res = await UploadDocument(
+          constant.API.HEALTH.CARESUPEREME.UPLOADDOCUMENT,
+          "POST",
+          formData
+        );
+        if (res?.status) {
+          showSuccess("Documents verified");
+          setKycVerified(true);
+          setVerifiedData?.({ kyctype: "o" });
+          setIsOtherKycHidden?.(true); 
+          return true;
+        }
+
+        showError(res?.message || "Document verification failed");
+      } catch (err) {
+        console.error("Upload error:", err);
+        showError("Something went wrong during upload");
+      }
     }
-  }
 
     setKycVerified(false);
     return false;
