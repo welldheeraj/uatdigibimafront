@@ -57,68 +57,67 @@ const PlanCard = ({ plan, allPlans, handlePlanSubmit }) => {
 
       {/* Plan Card */}
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handlePlanSubmit(plan);
-        }}
-        className="bg-white rounded-[30px] border border-blue-100 shadow-md p-6 flex flex-col sm:flex-row justify-between items-center gap-6 hover:shadow-xl transition-all duration-300"
+  onSubmit={(e) => {
+    e.preventDefault();
+    handlePlanSubmit(plan);
+  }}
+  className="bg-white rounded-[30px] border border-blue-100 shadow-md p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6 hover:shadow-xl transition-all duration-300 w-full"
+>
+  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full sm:w-3/4 flex-wrap">
+    {/* Logo */}
+    <div className="w-20 h-14 relative rounded-md bg-blue-50 flex items-center justify-center shadow-inner shrink-0">
+      {logo ? (
+        <Image
+          src={`/images/health/vendorimage/${logo}`}
+          alt={productname}
+          width={80}
+          height={40}
+          className="object-contain"
+        />
+      ) : (
+        <span className="text-xs text-blue-700 font-semibold">No Logo</span>
+      )}
+    </div>
+
+    {/* Product Info */}
+    <div className="text-left">
+      <h3 className="text-lg font-bold text-blue-900 mb-1 uppercase tracking-wide break-words">
+        {productname}
+      </h3>
+      <div
+        className="text-indigo-600 text-sm hover:underline cursor-pointer"
+        onClick={() => setShowModal(true)}
       >
-        <div className="flex items-center gap-6 w-full sm:w-3/4 flex-wrap sm:flex-nowrap">
-          {/* Logo */}
-          <div className="w-20 h-14 relative rounded-md bg-blue-50 flex items-center justify-center shadow-inner">
-            {logo ? (
-              <Image
-                src={`/images/health/vendorimage/${logo}`}
-                alt={productname}
-                width={80}
-                height={40}
-                className="object-contain"
-              />
-            ) : (
-              <span className="text-xs text-blue-700 font-semibold">
-                No Logo
-              </span>
-            )}
-          </div>
+        Addons & View Features
+      </div>
+    </div>
 
-          {/* Product Info */}
-          <div className="text-left">
-            <h3 className="text-lg font-bold text-blue-900 mb-1 uppercase tracking-wide">
-              {productname}
-            </h3>
-            <div
-              className="text-indigo-600 text-sm hover:underline cursor-pointer"
-              onClick={() => setShowModal(true)}
-            >
-              Addons & View Features
-            </div>
-          </div>
+    {/* Coverage */}
+    <div className="flex flex-col items-start sm:items-center sm:ml-auto">
+      <span className="text-xs text-gray-500 font-semibold">Cover</span>
+      <span className="bg-gradient-to-r from-sky-100 to-sky-50 text-blue-800 font-semibold text-sm px-4 py-1.5 rounded-full shadow mt-1 whitespace-nowrap">
+        {displayCoverage}
+      </span>
+    </div>
+  </div>
 
-          {/* Coverage */}
-          <div className="flex flex-col items-center sm:ml-auto">
-            <span className="text-xs text-gray-500 font-semibold">Cover</span>
-            <span className="bg-gradient-to-r from-sky-100 to-sky-50 text-blue-800 font-semibold text-sm px-4 py-1.5 rounded-full shadow mt-1">
-              {displayCoverage}
-            </span>
-          </div>
-        </div>
+  {/* Premium */}
+  <div className="w-full sm:w-auto text-left sm:text-right">
+    <button
+      type="submit"
+      className="px-6 py-2 text-sm flex items-center justify-center thmbtn w-full sm:w-auto"
+    >
+      <FaRupeeSign className="text-sm mr-1" />
+      {monthlyPremium} / month
+      <FiArrowRight className="ml-1" />
+    </button>
+    <div className="text-sm flex items-center justify-center text-gray-500 mt-1 italic gap-1 sm:gap-2">
+      <FaRupeeSign className="text-xs" />
+      {premium}/Year
+    </div>
+  </div>
+</form>
 
-        {/* Premium */}
-        <div className="text-right">
-          <button
-            type="submit"
-            className="px-6 py-2 text-sm flex items-center justify-center thmbtn"
-          >
-            <FaRupeeSign className="text-sm" />
-            {monthlyPremium} / month
-            <FiArrowRight />
-          </button>
-          <div className="text-sm flex items-center justify-center text-gray-500 mt-1 italic gap-2">
-            <FaRupeeSign className="text-xs" />
-            {premium}/Year
-          </div>
-        </div>
-      </form>
     </div>
   );
 };

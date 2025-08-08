@@ -7,13 +7,14 @@ import Footer from "./partial/footer";
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect, React } from "react";
 import { Poppins } from "next/font/google";
-import HealthInsuranceLoader from "./health/loader";
-import CarInsuranceLoader, { BikeInsuranceLoader } from "@/components/loader";
+// import HealthInsuranceLoader from "./health/loader";
+import CarInsuranceLoader, { BikeInsuranceLoader,HealthLoaderOne,DashboardLoader } from "@/components/loader";
 import { useRouter } from "next/router";
 import { VerifyToken } from "../api";
 import constant from "../env";
 import { CallApi, getUserinfo } from "../api";
 import { PrimeReactProvider } from "primereact/api";
+import { UserContext } from "@/context/UserContext";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -33,6 +34,8 @@ export default function App({ Component, pageProps }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const route = router.pathname;
+  const publicRoutes = ["/","/login?type=health","/login?type=motor","/adminpnlx"];
+   const isDashboard = router.pathname.startsWith("/userpnlx") ||  router.pathname.startsWith("/adminpnlx");
   const splitRoute = route
     .trim()
     .split("/")
@@ -114,6 +117,23 @@ export default function App({ Component, pageProps }) {
     window.addEventListener("auth-change", handleAuthChange);
     return () => window.removeEventListener("auth-change", handleAuthChange);
   }, [router,splitRoute]);
+useEffect(() => {
+  const checkAuth = async () => {
+    const token = localStorage.getItem("token");
+    const pathWithQuery = router.asPath; // this includes query params
+
+    const isPublicRoute = publicRoutes.includes(pathWithQuery);
+
+    if (!token && !isPublicRoute) {
+      router.push("/");
+      return;
+    }
+
+    setLoading(false);
+  };
+
+  checkAuth();
+}, [router.asPath]);
 
   useEffect(() => {
     if (token) {
@@ -160,41 +180,40 @@ export default function App({ Component, pageProps }) {
     };
   }, [router]);
   const renderLoader = () => {
-    if (route.startsWith("/health")) return <HealthInsuranceLoader />;
-    if (route.startsWith("/motor")) return <HealthInsuranceLoader />;
+    if (route.startsWith("/health")) return <HealthLoaderOne />;
+    // if (route.startsWith("/motor")) return <CarInsuranceLoader />;
 
     if (route.startsWith("/motor/bike")) return <BikeInsuranceLoader />;
 
     if (route.startsWith("/motor/car")) return <CarInsuranceLoader />;
 
-    return;
+     return <DashboardLoader />;
   };
 
   // useEffect(() => {
   //   // console.log('uuuatttu1', userData);
   // }, [userData]);
   return (
-    <div className={poppins.className}>
+  <div className={poppins.className}>
+       {!isDashboard && (
       <Header
         token={token}
         username={userData?.name}
         setUsername={setUserData}
       />
+    )}
 
-      {/* Conditional Rendering */}
-      {loading || pageLoading ? (
-        renderLoader()
-      ) : (
+
+      {(loading || pageLoading) ? (
+      renderLoader()
+    )   : (
         <>
-          <PrimeReactProvider />
+          < PrimeReactProvider />
           <Toaster />
-          <Component
-            {...pageProps}
-            usersData={userData}
-            kycData={kycData}
-            token={token}
-          />
-          <Footer />
+         <UserContext.Provider value={{ userData, kycData, token }}>
+          <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
+          </UserContext.Provider>
+            {!isDashboard && <Footer />}
         </>
       )}
     </div>

@@ -16,6 +16,7 @@ export default function AddonModal({
   setShowAccessories,
   onSaveAccessories,
 }) {
+  console.log(addons)
   const [accessoryData, setAccessoryData] = React.useState([
     { type: "electrical", checked: false, amount: "" },
     { type: "non-electrical", checked: false, amount: "" },
@@ -41,8 +42,10 @@ export default function AddonModal({
   // onConfirm logic (optional if not needed)
   const handleConfirm = () => {
     if (activeTab === "Tab1") {
+      console.log(selectedAddon);
       handleSaveAddons();
     } else if (activeTab === "Tab2") {
+      console.log(accessoryData);
       const accessoriesPayload = accessoryData
         .filter((item) => item.checked && item.amount)
         .map(({ type, amount }) => ({
@@ -62,8 +65,8 @@ export default function AddonModal({
       title="Add Addons"
       onConfirm={handleConfirm}
       confirmText="Save Changes"
-      showConfirmButton={false}
-      showCancelButton={false}
+       showConfirmButton={true}
+      showCancelButton={true}
       width="max-w-5xl"
     >
       <div className="w-full">
@@ -119,11 +122,11 @@ export default function AddonModal({
                 </div>
               ))}
             </div>
-            <div className="mt-6 flex justify-center">
+            {/* <div className="mt-6 flex justify-center">
               <button onClick={handleSaveAddons} className="py-2 px-8 thmbtn">
                 Save Changes
               </button>
-            </div>
+            </div> */}
           </div>
         )}
 
@@ -179,7 +182,7 @@ export default function AddonModal({
               </div>
             )}
 
-            <div className="mt-6 flex justify-center">
+            {/* <div className="mt-6 flex justify-center">
               <button
                 onClick={() => {
                   const accessoriesPayload = accessoryData
@@ -196,7 +199,7 @@ export default function AddonModal({
               >
                 Save Changes
               </button>
-            </div>
+            </div> */}
           </div>
         )}
       </div>

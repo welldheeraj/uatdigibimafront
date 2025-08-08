@@ -26,7 +26,7 @@ export default function VendorCard({ data, onAddonsClick ,handlePlanSubmit}) {
   return (
     <>
       {/* Card */}
-      <div className="w-full sm:w-[320px] h-80 bg-white rounded-3xl shadow-xl p-5 relative overflow-hidden hover:transition-transform duration-300 group">
+      <div className="w-full h-full min-h-[310px] bg-white rounded-3xl shadow-xl p-5 relative overflow-hidden hover:transition-transform duration-300 group">
         {/* Logo and Title */}
         <div className="flex flex-col items-center text-center gap-3 mt-2">
           {/* <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-white rounded-full shadow-inner flex items-center justify-center p-2">
@@ -75,13 +75,13 @@ export default function VendorCard({ data, onAddonsClick ,handlePlanSubmit}) {
               onClick={() => onAddonsClick(data)}
               className="hover:underline transition"
             >
-              Addons
+              Add-ons
             </button>
             <button
               onClick={handlePremium}
               className="hover:underline transition"
             >
-              Premium Backup
+              Premium Break-up
             </button>
           </div>
         </div>

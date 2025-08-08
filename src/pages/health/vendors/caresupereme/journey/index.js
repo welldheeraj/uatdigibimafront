@@ -15,7 +15,8 @@ import validateStepTwoData  from "./validatesteptwoagedata.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
-import HealthInsuranceLoader from "../../../loader";
+// import HealthInsuranceLoader from "../../../loader";
+import {HealthLoaderOne} from "@/components/loader";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -83,7 +84,8 @@ const [newPincode, setNewPincode] = useState("");
   const step4Form = useForm();
 
   const inputClass = "border border-gray-400 rounded px-3 py-2 text-sm w-full";
-  const steps = ["Step", "Step", "Step", ""];
+  const steps = ["", "", "", ""];
+  // const steps = ["Step", "Step", "Step", ""];
 
   const back = async () => {
     if (currentStep === 1) {
@@ -392,7 +394,7 @@ const [newPincode, setNewPincode] = useState("");
         "POST",
         result
       );
-      // console.log("Step 3 API Response", res);
+      console.log("Step 3 API Response", res);
 
       if (res === 1 || res?.status) {
         setStepThreeData(res);
@@ -415,8 +417,10 @@ const GoToPayment = async () => {
       constant.API.HEALTH.CARESUPEREME.CREATEPOLICY,
       "POST"
     );
+    console.log(res);
 
-    if (res === 1 || res?.status === true) {
+    // Updated condition to check for string "1" or boolean true
+    if (res === 1 || res?.status === "1" || res?.status === true) {
       const response = await CallApi(
         constant.API.HEALTH.CARESUPEREME.GETPROPOSAL,
         "POST"
@@ -424,7 +428,7 @@ const GoToPayment = async () => {
 
       if (response?.proposalNumber) {
         router.push(
-          `/health/payment?proposalNumber=${response.proposalNumber}`
+          `/health/vendors/caresupereme/payment?proposalNumber=${response.proposalNumber}`
         );
       }
     } else {
@@ -440,6 +444,7 @@ const GoToPayment = async () => {
     setLoading(false);
   }
 };
+
 
 
 
@@ -531,7 +536,7 @@ const GoToPayment = async () => {
   return (
     <>
       {loading ? (
-        <HealthInsuranceLoader />
+        <HealthLoaderOne />
       ) : (
         <div className="min-h-screen bgcolor p-4 sm:p-8">
           <button

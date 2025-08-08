@@ -11,7 +11,7 @@ import { CallApi } from "../../../api";
 import constant from "../../../env";
 import { bikeOne } from "@/images/Image";
 
-export default function KnowBikeStepTwo() {
+ function KnowBikeStepTwo() {
   const {
     register,
     handleSubmit,
@@ -288,3 +288,4 @@ export default function KnowBikeStepTwo() {
     </div>
   );
 }
+export default KnowBikeStepTwo;

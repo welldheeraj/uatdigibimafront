@@ -76,7 +76,7 @@ export default function FormPage({ usersData }) {
     if (type === "motor" && getToken) {
       router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
     }
-    console.log("token:", getToken);
+    // console.log("token:", getToken);
     if (getToken) {
       setToken(getToken);
       setIsOtpVerified(true);
@@ -107,7 +107,7 @@ export default function FormPage({ usersData }) {
           setIsReadOnly(false);
         }
       };
-      console.log(getToken);
+      // console.log(getToken);
       fetchData(); // Call the async function
     } else {
       setIsReadOnly(false);
@@ -316,6 +316,7 @@ export default function FormPage({ usersData }) {
         console.log("motor login ka response", res);
         if (!stoken) {
           localStorage.setItem("token", res.token);
+           localStorage.setItem("logintype", "user");
           setToken(res.token);
           window.dispatchEvent(new Event("auth-change"));
         }
@@ -333,6 +334,7 @@ export default function FormPage({ usersData }) {
         console.log("health login ka response", res);
         if (res.status) {
           localStorage.setItem("token", res.token);
+           localStorage.setItem("logintype", "user");
           setToken(res.token);
           // await CallNextApi("/api/setsession",
           //   "POST",

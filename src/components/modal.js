@@ -28,7 +28,7 @@ export default function Modal({
         </div>
 
         {/* Content */}
-        <div className="mt-4 text-sm text-gray-700 max-h-[70vh] overflow-y-auto pr-1">
+        <div className="mt-4 text-sm text-gray-700 max-h-[70vh] overflow-y-auto  pr-1">
           {children}
         </div>
 

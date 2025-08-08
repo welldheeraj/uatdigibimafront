@@ -1,101 +1,144 @@
-import React from 'react'
-import Image from "next/image";
+"use client";
 
-const AdminDashboard = ({usersData}) => {
-  const quoteOptions = [
-    { label: "Health", icon: "❤️", bg: "bg-blue-600", text: "text-white" },
-    { label: "Two Wheeler", icon: "🛵" },
-    { label: "Four Wheeler", icon: "🚗" },
-    { label: "Commercial", icon: "🚚" },
-    { label: "Travel", icon: "✈️" },
-  ];
+import { useEffect, useState } from "react";
+import Sidebar from "./sidebar";
+import TopBar from "./topbar";
+import DashboardCards from "../pages/dashboard";
+import ManagePlan from "../pages/manage-plan";
+import ManageProduct from "../pages/manage-product";
+import ManageUser from "../pages/manage-user";
+import ManageVendor from "../pages/manage-vendor";
+import { DashboardLoader } from "@/components/loader";
+import { useRouter } from "next/router";
+import { CallApi } from "@/api";
+import constant from "@/env";
 
-  const stats = [
-    {
-      title: "Total Policies",
-      count: "00",
-      bg: "bg-purple-200",
-      icon: "🏛️",
-    },
-    {
-      title: "Active Policies",
-      count: "00",
-      bg: "bg-pink-200",
-      icon: "📄",
-    },
-    {
-      title: "Expired Policies",
-      count: "00",
-      bg: "bg-orange-200",
-      icon: "➕",
-    },
-    {
-      title: "Total Claims",
-      count: "00",
-      bg: "bg-red-500 text-white",
-      icon: "👥",
-    },
-  ];
+export default function DashboardPage({ usersData }) {
+  const router = useRouter();
+  const [collapsed, setCollapsed] = useState(false);
+  const [openMenus, setOpenMenus] = useState({});
+  const [activePage, setActivePage] = useState("dashboard");
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(null);
+  const [admindata, setAdminData] = useState([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);  
+  const publicRoutes = ["/adminpnlx"];
+
+  // Fetch token from localStorage on initial load
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    console.log(storedToken)
+    setToken(storedToken);
+  }, []); 
+
+  // Fetch user data once the token is available
+  useEffect(() => {
+    if (!token) return;
+    const fetchUserData = async () => {
+      try {
+        const response = await CallApi(constant.API.ADMIN.ADMINLOGINDATA, "GET");
+        if (response.status && response.data) {
+          setAdminData(response.data); 
+        }
+      } catch (error) {
+        console.error("❌ API Error:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [token]);
+
+  useEffect(() => {
+    if (router.isReady && router.query.tab) {
+      setActivePage(router.query.tab);
+    }
+  }, [router.isReady, router.query.tab]);
+
+  // Show loader initially
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show loader on every activePage change
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000); // 1 second loader
+    return () => clearTimeout(timer);
+  }, [activePage]);
+
+
+
+  const renderPage = () => {
+    switch (activePage) {
+      case "dashboard":
+        return <DashboardCards admindata={admindata} token={token} />;
+      case "manageplan":
+        return <ManagePlan token={token} />;
+      case "manageproduct":
+        return <ManageProduct token={token} />;
+      case "manageuser":
+        return <ManageUser token={token} />;
+      case "managevendor":
+        return <ManageVendor token={token} />;
+      default:
+        return <p>Page Not Found</p>;
+    }
+  };
+
+useEffect(() => {
+  const checkAuth = async () => {
+    const token = localStorage.getItem("token");
+    const path = router.pathname; // base path without query
+    const isPublic = publicRoutes.some(publicRoute => path.startsWith(publicRoute));
+
+    if (!token && !isPublic) {
+      router.push("/adminpnlx");
+      return;
+    }
+
+    setLoading(false);
+  };
+
+  checkAuth();
+}, [router.pathname]);
 
 
   return (
-      <div className="p-6 space-y-6  mx-auto bg-[#f4f4fa]">
-
-      {/* Profile */}
-      <div className="flex flex-col md:flex-row justify-between items-center bg-white rounded-xl shadow p-6">
-        <div>
-          <h2 className="text-xl font-bold text-blue-600">
-            Hello {usersData?.name}🎉
-          </h2>
-          <p className="text-gray-600">
-            Welcome to DigiBima Insurance. Your trusted partner in securing your
-            future.
-          </p>
-        </div>
-        <div className="mt-4 md:mt-0">
-          <Image
-            src=""
-            alt="User"
-            className="w-24 h-24"
+    <>
+      {loading ? (
+        <DashboardLoader />
+      ) : (
+        <div className="flex h-screen bg-sky-100">
+          <Sidebar
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
+            openMenus={openMenus}
+            setOpenMenus={setOpenMenus}
+            setActivePage={setActivePage}
+            activePage={activePage}
+            isMobileMenuOpen={isMobileMenuOpen}          
+            setIsMobileMenuOpen={setIsMobileMenuOpen}    
           />
-        </div>
-      </div>
-
-      {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {stats.map((item, idx) => (
-          <div
-            key={idx}
-            className={`rounded-xl shadow-md p-4 text-white flex flex-col justify-between ${item.bg}`}
-          >
-            <div className="text-2xl font-bold">{item.count}</div>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-sm">{item.title}</span>
-              <span className="text-3xl ">{item.icon}</span>
+          <main className="flex-1 overflow-y-auto">
+            <div className="sticky top-0 z-10 bg-white shadow">
+              <TopBar 
+                collapsed={collapsed}
+                setActivePage={setActivePage} 
+                admindata={admindata} 
+                token={token}
+                setIsMobileMenuOpen={setIsMobileMenuOpen}
+                 isMobileMenuOpen={isMobileMenuOpen}
+              />
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Quote */}
-      <div className="bg-white rounded-xl shadow p-4">
-        <h3 className="text-lg font-semibold mb-3">Create Quote</h3>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {quoteOptions.map((item, idx) => (
-            <button
-              key={idx}
-              className={`rounded-lg p-4 text-center font-semibold border hover:bg-blue-100 transition ${
-                item.bg || "bg-gray-100"
-              } ${item.text || "text-gray-700"}`}
-            >
-              <div className="text-2xl">{item.icon}</div>
-              <div>{item.label}</div>
-            </button>
-          ))}
+            <div className="p-6 mt-4">{renderPage()}</div>
+          </main>
         </div>
-      </div>
-    </div>
-  )
+      )}
+    </>
+  );
 }
-
-export default AdminDashboard

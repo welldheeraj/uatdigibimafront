@@ -12,10 +12,10 @@ export default function InsurePage() {
   const router = useRouter();
   const { reset } = useForm();
 
-  const [gender, setGender] = useState("male");
+  const [gender, setGender] = useState("");
   const [members, setMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [childrenList, setChildrenList] = useState([]); // renamed from children
+  const [childrenList, setChildrenList] = useState([]); 
   const [isChildChecked, setIsChildChecked] = useState(false);
   const maxChildren = 4;
 
@@ -23,8 +23,11 @@ export default function InsurePage() {
     const getInsureData = async () => {
       try {
         const res = await CallApi(constant.API.HEALTH.GETINSURE);
-        console.log(res);
+        console.log("step two data",res);
         if (res.status && res.data) {
+          if (res.gender) {
+              setGender(res.gender.toLowerCase()); 
+            }
           const apiData = res.data;
           const updatedMembers = [
             {

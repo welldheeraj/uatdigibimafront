@@ -25,6 +25,7 @@ export default function SummaryCard({
   oldPincode,
   newPincode,
 }) {
+  console.log(fullAddonsName)
   const [priceChangeMsg, setPriceChangeMsg] = useState("");
   const router = useRouter();
   const pathname = usePathname();
@@ -93,6 +94,12 @@ export default function SummaryCard({
 
   prevTotalRef.current = totalPremium;
 }, [totalPremium, oldPincode, newPincode]);
+const allSelectedValues = new Set(Object.values(selectedAddons) || []);
+const hasPlusVariant = {
+  ic:  allSelectedValues.has("icp"),
+  cs:  allSelectedValues.has("csp"),
+  opd: allSelectedValues.has("opdp"),
+};
 
 
   const handleProceed = () => {
@@ -117,7 +124,7 @@ export default function SummaryCard({
   };
   const priceChangeReason = `The PIN code in your address is different from the PIN code you chose while taking quote. Hence, the total premium is revised.`;
   return (
-    <div className="w-full lg:w-[415px] bg-white rounded-2xl shadow-sm p-6 text-sm self-start">
+    <div className="w-full lg:w-[415px] bg-white rounded-[32px] shadow-sm p-6 text-sm self-start">
       <h2 className="text-base font-semibold text-[#003366] mb-1">Summary</h2>
 
       <div className="flex items-center justify-between text-sm font-semibold text-black mb-3">
@@ -172,38 +179,66 @@ export default function SummaryCard({
             Selected Optional Add-Ons
           </p>
           <div className="space-y-1 text-gray-700">
-            {Object.entries(selectedAddons).map(([k, key]) => {
-              if (
-                (key === "1" || key === "2") &&
-                Object.values(selectedAddons).includes("ped")
-              ) {
-                return null;
-              }
+           {Object.entries(selectedAddons).map(([k, key]) => {
+            if (key === "ncb" && Object.values(selectedAddons).includes("cbb")) {
+    return null;
+  }
+            
+  if (
+    (key === "ic" && hasPlusVariant.ic) ||
+    (key === "cs" && hasPlusVariant.cs) ||
+    (key === "opd" && hasPlusVariant.opd)
+  ) {
+    return null;
+  }
 
-              let addonKey = key;
-              let rightSide = formatPrice(addons[key]);
+  if (
+    (key === "1" || key === "2") &&
+    Object.values(selectedAddons).includes("ped")
+  ) {
+    return null;
+  }
 
-              if (key === "ped") {
-                const pedDurationEntry = Object.entries(selectedAddons).find(
-                  ([_, val]) => val === "1" || val === "2"
-                );
+  let rightSide;
 
-                if (pedDurationEntry?.[1] === "1") {
-                  rightSide = "1 Year";
-                } else if (pedDurationEntry?.[1] === "2") {
-                  rightSide = "2 Years";
-                } else {
-                  rightSide = "Duration Not Set";
-                }
-              }
+  if (key === "icp") {
+    rightSide = formatPrice(addons["ic"] || 0);
+  } else if (key === "csp") {
+    rightSide = formatPrice(addons["cs"] || 0);
+  } else if (key === "opdp") {
+    rightSide = formatPrice(addons["opd"] || 0);
+  } 
+   else if (key === "cbb") {
+    rightSide = formatPrice(addons["ncb"] || 0);
+  }
+  
+  else {
+    rightSide = formatPrice(addons[key] || 0);
+  }
+  
 
-              return (
-                <div className="flex justify-between" key={k}>
-                  <span>{fullAddonsName[addonKey] || addonKey}</span>
-                  <span>{rightSide}</span>
-                </div>
-              );
-            })}
+  if (key === "ped") {
+    const pedDurationEntry = Object.entries(selectedAddons).find(
+      ([_, val]) => val === "1" || val === "2"
+    );
+
+    if (pedDurationEntry?.[1] === "1") {
+      rightSide = "1 Year";
+    } else if (pedDurationEntry?.[1] === "2") {
+      rightSide = "2 Years";
+    } else {
+      rightSide = "Duration Not Set";
+    }
+  }
+
+  return (
+    <div className="flex justify-between" key={k}>
+       <span>{key === "ncb" ? "CB SUPER" : fullAddonsName[key] || key}</span>
+      <span>{rightSide}</span>
+    </div>
+  );
+})}
+
           </div>
         </>
       )}

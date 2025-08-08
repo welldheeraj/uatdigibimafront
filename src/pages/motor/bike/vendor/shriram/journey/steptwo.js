@@ -19,6 +19,7 @@ export default function StepTwoForm({
   prevInsurdata,
 }) {
   console.log("motor type wqeewreewrrerwe",bikedata)
+  console.log("motor type journeydata",journeydata)
   //  const policyDetails = JSON.parse(journeydata.pre_policy_details || "{}");
   // console.log("prevInsuranceId as string:", String(policyDetails.prevInsuranceId));
   console.log(bankdata);
@@ -28,6 +29,7 @@ export default function StepTwoForm({
   const { handleSubmit, control, register, setValue, formState } = step2Form;
 
   useEffect(() => {
+     console.log("bike pre poli",bikedata)
     if (bikedata?.prepolitype == "bundled") {
       setValue("policyfdate", bikedata.bdfromdate || "");
       setValue("policytodate", bikedata.bdtodate || "");
@@ -49,9 +51,9 @@ export default function StepTwoForm({
       setValue("policytodate", bikedata.tptodate || "");
     }
 
-    if (bikedata?.prepolitype)
-      setValue("policytype", bikedata.prepolitype.toUpperCase());
-    //  console.log(bikedata)
+     if (bikedata?.prepolitype) {
+        setValue("policytype", bikedata.prepolitype.toUpperCase());
+      }
   },[bikedata, setValue]);
 
   useEffect(() => {
@@ -79,10 +81,10 @@ export default function StepTwoForm({
     setValue("enginenumber", vehicleDetails.Enginenumber || "");
     setValue("chassisnumber", vehicleDetails.Chassisnumber || "");
     setValue("prevInsurance", policyDetails.prevInsuranceId || "");
-    setValue(
-      "policytype",
-      policyDetails.policytype || bikedata?.prepolitype?.toUpperCase() || ""
-    );
+    // setValue(
+    //   "policytype",
+    //   policyDetails.policytype || bikedata?.prepolitype?.toUpperCase() || ""
+    // );
     setValue("policynumber", policyDetails.policynumber || "");
     // setValue("policyfdate", policyDetails.policyfdate || "");
     // setValue("policytodate", policyDetails.policytodate || "");

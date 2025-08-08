@@ -9,7 +9,6 @@ import constant from "@/env";
 import { format, parse } from "date-fns";
 import { Controller } from "react-hook-form";
 
-
 export default function StepOneForm({
   step1Form,
   kycType,
@@ -41,7 +40,7 @@ export default function StepOneForm({
   setIsOtherKycHidden,
   setQuoteData,
   setOldPincode,
-  setNewPincode
+  setNewPincode,
 }) {
   const isPanAlreadyVerified = isPanVerified;
   const [dates, setDates] = useState({
@@ -57,20 +56,89 @@ export default function StepOneForm({
 
   const [fetchedPincode, setFetchedPincode] = useState("");
   const [hasUserChangedPin, setHasUserChangedPin] = useState(false);
-  
 
   // STATES TO HIDE KYC SECTIONS
 
   const handleDateChange = useCallback(
     (key, field) => (date) => {
-      const formatted = format(date, "dd-MM-yyyy");
-      setDates((prev) => ({ ...prev, [key]: date }));
-      step1Form.setValue(field, formatted, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
+      if (date instanceof Date && !isNaN(date)) {
+        const formatted = format(date, "dd-MM-yyyy");
+        // field.onChange(formatted);
+
+        // const formatted = format(date, "dd-MM-yyyy");
+        setDates((prev) => ({ ...prev, [key]: date }));
+        step1Form.setValue(field, formatted, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
     },
     [step1Form]
+  );
+  const handlePincodeInput = useCallback(
+    async (e) => {
+      const value = e.target.value.trim();
+      const fieldId = e.target.name || e.target.id;
+
+      if (!/^\d{6}$/.test(value)) return;
+
+      try {
+        const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {
+          pincode: value,
+        });
+
+        if (res?.length > 0) {
+          const { state, district } = res[0];
+
+          if (fieldId === "Pincode") {
+            step1Form.setValue("City", district);
+            step1Form.setValue("State", state);
+
+            if (!fetchedPincode) {
+              setFetchedPincode(value);
+              setOldPincode(value);
+              setHasUserChangedPin(false);
+            } else if (value !== fetchedPincode) {
+              setHasUserChangedPin(true);
+              step1Form.setValue("newpincode", value);
+              setNewPincode(value);
+
+              try {
+                const quoteResponse = await CallApi(
+                  constant.API.HEALTH.CARESUPEREME.CHANGEPINCODE,
+                  "POST",
+                  { newpincode: value }
+                );
+                console.log("CHANGEPINCODE Response:", quoteResponse);
+                if (quoteResponse?.status) {
+                  setQuoteData({
+                    totalpremium: quoteResponse.totalpremium,
+                    basepremium: quoteResponse.basepremium,
+                    coverage: quoteResponse.coverage,
+                  });
+                }
+              } catch (error) {
+                console.error("CHANGEPINCODE error:", error);
+              }
+            }
+          } else if (fieldId === "commcurrentPincode") {
+            step1Form.setValue("commcurrentCity", district);
+            step1Form.setValue("commcurrentState", state);
+          }
+        } else {
+          if (fieldId === "Pincode") {
+            step1Form.setValue("City", "");
+            step1Form.setValue("State", "");
+          } else if (fieldId === "commcurrentPincode") {
+            step1Form.setValue("commcurrentCity", "");
+            step1Form.setValue("commcurrentState", "");
+          }
+        }
+      } catch (error) {
+        console.error("Pincode API Error:", error);
+      }
+    },
+    [fetchedPincode, step1Form, setOldPincode, setNewPincode, setQuoteData]
   );
 
   useEffect(() => {
@@ -205,7 +273,11 @@ export default function StepOneForm({
   ]);
 
   useEffect(() => {
-    if (!verifiedData || Object.keys(verifiedData).length === 0 || isVerifiedPrefilled)
+    if (
+      !verifiedData ||
+      Object.keys(verifiedData).length === 0 ||
+      isVerifiedPrefilled
+    )
       return;
 
     const set = step1Form.setValue;
@@ -270,69 +342,24 @@ export default function StepOneForm({
     address: ["AADHAR", "PASSPORT", "VOTER ID", "DRIVING LICENSE", "FORM 60"],
   };
 
-  const handlePincodeInput = useCallback(
-    async (e) => {
-      const value = e.target.value.trim();
-      const fieldId = e.target.name || e.target.id;
-
-      if (!/^\d{6}$/.test(value)) return;
-
-      try {
-        const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", { pincode: value });
-
-        if (res?.length > 0) {
-          const { state, district } = res[0];
-
-          if (fieldId === "Pincode") {
-            step1Form.setValue("City", district);
-            step1Form.setValue("State", state);
-
-            if (!fetchedPincode) {
-              setFetchedPincode(value);
-              setOldPincode(value);
-              setHasUserChangedPin(false);
-            } else if (value !== fetchedPincode) {
-              setHasUserChangedPin(true);
-              step1Form.setValue("newpincode", value);
-              setNewPincode(value);
-
-              try {
-                const quoteResponse = await CallApi(
-                  constant.API.HEALTH.CARESUPEREME.CHANGEPINCODE,
-                  "POST",
-                  { newpincode: value }
-                );
-                console.log("CHANGEPINCODE Response:", quoteResponse);
-                if (quoteResponse?.status) {
-                  setQuoteData({
-                    totalpremium: quoteResponse.totalpremium,
-                    basepremium: quoteResponse.basepremium,
-                    coverage: quoteResponse.coverage,
-                  });
-                }
-              } catch (error) {
-                console.error("CHANGEPINCODE error:", error);
-              }
-            }
-          } else if (fieldId === "commcurrentPincode") {
-            step1Form.setValue("commcurrentCity", district);
-            step1Form.setValue("commcurrentState", state);
-          }
-        } else {
-          if (fieldId === "Pincode") {
-            step1Form.setValue("City", "");
-            step1Form.setValue("State", "");
-          } else if (fieldId === "commcurrentPincode") {
-            step1Form.setValue("commcurrentCity", "");
-            step1Form.setValue("commcurrentState", "");
-          }
-        }
-      } catch (error) {
-        console.error("Pincode API Error:", error);
-      }
-    },
-    [fetchedPincode, step1Form, setOldPincode, setNewPincode, setQuoteData]
-  );
+  useEffect(() => {
+  const unregister = step1Form.unregister;
+  if (kycType !== "PAN Card") {
+    unregister("customerpancardno");
+    unregister("customerpancardDob");
+  }
+  if (kycType !== "Aadhar ( Last 4 Digits )") {
+    unregister("aadharLast4");
+    unregister("aadharName");
+    unregister("aadharDob");
+    unregister("aadharGender");
+  }
+  if (kycType !== "Others") {
+    unregister("identityProof");
+    unregister("addressProof");
+    // optional: unregister file upload fields too
+  }
+}, [kycType, step1Form.unregister]);
 
 
   return (
@@ -438,12 +465,14 @@ export default function StepOneForm({
                       : null
                   }
                   onChange={(date) => {
-                    const formatted = date ? format(date, "dd-MM-yyyy") : "";
-                    field.onChange(formatted);
-                    handleDateChange(
-                      "customerpancardno",
-                      "customerpancardDob"
-                    )(date);
+                    if (date instanceof Date && !isNaN(date)) {
+                      const formatted = format(date, "dd-MM-yyyy");
+                      field.onChange(formatted);
+                    }
+                    // handleDateChange(
+                    //   "customerpancardno",
+                    //   "customerpancardDob"
+                    // )(date);
                   }}
                   error={!!fieldState.error}
                   errorText={fieldState.error?.message}
@@ -512,7 +541,12 @@ export default function StepOneForm({
                 id="aadharDob"
                 name="aadharDob"
                 value={dates.aadhar}
-                onChange={handleDateChange("aadhar", "aadharDob")}
+                onChange={(date) => {
+                  if (date instanceof Date && !isNaN(date)) {
+                    const formatted = format(date, "dd-MM-yyyy");
+                    handleDateChange("aadhar", "aadharDob");
+                  }
+                }}
                 placeholder="Pick a start date"
                 error={!dates.aadhar}
                 errorText="Please select a valid date"
@@ -614,7 +648,7 @@ export default function StepOneForm({
       {kycVerified && (
         <div className="space-y-2">
           <label className="block font-semibold text-sm">
-             Proposer&apos;s details:
+            Proposer&apos;s details:
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
@@ -650,9 +684,11 @@ export default function StepOneForm({
                         : null
                     }
                     onChange={(date) => {
-                      const formatted = format(date, "dd-MM-yyyy");
-                      setDates((prev) => ({ ...prev, proposal: date }));
-                      field.onChange(formatted);
+                      if (date instanceof Date && !isNaN(date)) {
+                        const formatted = format(date, "dd-MM-yyyy");
+                        setDates((prev) => ({ ...prev, proposal: date }));
+                        field.onChange(formatted);
+                      }
                     }}
                     placeholder="Pick a date"
                     error={!!fieldState.error}

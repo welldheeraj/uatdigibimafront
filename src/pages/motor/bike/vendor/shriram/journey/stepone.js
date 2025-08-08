@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect,useCallback  } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { isAlpha, isNumber } from "@/styles/js/validation";
 import { FiLoader } from "react-icons/fi";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -40,10 +40,10 @@ export default function StepOneForm({
   sameAddress,
   setSameAddress,
   journeydata,
-    userinfodata,
+  userinfodata,
   // fileNames,
   // setFileNames,
-   isPanKycHidden,
+  isPanKycHidden,
   setIsPanKycHidden,
   isAadharKycHidden,
   setIsAadharKycHidden,
@@ -51,7 +51,7 @@ export default function StepOneForm({
   setIsOtherKycHidden,
 }) {
   //  console.log("step One data",journeydata);
-  console.log("car data aa gya", bikedata);
+  console.log("car data aa gya", journeydata);
   // const [proofs, setProofs] = useState({});
   const [mediaPreview, setMediaPreview] = useState(null);
 
@@ -68,16 +68,16 @@ export default function StepOneForm({
     proposal: "",
   });
 
-const handleDateChange = useCallback(
-  (key, field) => (date) => {
-    const formatted = format(date, "dd-MM-yyyy");
-    setDates((prev) => ({ ...prev, [key]: date }));
-    step1Form.setValue(field, formatted, { shouldValidate: true });
-  },
-  [step1Form] // Dependencies
-);
+  const handleDateChange = useCallback(
+    (key, field) => (date) => {
+      const formatted = format(date, "dd-MM-yyyy");
+      setDates((prev) => ({ ...prev, [key]: date }));
+      step1Form.setValue(field, formatted, { shouldValidate: true });
+    },
+    [step1Form] // Dependencies
+  );
 
-   const hasPrefilledUsersData = React.useRef(false);
+  const hasPrefilledUsersData = React.useRef(false);
   useEffect(() => {
     if (!kycData) return;
 
@@ -108,7 +108,7 @@ const handleDateChange = useCallback(
         setIsOtherKycHidden(true);
       }
     }
-      // console.log(usersData)
+    // console.log(usersData)
     const formatted = typeMap[kycData?.kyctype?.toLowerCase()];
     if (formatted) {
       setKycType(formatted);
@@ -116,28 +116,43 @@ const handleDateChange = useCallback(
 
       setKycVerified(true);
     }
-  },  [
-  kycData,
-  setKycType,
-  step1Form,
-  setKycVerified,
-  setIsPanVerified,
-  setIsPanKycHidden,
-  setIsAadharKycHidden,
-  setIsOtherKycHidden,
-]);
-
-    useEffect(() => {
-      if (!userinfodata) return;
-      if(bikedata?.under == "individual"){
-        step1Form.setValue("proposaldob", userinfodata.userdob || "");
-      step1Form.setValue("name", userinfodata.username || "");
-      }
-    },  [userinfodata, bikedata?.under, step1Form]);
+  }, [
+    kycData,
+    setKycType,
+    step1Form,
+    setKycVerified,
+    setIsPanVerified,
+    setIsPanKycHidden,
+    setIsAadharKycHidden,
+    setIsOtherKycHidden,
+  ]);
 
   useEffect(() => {
-     if (!usersData || hasPrefilledUsersData.current) return;
+    if (!userinfodata) return;
+    if (bikedata?.under == "individual") {
+      step1Form.setValue("proposaldob", userinfodata.userdob || "");
+      step1Form.setValue("name", userinfodata.username || "");
+    }
+  }, [userinfodata, bikedata?.under, step1Form]);
 
+      useEffect(() => {
+    if (!journeydata) return;
+    if (bikedata?.under == "company") {
+      
+  const safeParse = (val) => { try { return val ? JSON.parse(val) : {}; } catch {
+            return {};}};
+      const company = safeParse(journeydata.company_details);
+      console.log("company data",company)
+          step1Form.setValue("ms", company.ms || "");
+          step1Form.setValue("companyname", company.companyname || "");
+          step1Form.setValue("dobincorporation", company.dobincorporation || "");
+          step1Form.setValue("gstnumber", company.gstnumber || "");
+
+    }
+  }, [journeydata, bikedata?.under, step1Form]);
+
+  useEffect(() => {
+    if (!usersData || hasPrefilledUsersData.current) return;
 
     const set = step1Form.setValue;
 
@@ -155,20 +170,19 @@ const handleDateChange = useCallback(
       pincode: "pincode",
     };
 
-    // Object.entries(directFields).forEach(([formKey, userKey]) => {
-    //   if (usersData[userKey]) {
-    //     set(formKey, usersData[userKey], { shouldValidate: true });
-    //   }
-    //   if (formKey === "pincode") {
-    //     handlePincodeInput({
-    //       target: { name: "pincode", value: usersData[userKey] },
-    //     });
-    //   }
-    // });
+    Object.entries(directFields).forEach(([formKey, userKey]) => {
+      if (usersData[userKey]) {
+        set(formKey, usersData[userKey], { shouldValidate: true });
+      }
+      if (formKey === "pincode") {
+        handlePincodeInput({
+          target: { name: "pincode", value: usersData[userKey] },
+        });
+      }
+    });
 
-   
     step1Form.setValue("email", usersData.email || "");
-  }, [usersData,step1Form]);
+  }, [usersData, step1Form]);
 
   const isPanAlreadyVerified = isPanVerified;
 
@@ -224,7 +238,7 @@ const handleDateChange = useCallback(
         }
       );
     }
-  },[verifieddata, handleDateChange, setSameAddress, step1Form]);
+  }, [verifieddata, handleDateChange, setSameAddress, step1Form]);
 
   useEffect(() => {
     if (!sameAddress) return;
@@ -260,7 +274,7 @@ const handleDateChange = useCallback(
     });
 
     return () => subscription.unsubscribe();
-  }, [sameAddress,step1Form]);
+  }, [sameAddress, step1Form]);
 
   const fields = {
     identity: [
@@ -274,14 +288,14 @@ const handleDateChange = useCallback(
     address: ["AADHAR", "PASSPORT", "VOTER ID", "DRIVING LICENSE", "FORM 60"],
   };
   const proofValidationRules = {
-  AADHAR: { maxLength: 4, inputMode: "numeric", pattern: "\\d*" },
-  PAN: { maxLength: 10, inputMode: "text", pattern: "[A-Z0-9]*" },
-  PASSPORT: { maxLength: 9, inputMode: "text" },
-  VOTERID: { maxLength: 12, inputMode: "text" },
-  "VOTER ID": { maxLength: 12, inputMode: "text" },
-  "DRIVING LICENSE": { maxLength: 16, inputMode: "text" },
-  "FORM 60": { maxLength: 10, inputMode: "text" },
-};
+    AADHAR: { maxLength: 4, inputMode: "numeric", pattern: "\\d*" },
+    PAN: { maxLength: 10, inputMode: "text", pattern: "[A-Z0-9]*" },
+    PASSPORT: { maxLength: 9, inputMode: "text" },
+    VOTERID: { maxLength: 12, inputMode: "text" },
+    "VOTER ID": { maxLength: 12, inputMode: "text" },
+    "DRIVING LICENSE": { maxLength: 16, inputMode: "text" },
+    "FORM 60": { maxLength: 10, inputMode: "text" },
+  };
   const handlePincodeInput = async (e) => {
     const value = e.target.value;
     const fieldId = e.target.name || e.target.id;
@@ -312,55 +326,64 @@ const handleDateChange = useCallback(
   };
 
   useEffect(() => {
-  if (journeydata && Object.keys(journeydata).length > 0) {
-    const safeParse = (val) => {
-      try {
-        return val ? JSON.parse(val) : {};
-      } catch {
-        return {};
+    if (journeydata && Object.keys(journeydata).length > 0) {
+      const safeParse = (val) => {
+        try {
+          return val ? JSON.parse(val) : {};
+        } catch {
+          return {};
+        }
+      };
+
+      if (journeydata.under === "individual") {
+        // step1Form.setValue("name", journeydata.name || "");
+        // step1Form.setValue("proposaldob", journeydata.dob || "");
       }
-    };
+      step1Form.setValue("mr_ms_gender", journeydata.gender || "");
+      step1Form.setValue("proposername", journeydata.name || "" || "");
 
-     if (journeydata.under === "individual") {
-    // step1Form.setValue("name", journeydata.name || "");
-    // step1Form.setValue("proposaldob", journeydata.dob || "");
-     }
-       step1Form.setValue("mr_ms_gender", journeydata.gender || "");
-    step1Form.setValue("proposername",journeydata.name || "" || "");
-  
       step1Form.setValue("proposerdob1", journeydata.dob || "");
-    const contact = safeParse(journeydata.contact_details);
-    step1Form.setValue("contactmobile", contact.contactmobile || "");
-    step1Form.setValue("contactemergency", contact.contactemergency || "");
+      const contact = safeParse(journeydata.contact_details);
+      // step1Form.setValue("contactmobile", contact.contactmobile || "");
+      step1Form.setValue("contactemergency", contact.contactemergency || "");
 
-    const address = safeParse(journeydata.permanent_address);
-    step1Form.setValue("address", address.address1 || "");
-    step1Form.setValue("colony", address.address2 || "");
-    step1Form.setValue("landmark", address.landmark || "");
-    step1Form.setValue("city", address.city || "");
-    step1Form.setValue("state", address.state || "");
-    step1Form.setValue("pincode", address.pincode || "");
+      const address = safeParse(journeydata.permanent_address);
+      step1Form.setValue("address", address.address1 || "");
+      step1Form.setValue("colony", address.address2 || "");
+      step1Form.setValue("landmark", address.landmark || "");
+      step1Form.setValue("city", address.city || "");
+      step1Form.setValue("state", address.state || "");
+      step1Form.setValue("pincode", address.pincode || "");
 
-    const comm = safeParse(journeydata.comunication_address);
-    step1Form.setValue("commcurrenthouse", comm.commcurrenthouse || "");
-    step1Form.setValue("commcurrentcolony", comm.commcurrentcolony || "");
-    step1Form.setValue("commcurrentlandmark", comm.commcurrentlandmark || "");
-    step1Form.setValue("commcurrentcity", comm.commcurrentcity || "");
-    step1Form.setValue("commcurrentstate", comm.commcurrentstate || "");
-    step1Form.setValue("commcurrentpincode", comm.commcurrentpincode || "");
+      const comm = safeParse(journeydata.comunication_address);
+      step1Form.setValue("commcurrenthouse", comm.commcurrenthouse || "");
+      step1Form.setValue("commcurrentcolony", comm.commcurrentcolony || "");
+      step1Form.setValue("commcurrentlandmark", comm.commcurrentlandmark || "");
+      step1Form.setValue("commcurrentcity", comm.commcurrentcity || "");
+      step1Form.setValue("commcurrentstate", comm.commcurrentstate || "");
+      step1Form.setValue("commcurrentpincode", comm.commcurrentpincode || "");
 
-
-    // You can also handle company details conditionally
-    if (journeydata.under === "company") {
-      const company = safeParse(journeydata.company_details);
-      step1Form.setValue("ms", company.ms || "");
-      step1Form.setValue("companyname", company.companyname || "");
-      step1Form.setValue("dobincorporation", company.dobincorporation || "");
-      step1Form.setValue("gstnumber", company.gstnumber || "");
+     
     }
-  }
-}, [journeydata,step1Form]);
-
+  }, [journeydata, step1Form]);
+      useEffect(() => {
+      const unregister = step1Form.unregister;
+      if (kycType !== "PAN Card") {
+        unregister("pancardno");
+        unregister("pancardDob");
+      }
+      if (kycType !== "Aadhar ( Last 4 Digits )") {
+        unregister("aadharno");
+        unregister("aadharName");
+        unregister("aadharDob");
+        unregister("aadhargender");
+      }
+      if (kycType !== "Others") {
+        unregister("identityProof");
+        unregister("addressProof");
+        // optional: unregister file upload fields too
+      }
+    }, [kycType, step1Form.unregister]);
 
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -369,50 +392,50 @@ const handleDateChange = useCallback(
       </h2>
       <p className="text-gray-500">We’ll begin with some basic information.</p>
       <input type="hidden" {...step1Form.register("step")} value="one" />
-   {bikedata?.under === "individual" && (
+      {bikedata?.under === "individual" && (
         <div>
           <label className="block font-semibold cursor-pointer">
             Name & DOB *
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-             <input
-        {...step1Form.register("name", {
-          required:
-            bikedata?.under === "individual"
-              ? "Name is required"
-              : false,
-        })}
-        placeholder="Full Name as per your ID Card"
-        className={inputClass}
-      />
-
-            <Controller
-              control={step1Form.control}
-              name="proposaldob"
-              rules={
-                bikedata?.under === "individual"
-                  ? { required: "Please select a valid date" }
-                  : {}
-              }
-              render={({ field, fieldState }) => (
-                <UniversalDatePicker
-                  id="proposaldob"
-                  name="proposaldob"
-                  className={inputClass}
-                  value={
-                    field.value
-                      ? parse(field.value, "dd-MM-yyyy", new Date())
-                      : null
-                  }
-                  onChange={(date) =>
-                    field.onChange(date ? format(date, "dd-MM-yyyy") : "")
-                  }
-                  placeholder="Pick a date"
-                  error={!!fieldState.error}
-                  errorText={fieldState.error?.message}
-                />
-              )}
+            <input
+              {...step1Form.register("name", {
+                required:
+                  bikedata?.under === "individual" ? "Name is required" : false,
+              })}
+              placeholder="Full Name as per your ID Card"
+              className={inputClass}
             />
+
+<Controller
+  control={step1Form.control}
+  name="proposaldob"
+  rules={
+    bikedata?.under === "individual"
+      ? { required: "Please select a valid date" }
+      : {}
+  }
+  render={({ field, fieldState }) => (
+    <UniversalDatePicker
+      id="proposaldob"
+      name="proposaldob"
+      className={inputClass}
+      value={field.value ? parse(field.value, "dd-MM-yyyy", new Date()) : null}
+      onChange={(date) => {
+        const formatted = format(date, "dd-MM-yyyy");
+        field.onChange(formatted); // string store
+        handleDateChange(formatted)
+        setDates((prev) => ({ ...prev, proposaldob: date }));
+      }}
+      placeholder="Pick a date"
+      error={!!fieldState.error}
+      errorText={fieldState.error?.message}
+    />
+  )}
+/>
+
+
+
           </div>
         </div>
       )}
@@ -485,7 +508,6 @@ const handleDateChange = useCallback(
           </div>
         </div>
       )}
-
 
       <label className="block font-semibold cursor-pointer">Proposer KYC</label>
       <div className="flex flex-col sm:flex-row gap-3">
@@ -634,228 +656,237 @@ const handleDateChange = useCallback(
           </div>
         </div>
       )}
-       {kycType === "Others" && !isOtherKycHidden && (
-  <div className="space-y-6">
-    {/* Father's Name */}
-    <div className="max-w-xs w-full">
-      <label className="labelcls">Father&apos;s Name</label>
-      <input
-        type="text"
-        className={inputClass}
-        value={proofs.fatherName || ""}
-        onChange={(e) =>
-          setProofs({ ...proofs, fatherName: e.target.value })
-        }
-        placeholder="Father Name"
-        required
-      />
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* Identity & Address Proofs */}
-      {Object.entries(fields).map(([type, options]) => (
-        <div key={type}>
-          <label className="labelcls uppercase">{type} Proof Type</label>
-
-          {/* Select Dropdown */}
-          <select
-            className={inputClass}
-            value={proofs[type] || ""}
-            onChange={(e) => {
-              const selected = e.target.value;
-              const previousProofType = proofs[type];
-              const updatedProofs = { ...proofs, [type]: selected };
-
-              if (previousProofType && previousProofType !== selected) {
-                updatedProofs[`${type}Value`] = "";
-                setFileNames((prev) => {
-                  const newFiles = { ...prev };
-                  delete newFiles[`${type}-${previousProofType}`];
-                  return newFiles;
-                });
+      {kycType === "Others" && !isOtherKycHidden && (
+        <div className="space-y-6">
+          {/* Father's Name */}
+          <div className="max-w-xs w-full">
+            <label className="labelcls">Father&apos;s Name</label>
+            <input
+              type="text"
+              className={inputClass}
+              value={proofs.fatherName || ""}
+              onChange={(e) =>
+                setProofs({ ...proofs, fatherName: e.target.value })
               }
+              placeholder="Father Name"
+              required
+            />
+          </div>
 
-              setProofs(updatedProofs);
-            }}
-          >
-            <option value="">Select Type</option>
-            {options.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Identity & Address Proofs */}
+            {Object.entries(fields).map(([type, options]) => (
+              <div key={type}>
+                <label className="labelcls uppercase">{type} Proof Type</label>
 
-          {/* File Upload + Input */}
-          {proofs[type] && (
-            <div className="mt-2 space-y-2">
-              <label
-                htmlFor={`${type}-${proofs[type]}`}
-                className="block w-full cursor-pointer border border-gray-300 p-2 rounded-md flex items-center justify-between bg-gray-100 hover:bg-gray-200 overflow-hidden"
-              >
-                <span className="truncate block w-full text-sm text-gray-700">
-                  Selected:{" "}
-                  <span title={fileNames[`${type}-${proofs[type]}`]}>
-                    {fileNames[`${type}-${proofs[type]}`]?.slice(0, 30) ||
-                      "Choose File"}
-                    {fileNames[`${type}-${proofs[type]}`]?.length > 30 ? "..." : ""}
-                  </span>
-                </span>
-                <Image
-                  src={dummyUploadimage}
-                  className="h-5 w-5 ml-2 flex-shrink-0"
-                  alt="Upload"
-                />
-              </label>
+                {/* Select Dropdown */}
+                <select
+                  className={inputClass}
+                  value={proofs[type] || ""}
+                  onChange={(e) => {
+                    const selected = e.target.value;
+                    const previousProofType = proofs[type];
+                    const updatedProofs = { ...proofs, [type]: selected };
 
-              <input
-                type="file"
-                id={`${type}-${proofs[type]}`}
-                className="hidden"
-                onChange={(e) =>
-                  setFileNames({
-                    ...fileNames,
-                    [`${type}-${proofs[type]}`]:
-                      e.target.files?.[0]?.name || "",
-                  })
-                }
-              />
-
-              <input
-                type="text"
-                placeholder={
-                  proofs[type] === "AADHAR"
-                    ? "AADHAR NO. (LAST 4 DIGIT)"
-                    : `${proofs[type]} NO`
-                }
-                className={inputClass}
-                maxLength={
-                  proofValidationRules[proofs[type]]?.maxLength || undefined
-                }
-                inputMode={
-                  proofValidationRules[proofs[type]]?.inputMode || "text"
-                }
-                pattern={
-                  proofValidationRules[proofs[type]]?.pattern || undefined
-                }
-                value={proofs[`${type}Value`] || ""}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  const rules = proofValidationRules[proofs[type]] || {};
-
-                  if (proofs[type] === "AADHAR") {
-                    if (/^\d{0,4}$/.test(value)) {
-                      setProofs({ ...proofs, [`${type}Value`]: value });
-                    }
-                  } else if (proofs[type] === "PAN") {
-                    if (/^[A-Z0-9]{0,10}$/i.test(value)) {
-                      setProofs({
-                        ...proofs,
-                        [`${type}Value`]: value.toUpperCase(),
+                    if (previousProofType && previousProofType !== selected) {
+                      updatedProofs[`${type}Value`] = "";
+                      setFileNames((prev) => {
+                        const newFiles = { ...prev };
+                        delete newFiles[`${type}-${previousProofType}`];
+                        return newFiles;
                       });
                     }
-                  } else {
-                    setProofs({ ...proofs, [`${type}Value`]: value });
-                  }
-                }}
-              />
+
+                    setProofs(updatedProofs);
+                  }}
+                >
+                  <option value="">Select Type</option>
+                  {options.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+
+                {/* File Upload + Input */}
+                {proofs[type] && (
+                  <div className="mt-2 space-y-2">
+                    <label
+                      htmlFor={`${type}-${proofs[type]}`}
+                      className="block w-full cursor-pointer border border-gray-300 p-2 rounded-md flex items-center justify-between bg-gray-100 hover:bg-gray-200 overflow-hidden"
+                    >
+                      <span className="truncate block w-full text-sm text-gray-700">
+                        Selected:{" "}
+                        <span title={fileNames[`${type}-${proofs[type]}`]}>
+                          {fileNames[`${type}-${proofs[type]}`]?.slice(0, 30) ||
+                            "Choose File"}
+                          {fileNames[`${type}-${proofs[type]}`]?.length > 30
+                            ? "..."
+                            : ""}
+                        </span>
+                      </span>
+                      <Image
+                        src={dummyUploadimage}
+                        className="h-5 w-5 ml-2 flex-shrink-0"
+                        alt="Upload"
+                      />
+                    </label>
+
+                    <input
+                      type="file"
+                      id={`${type}-${proofs[type]}`}
+                      className="hidden"
+                      onChange={(e) =>
+                        setFileNames({
+                          ...fileNames,
+                          [`${type}-${proofs[type]}`]:
+                            e.target.files?.[0]?.name || "",
+                        })
+                      }
+                    />
+
+                    <input
+                      type="text"
+                      placeholder={
+                        proofs[type] === "AADHAR"
+                          ? "AADHAR NO. (LAST 4 DIGIT)"
+                          : `${proofs[type]} NO`
+                      }
+                      className={inputClass}
+                      maxLength={
+                        proofValidationRules[proofs[type]]?.maxLength ||
+                        undefined
+                      }
+                      inputMode={
+                        proofValidationRules[proofs[type]]?.inputMode || "text"
+                      }
+                      pattern={
+                        proofValidationRules[proofs[type]]?.pattern || undefined
+                      }
+                      value={proofs[`${type}Value`] || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const rules = proofValidationRules[proofs[type]] || {};
+
+                        if (proofs[type] === "AADHAR") {
+                          if (/^\d{0,4}$/.test(value)) {
+                            setProofs({ ...proofs, [`${type}Value`]: value });
+                          }
+                        } else if (proofs[type] === "PAN") {
+                          if (/^[A-Z0-9]{0,10}$/i.test(value)) {
+                            setProofs({
+                              ...proofs,
+                              [`${type}Value`]: value.toUpperCase(),
+                            });
+                          }
+                        } else {
+                          setProofs({ ...proofs, [`${type}Value`]: value });
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Upload Media (Photo) */}
+            <div>
+              <label className="labelcls">Upload Media</label>
+              <div className="flex flex-col gap-2 items-start">
+                <input
+                  type="file"
+                  id="media-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const objectUrl = URL.createObjectURL(file);
+                      setMediaPreview(objectUrl);
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="media-upload"
+                  className="px-4 py-2 bg-cyan-500 text-white rounded cursor-pointer"
+                >
+                  Choose Photo
+                </label>
+                {mediaPreview && (
+                  <div className="relative w-24 h-24">
+                    <Image
+                      name="insurephoto"
+                      src={mediaPreview}
+                      alt="Preview"
+                      fill
+                      className="object-cover rounded border"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      ))}
+          </div>
 
-      {/* Upload Media (Photo) */}
-      <div>
-        <label className="labelcls">Upload Media</label>
-        <div className="flex flex-col gap-2 items-start">
-          <input
-            type="file"
-            id="media-upload"
-            className="hidden"
-            onChange={(e) =>
-              setMediaPreview(URL.createObjectURL(e.target.files?.[0]))
-            }
-          />
-          <label
-            htmlFor="media-upload"
-            className="px-4 py-2 bg-cyan-500 text-white rounded cursor-pointer"
+          <button
+            type="button"
+            onClick={() => {
+              const missingFields = [];
+              const finalData = {
+                fathername: proofs.fatherName,
+                proofs: {},
+                insurephoto: mediaPreview,
+              };
+
+              if (!proofs.fatherName?.trim()) {
+                missingFields.push("Father's Name");
+              }
+
+              Object.entries(fields).forEach(([type]) => {
+                const selectedProofType = proofs[type];
+                const proofKey = `${type}-${selectedProofType}`;
+
+                if (!selectedProofType) {
+                  missingFields.push(`${type} Proof Type`);
+                } else {
+                  if (!fileNames[proofKey]) {
+                    missingFields.push(`${selectedProofType} File`);
+                  }
+                  if (!proofs[`${type}Value`]) {
+                    missingFields.push(`${selectedProofType} NO`);
+                  }
+
+                  finalData.proofs[type] = {
+                    type: selectedProofType,
+                    fileName: fileNames[proofKey],
+                    value: proofs[`${type}Value`],
+                  };
+                }
+              });
+
+              if (!mediaPreview) {
+                missingFields.push("Upload Media");
+              }
+
+              if (missingFields.length > 0) {
+                showError(`Please fill: ${missingFields.join(", ")}`);
+                return;
+              }
+
+              handleVerifyOther(finalData);
+            }}
+            className="px-4 py-2 thmbtn flex items-center gap-2"
+            disabled={loading}
           >
-            Choose Photo
-          </label>
-          {mediaPreview && (
-            <Image
-              name="insurephoto"
-              src={mediaPreview}
-              alt="Preview"
-              className="w-24 h-auto rounded border"
-            />
-          )}
+            {loading ? (
+              <>
+                <FiLoader className="animate-spin" /> Verifying...
+              </>
+            ) : (
+              "VERIFY"
+            )}
+          </button>
         </div>
-      </div>
-    </div>
-
-    <button
-      type="button"
-      onClick={() => {
-        const missingFields = [];
-        const finalData = {
-          fathername: proofs.fatherName,
-          proofs: {},
-          insurephoto: mediaPreview,
-        };
-
-        if (!proofs.fatherName?.trim()) {
-          missingFields.push("Father's Name");
-        }
-
-        Object.entries(fields).forEach(([type]) => {
-          const selectedProofType = proofs[type];
-          const proofKey = `${type}-${selectedProofType}`;
-
-          if (!selectedProofType) {
-            missingFields.push(`${type} Proof Type`);
-          } else {
-            if (!fileNames[proofKey]) {
-              missingFields.push(`${selectedProofType} File`);
-            }
-            if (!proofs[`${type}Value`]) {
-              missingFields.push(`${selectedProofType} NO`);
-            }
-
-            finalData.proofs[type] = {
-              type: selectedProofType,
-              fileName: fileNames[proofKey],
-              value: proofs[`${type}Value`],
-            };
-          }
-        });
-
-        if (!mediaPreview) {
-          missingFields.push("Upload Media");
-        }
-
-        if (missingFields.length > 0) {
-          showError(`Please fill: ${missingFields.join(", ")}`);
-          return;
-        }
-
-        handleVerifyOther(finalData);
-      }}
-      className="px-4 py-2 thmbtn flex items-center gap-2"
-      disabled={loading}
-    >
-      {loading ? (
-        <>
-          <FiLoader className="animate-spin" /> Verifying...
-        </>
-      ) : (
-        "VERIFY"
       )}
-    </button>
-  </div>
-)
-}
-
 
       {kycVerified && (
         <div className="space-y-2">
@@ -890,49 +921,49 @@ const handleDateChange = useCallback(
                 error={!dates.proposal}
                 errorText="Please select a valid date"
               /> */}
-                <Controller
-            control={step1Form.control}
-            name="proposerdob1"
-            rules={{ required: "Please select a valid date" }}
-            render={({ field, fieldState }) => (
-              <UniversalDatePicker
-                id="proposerdob1"
+              <Controller
+                control={step1Form.control}
                 name="proposerdob1"
-                className={inputClass}
-                value={
-                  field.value
-                    ? parse(field.value, "dd-MM-yyyy", new Date())
-                    : null
-                }
-                onChange={(date) =>
-                  field.onChange(date ? format(date, "dd-MM-yyyy") : "")
-                }
-                placeholder="Pick a date"
-                error={!!fieldState.error}
-                errorText={fieldState.error?.message}
+                rules={{ required: "Please select a valid date" }}
+                render={({ field, fieldState }) => (
+                  <UniversalDatePicker
+                    id="proposerdob1"
+                    name="proposerdob1"
+                    className={inputClass}
+                    value={
+                      field.value
+                        ? parse(field.value, "dd-MM-yyyy", new Date())
+                        : null
+                    }
+                    onChange={(date) =>
+                      field.onChange(date ? format(date, "dd-MM-yyyy") : "")
+                    }
+                    placeholder="Pick a date"
+                    error={!!fieldState.error}
+                    errorText={fieldState.error?.message}
+                  />
+                )}
               />
-            )}
-          />
             </div>
           </div>
         </div>
       )}
 
-       {bikedata?.under == "company" && (
-      <div>
-        <label className="block font-semibold text-sm mb-1">GST Number</label>
+      {bikedata?.under == "company" && (
+        <div>
+          <label className="block font-semibold text-sm mb-1">GST Number</label>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <input
-              type="text"
-              {...step1Form.register("gstnumber")}
-              className={inputClass}
-              placeholder="Enter GST Number"
-            />
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <input
+                type="text"
+                {...step1Form.register("gstnumber")}
+                className={inputClass}
+                placeholder="Enter GST Number"
+              />
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       <label className="block font-semibold cursor-pointer">

@@ -9,18 +9,17 @@ export default function StepFourForm({
   stepthreedata,
   step4Form,
   onSubmitStep,
-  totalPremium
+  totalPremium,
 }) {
-
   const router = useRouter();
-const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
 
-const handleEditStep = (stepNo) => {
-  console.log("Ram")
-  const currentParams = new URLSearchParams(searchParams.toString());
-  currentParams.set("step", stepNo); 
-  router.push(`/health/journey?${currentParams.toString()}`);
-};
+  const handleEditStep = (stepNo) => {
+    console.log("Ram",stepNo);
+    const currentParams = new URLSearchParams(searchParams.toString());
+    currentParams.set("step", stepNo);
+    router.push(`/health/vendors/caresupereme/journey?${currentParams.toString()}`);
+  };
 
   const proposer = stepthreedata?.proposar || {};
   const members = stepthreedata?.insures || [];
@@ -43,7 +42,6 @@ const handleEditStep = (stepNo) => {
 
       // console.log("Individual PED for", member.name, ":", individualPed);
 
-    
       individualPed.forEach((item) => {
         parsedPed.push({
           ...item,
@@ -57,7 +55,6 @@ const handleEditStep = (stepNo) => {
     console.error("Invalid PED JSON:", err);
   }
 
- 
   const medicalHistory = parsedPed.filter(
     (item) => item.did?.startsWith("1.") || item.did?.startsWith("2.")
   );
@@ -70,7 +67,7 @@ const handleEditStep = (stepNo) => {
   return (
     <form
       onSubmit={(e) => e.preventDefault()}
-      className="space-y-8 bg-[#f9fafb] p-6 min-h-screen"
+      className="space-y-8 bg-[#f9fafb] p-4 sm:p-6 min-h-screen w-full"
     >
       <div className="max-w-5xl mx-auto space-y-10">
         <h2 className="text-3xl font-bold text-gray-800">
@@ -79,7 +76,7 @@ const handleEditStep = (stepNo) => {
 
         {/* Product Details */}
         <SectionCard title="Products Details" onEdit={() => handleEditStep(1)}>
-          <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <Image
               src={`/images/health/vendorimage/Care_logo.png`}
               alt="carelogo"
@@ -90,10 +87,12 @@ const handleEditStep = (stepNo) => {
             <div className="flex-1">
               <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
                 Care Supreme —{" "}
-                <span className="text-green-600 font-bold">₹{totalPremium}</span>{" "}
+                <span className="text-green-600 font-bold">
+                  ₹{totalPremium}
+                </span>{" "}
                 Coverage
               </h3>
-             
+
               <button className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full text-sm shadow">
                 View All Benefits
               </button>
@@ -122,26 +121,35 @@ const handleEditStep = (stepNo) => {
         {/* Address */}
         <SectionCard title="Address" onEdit={() => handleEditStep(1)}>
           <p className="text-sm text-gray-600 mb-2">Permanent Address</p>
-          <div className="bg-gray-50 p-3 rounded-md border text-sm">
-            {proposer.address || "-"}
+         <div className="bg-gray-50 p-3 rounded-md border text-sm break-words whitespace-pre-wrap">
+            {(() => {
+              const addr = proposer.address || {};
+              const {address1,address2,landmark,city,state,pincode} = addr;
+              return [address1,address2,landmark,city,state,pincode && `- ${pincode}`]
+                .filter(Boolean).join(", ") || "-";}
+            )()}
           </div>
+
         </SectionCard>
 
         {/* Insured Members */}
-        <SectionCard title="Insured Members Details" onEdit={() => handleEditStep(2)}>
+        <SectionCard
+          title="Insured Members Details"
+          onEdit={() => handleEditStep(2)}
+        >
           <Table
             headers={["Name", "Age", "Height", "Weight"]}
             rows={members.map((m) => [
               m.name,
               m.age,
-              `${m.height}' ${m.inch}\"`,
+              `${m.height}' ${m.inch}"`,
               m.weight,
             ])}
           />
         </SectionCard>
 
         {/* Nominee */}
-        <SectionCard title="Nominee Details" onEdit={() => handleEditStep(1)}>
+        <SectionCard title="Nominee Details" onEdit={() => handleEditStep(2)}>
           <Table
             headers={["Name", "Relation", "Nominee DOB"]}
             rows={[
@@ -166,11 +174,11 @@ const handleEditStep = (stepNo) => {
                   constant.QUESTION.CAREDISEASE[questionId] ||
                   "Unknown Question";
                 return (
-                  <div key={i} className="mb-4">
+                  <div key={i} className="mb-4 overflow-x-auto">
                     <p className="font-medium text-sm text-gray-700">
                       {questionText}
                     </p>
-                    <table className="w-full text-sm mt-2 border border-gray-200">
+                    <table className="w-full text-sm mt-2 border border-gray-200 min-w-[500px]">
                       <thead className="bg-gray-100">
                         <tr>
                           <th className="p-2 border">Patient Name</th>
@@ -206,11 +214,11 @@ const handleEditStep = (stepNo) => {
                   constant.QUESTION.LIFESTYLE[questionId] ||
                   "Unknown Lifestyle Question";
                 return (
-                  <div key={i} className="mb-4">
+                  <div key={i} className="mb-4 overflow-x-auto">
                     <p className="font-medium text-sm text-gray-700">
                       {questionText}
                     </p>
-                    <table className="w-full text-sm mt-2 border border-gray-200">
+                    <table className="w-full text-sm mt-2 border border-gray-200 min-w-[500px]">
                       <thead className="bg-gray-100">
                         <tr>
                           <th className="p-2 border">Patient Name</th>
@@ -238,8 +246,6 @@ const handleEditStep = (stepNo) => {
             )}
           </div>
         </SectionCard>
-
-      
       </div>
     </form>
   );
@@ -247,16 +253,19 @@ const handleEditStep = (stepNo) => {
 
 function SectionCard({ title, children, onEdit }) {
   return (
-    <div className="relative bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition">
+    <div className="relative bg-white shadow-md rounded-xl p-4 sm:p-6 hover:shadow-lg transition w-full overflow-x-auto">
       {onEdit && (
-        <button 
-        onClick={onEdit}
-        className="absolute top-4 right-4 text-indigo-600 hover:text-indigo-800 transition text-sm flex items-center gap-1">
+        <button
+          onClick={onEdit}
+          className="absolute top-4 right-4 text-indigo-600 hover:text-indigo-800 transition text-sm flex items-center gap-1"
+        >
           <FiEdit className="w-4 h-4" />
           Edit
         </button>
       )}
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
+      <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 break-words">
+        {title}
+      </h3>
       {children}
     </div>
   );
@@ -276,7 +285,6 @@ function GridDetail({ items }) {
     </div>
   );
 }
-
 
 function Table({ headers, rows }) {
   return (

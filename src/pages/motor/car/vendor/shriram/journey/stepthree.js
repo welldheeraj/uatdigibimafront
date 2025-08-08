@@ -15,6 +15,7 @@ export default function StepThreeForm({
   
   // console.log("step THREE data",journeydata);
   const [dates, setDates] = useState({});
+  const [isMinor, setIsMinor] = useState(false);
     const handleDateChange = (key, fieldNameInForm) => (date) => {
       if (!date || isNaN(date)) return;
   
@@ -28,7 +29,35 @@ export default function StepThreeForm({
       step3Form.setValue(fieldNameInForm, formatted, {
         shouldValidate: true,
       });
+         // Check if the nominee is a minor (under 18 years old)
+      const age = calculateAge(date);
+      setIsMinor(age < 18); 
     };
+
+      const calculateAge = (dob) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const month = today.getMonth();
+    if (month < birthDate.getMonth() || (month === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+useEffect(() => {
+  if (isMinor) {
+    step3Form.register("appointeename", {
+      required: "Appointee Name is required",
+    });
+    step3Form.register("appointeerelation", {
+      required: "Please select the appointee relation",
+    });
+  } else {
+    step3Form.unregister("appointeename");
+    step3Form.unregister("appointeerelation");
+  }
+}, [isMinor, step3Form]);
+
 useEffect(() => {
   if (!journeydata?.nominee_details) return;
 
@@ -97,6 +126,33 @@ useEffect(() => {
           <option value="Son">Son</option>
           <option value="Daughter">Daughter</option>
         </select>
+        {/* Show Appointee fields if nominee is a minor */}
+  {isMinor && (
+    <>
+      <input
+          {...step3Form.register("appointeename", {
+            required: "Appointee Name is required",
+          })}
+          placeholder="Enter Appointee Full Name"
+          className={inputClass}
+        />
+        <select
+          {...step3Form.register("appointeerelation", {
+            required: "Please select the appointee relation",
+          })}
+          className={inputClass}
+        >
+          <option value="">Relation</option>
+    <option value="Spouse">Spouse</option>
+    <option value="Father">Father</option>
+    <option value="Mother">Mother</option>
+    <option value="Brother">Brother</option>
+    <option value="Sister">Sister</option>
+    <option value="Son">Son</option>
+    <option value="Daughter">Daughter</option>
+        </select>
+    </>  
+  )}
       </div>
      <div className="flex items-center gap-2 mt-4">
       <input

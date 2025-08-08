@@ -16,8 +16,8 @@ export default function VehicleCard({
   if (!vehicleDetails) return null;
 
   return (
-    <div className="w-full lg:w-[415px] bg-white rounded-2xl shadow-sm p-6 text-sm self-start">
-      <div className="flex items-center justify-between mb-4">
+    <>
+     <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-indigo-900 flex items-center gap-2">
           <span>{title}</span>
           <span className="text-xl">{icon || "🏍️"}</span>
@@ -85,6 +85,6 @@ export default function VehicleCard({
           Go to Payment
         </button>
       )}
-    </div>
+    </>
   );
 }

@@ -94,7 +94,7 @@ export default function StepperForm({ usersData, kycData }) {
   const step4Form = useForm();
 
   const inputClass = "border border-gray-400 rounded px-3 py-2 text-sm w-full";
-  const steps = ["Step", "Step", "Step", ""];
+  const steps = ["", "", "", ""];
 
   const back = async () => {
     if (currentStep === 1) {
@@ -108,7 +108,7 @@ export default function StepperForm({ usersData, kycData }) {
 
   const validateFormStepOne = async () => {
     const rawValues = step1Form.getValues();
-    console.log(rawValues)
+    console.log(rawValues);
     if (!kycVerified) {
       showError("Please complete KYC verification before proceeding.");
       return false;
@@ -205,12 +205,17 @@ export default function StepperForm({ usersData, kycData }) {
   };
 
   const validateFormStepThree = async (step3Form, steptwodata) => {
+    setLoading(true); // Start loader before API call
+
     const fieldsValid = await validateFields(step3Form);
-    if (!fieldsValid) return false;
+    if (!fieldsValid) {
+      setLoading(false); // Stop loader if validation fails
+      return false;
+    }
 
     const data = step3Form.getValues();
+    console.log("save data33333", data);
 
-    console.log(data);
     try {
       const res = await CallApi(
         constant.API.MOTOR.CAR.SHRIRAM.SAVESTEPONE,
@@ -226,6 +231,7 @@ export default function StepperForm({ usersData, kycData }) {
       if (status === true || res === 1) {
         setStepThreeData(res.data);
         showSuccess("Step 3 saved successfully.");
+        setLoading(false); // Stop loader on success
         return true;
       } else {
         if (errorDesc) {
@@ -233,14 +239,15 @@ export default function StepperForm({ usersData, kycData }) {
         } else {
           showError("Step 3 save failed. Please try again.");
         }
+        setLoading(false); // Stop loader on failure
         return false;
       }
     } catch (error) {
       console.error("Step 3 API call error:", error);
       showError("Something went wrong while saving Step 3.");
+      setLoading(false); // Stop loader on error
       return false;
     }
-    return result;
   };
 
   const GoToPayment = () => {
@@ -319,36 +326,36 @@ export default function StepperForm({ usersData, kycData }) {
 
   const handleVerifyPan = async () => {
     const values = step1Form.getValues();
-     await validateKycStep(
-          step1Form,
-          "PAN Card",
-          values,
-          proofs,
-          setKycVerified,
-          kycVerified,
-          setIsPanVerified,
-          setVerifiedData,
-          setIsPanKycHidden,
-          setIsAadharKycHidden,
-          setIsOtherKycHidden
-        );
+    await validateKycStep(
+      step1Form,
+      "PAN Card",
+      values,
+      proofs,
+      setKycVerified,
+      kycVerified,
+      setIsPanVerified,
+      setVerifiedData,
+      setIsPanKycHidden,
+      setIsAadharKycHidden,
+      setIsOtherKycHidden
+    );
   };
 
   const handleVerifyAadhar = async () => {
     const values = step1Form.getValues();
     await validateKycStep(
-         step1Form,
-         "Aadhar ( Last 4 Digits )",
-         values,
-         proofs,
-         setKycVerified,
-         kycVerified,
-         undefined,
-         setVerifiedData,
-         setIsPanKycHidden,
-         setIsAadharKycHidden,
-         setIsOtherKycHidden
-       );
+      step1Form,
+      "Aadhar ( Last 4 Digits )",
+      values,
+      proofs,
+      setKycVerified,
+      kycVerified,
+      undefined,
+      setVerifiedData,
+      setIsPanKycHidden,
+      setIsAadharKycHidden,
+      setIsOtherKycHidden
+    );
   };
 
   const handleVerifyOther = async () => {
@@ -409,7 +416,6 @@ export default function StepperForm({ usersData, kycData }) {
             userdob: res.data.userdob,
             username: res.data.username,
           });
-
         }
         if (res?.data?.bank) {
           setBankData(res.data.bank);
@@ -452,7 +458,7 @@ export default function StepperForm({ usersData, kycData }) {
       {loading ? (
         <CarInsuranceLoader />
       ) : (
-        <div className="min-h-screen bgcolor p-4 sm:p-8">
+        <div className="min-h-screen bgcolor px-4 py-6 sm:px-6 md:px-8">
           <button
             onClick={back}
             className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
@@ -460,145 +466,142 @@ export default function StepperForm({ usersData, kycData }) {
             <FaChevronLeft /> Go back to Previous
           </button>
 
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
-            <div className="flex-1 bg-white rounded-[32px] shadow p-8">
-              {/* Stepper */}
-              <div className="flex justify-between items-center">
-                {steps.map((label, i) => {
-                  const sn = i + 1;
-                  const active = sn === currentStep;
-                  const done = sn < currentStep;
+          <div className="max-w-7xl mx-auto grid grid-cols-12 gap-3">
+            {/* Left Side: Stepper + Forms (8 columns) */}
+            <div className="col-span-12 md:col-span-8">
+              <div className="bg-white rounded-[32px] shadow p-4 sm:p-6 md:p-8">
+                {/* Stepper */}
+                <div className="flex justify-between items-center">
+                  {steps.map((label, i) => {
+                    const sn = i + 1;
+                    const active = sn === currentStep;
+                    const done = sn < currentStep;
 
-                  return (
-                    <div
-                      key={sn}
-                      className={`flex items-center ${
-                        sn !== steps.length ? "w-full" : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-8 h-8 rounded-full border flex justify-center items-center text-sm font-medium ${
-                            done || active
-                              ? "thmbtn text-white border-white-600"
-                              : "bg-white text-gray-700 border-gray-300"
-                          }`}
-                        >
-                          {done ? <FaCheck size={12} /> : sn}
+                    return (
+                      <div
+                        key={sn}
+                        className={`flex items-center ${
+                          sn !== steps.length ? "w-full" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-8 h-8 rounded-full border flex justify-center items-center text-sm font-medium ${
+                              done || active
+                                ? "thmbtn text-white border-white-600"
+                                : "bg-white text-gray-700 border-gray-300"
+                            }`}
+                          >
+                            {done ? <FaCheck size={12} /> : sn}
+                          </div>
+                          {label && (
+                            <span className="text-sm text-gray-700">
+                              {label}
+                            </span>
+                          )}
                         </div>
-                        {label && (
-                          <span className="text-sm text-gray-700">{label}</span>
+                        {sn !== steps.length && (
+                          <div
+                            className={`flex-1 h-0.5 mx-2 ${
+                              done ? "thmbtn" : "bg-gray-200"
+                            }`}
+                          />
                         )}
                       </div>
-                      {sn !== steps.length && (
-                        <div
-                          className={`flex-1 h-0.5 mx-2 ${
-                            done ? "thmbtn" : "bg-gray-200"
-                          }`}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
 
-              {/* Step Content */}
-              <div className="mt-10">
-                {currentStep === 1 && (
-                  <StepOneForm
-                    step1Form={step1Form}
-                    kycType={kycType}
-                    setKycType={setKycType}
-                    handleVerifyPan={handleVerifyPan}
-                    handleVerifyAadhar={handleVerifyAadhar}
-                    handleVerifyOther={handleVerifyOther}
-                    loading={loading}
-                    sameAddress={sameAddress}
-                    setSameAddress={setSameAddress}
-                    fileNames={fileNames}
-                    setFileNames={setFileNames}
-                    proofs={proofs}
-                    setProofs={setProofs}
-                    inputClass={inputClass}
-                    onSubmitStep={onSubmitStep}
-                    kycVerified={kycVerified}
-                    setKycVerified={setKycVerified}
-                    setIsPanVerified={setIsPanVerified}
-                    isPanVerified={isPanVerified}
-                    verifieddata={verifieddata}
-                    usersData={usersData}
-                    kycData={kycData}
-                    cardata={cardata}
-                    journeydata={journeydata}
-                    userinfodata={userinfodata}
+                {/* Step Content */}
+                <div className="mt-10">
+                  {currentStep === 1 && (
+                    <StepOneForm
+                      step1Form={step1Form}
+                      kycType={kycType}
+                      setKycType={setKycType}
+                      handleVerifyPan={handleVerifyPan}
+                      handleVerifyAadhar={handleVerifyAadhar}
+                      handleVerifyOther={handleVerifyOther}
+                      loading={loading}
+                      sameAddress={sameAddress}
+                      setSameAddress={setSameAddress}
+                      fileNames={fileNames}
+                      setFileNames={setFileNames}
+                      proofs={proofs}
+                      setProofs={setProofs}
+                      inputClass={inputClass}
+                      onSubmitStep={onSubmitStep}
+                      kycVerified={kycVerified}
+                      setKycVerified={setKycVerified}
+                      setIsPanVerified={setIsPanVerified}
+                      isPanVerified={isPanVerified}
+                      verifieddata={verifieddata}
+                      usersData={usersData}
+                      kycData={kycData}
+                      cardata={cardata}
+                      journeydata={journeydata}
+                      userinfodata={userinfodata}
                       isPanKycHidden={isPanKycHidden}
-                    setIsPanKycHidden={setIsPanKycHidden}
-                    isAadharKycHidden={isAadharKycHidden}
-                    setIsAadharKycHidden={setIsAadharKycHidden}
-                    isOtherKycHidden={isOtherKycHidden}
-                    setIsOtherKycHidden={setIsOtherKycHidden}
-                  />
-                )}
-                {currentStep === 2 && (
-                  <StepTwoForm
-                    step2Form={step2Form}
-                    steponedata={steponedata}
-                    inputClass={inputClass}
-                    onSubmitStep={onSubmitStep}
-                    usersData={usersData}
-                    cardata={cardata}
-                    journeydata={journeydata}
-                    bankdata={bankdata}
-                    prevInsurdata={prevInsurdata}
-                    motortype={motortype}
-                  />
-                )}
-                {currentStep === 3 && (
-                  <StepThreeForm
-                    step3Form={step3Form}
-                    steptwodata={steptwodata}
-                    inputClass={inputClass}
-                    onSubmitStep={onSubmitStep}
-                    journeydata={journeydata}
-                  />
-                )}
-                {currentStep === 4 && (
-                  <StepFourForm
-                    step4Form={step4Form}
-                    stepthreedata={stepthreedata}
-                    onSubmitStep={onSubmitStep}
-                    currentStep={currentStep}
-                    totalPremium={totalPremium}
-                    onGoToPayment={GoToPayment}
-                    motortype={motortype}
-                  />
-                )}
+                      setIsPanKycHidden={setIsPanKycHidden}
+                      isAadharKycHidden={isAadharKycHidden}
+                      setIsAadharKycHidden={setIsAadharKycHidden}
+                      isOtherKycHidden={isOtherKycHidden}
+                      setIsOtherKycHidden={setIsOtherKycHidden}
+                    />
+                  )}
+                  {currentStep === 2 && (
+                    <StepTwoForm
+                      step2Form={step2Form}
+                      steponedata={steponedata}
+                      inputClass={inputClass}
+                      onSubmitStep={onSubmitStep}
+                      usersData={usersData}
+                      cardata={cardata}
+                      journeydata={journeydata}
+                      bankdata={bankdata}
+                      prevInsurdata={prevInsurdata}
+                      motortype={motortype}
+                    />
+                  )}
+                  {currentStep === 3 && (
+                    <StepThreeForm
+                      step3Form={step3Form}
+                      steptwodata={steptwodata}
+                      inputClass={inputClass}
+                      onSubmitStep={onSubmitStep}
+                      journeydata={journeydata}
+                    />
+                  )}
+                  {currentStep === 4 && (
+                    <StepFourForm
+                      step4Form={step4Form}
+                      stepthreedata={stepthreedata}
+                      onSubmitStep={onSubmitStep}
+                      currentStep={currentStep}
+                      totalPremium={totalPremium}
+                      onGoToPayment={GoToPayment}
+                      motortype={motortype}
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Summary Card */}
-            {/* <SummaryCard
-            tenure={summaryData.tenure}
-            coverAmount={summaryData.coverAmount}
-            totalPremium={summaryData.totalPremium}
-            selectedAddons={summaryData.selectedAddons}
-            compulsoryAddons={summaryData.compulsoryAddons}
-            tenurePrices={summaryData.tenurePrices}
-            addons={summaryData.addons}
-            fullAddonsName={summaryData.fullAddonsName}
-            currentStep={currentStep}
-            onGoToPayment={GoToPayment}
-          /> */}
-
-            {(motortype === "knowcar" || motortype === "newcar") && (
-              <VehicleCard
-                vehicleDetails={vehicleDetails}
-                title={motortype === "knowcar" ? "Private Car" : "New Car"}
-                icon={<FaCar className="text-blue-600 text-xl" />}
-                currentStep={currentStep}
-                onGoToPayment={GoToPayment}
-              />
-            )}
+            {/* Right Side: Empty 4 Columns */}
+            <div className="col-span-12 md:col-span-4 self-start">
+              <div className="bg-white rounded-[32px] shadow p-4 sm:p-6 md:p-8">
+                   {(motortype === "knowcar" || motortype === "newcar") && (
+                <VehicleCard
+                  vehicleDetails={vehicleDetails}
+                  title={motortype === "knowcar" ? "Private Car" : "New Car"}
+                  icon={<FaCar className="text-blue-600 text-xl" />}
+                  currentStep={currentStep}
+                  onGoToPayment={GoToPayment}
+                />
+              )}
+              </div>
+             
+            </div>
           </div>
         </div>
       )}

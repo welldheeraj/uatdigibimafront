@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
-import { FaChevronLeft, FaCheck, FaCar } from "react-icons/fa";
+import { FaChevronLeft, FaCheck, FaBicycle  } from "react-icons/fa";
 import StepOneForm from "./stepone.js";
 import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
@@ -15,7 +15,7 @@ import { validateFields } from "@/styles/js/validation.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
-import CarInsuranceLoader from "@/components/loader.js";
+import {BikeInsuranceLoader} from "@/components/loader.js";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -40,7 +40,7 @@ export default function StepperForm({ usersData, kycData }) {
   const [isOtherKycHidden, setIsOtherKycHidden] = useState(false);
 
   const [vehicleDetails, setVehicleDetails] = useState([]);
-  const [cardata, setCarData] = useState([]);
+  const [bikedata, setBikeData] = useState([]);
   const [journeydata, setJourneyData] = useState([]);
   const [userinfodata, setUserInfoData] = useState([]);
   const [bankdata, setBankData] = useState([]);
@@ -94,11 +94,11 @@ export default function StepperForm({ usersData, kycData }) {
   const step4Form = useForm();
 
   const inputClass = "border border-gray-400 rounded px-3 py-2 text-sm w-full";
-  const steps = ["Step", "Step", "Step", ""];
+   const steps = ["", "", "", ""];
 
   const back = async () => {
     if (currentStep === 1) {
-      router.push(constant.ROUTES.MOTOR.CAR.PLANS);
+      router.push(constant.ROUTES.MOTOR.BIKE.BIKEPLANS);
     } else {
       setLoading(true);
       setCurrentStep((prev) => prev - 1);
@@ -133,7 +133,7 @@ export default function StepperForm({ usersData, kycData }) {
       setLoading(true);
 
       const res = await CallApi(
-        constant.API.MOTOR.CAR.SHRIRAM.SAVESTEPONE,
+        constant.API.MOTOR.BIKE.SHRIRAM.SAVESTEPONE,
         "POST",
         values
       );
@@ -184,7 +184,7 @@ export default function StepperForm({ usersData, kycData }) {
       setLoading(true);
 
       const res = await CallApi(
-        constant.API.MOTOR.CAR.SHRIRAM.SAVESTEPONE,
+        constant.API.MOTOR.BIKE.SHRIRAM.SAVESTEPONE,
         "POST",
         values
       );
@@ -204,15 +204,21 @@ export default function StepperForm({ usersData, kycData }) {
   };
 
   const validateFormStepThree = async (step3Form, steptwodata) => {
+    //  setLoading(true); 
     const fieldsValid = await validateFields(step3Form);
-    if (!fieldsValid) return false;
+    if (!fieldsValid) {
+      // setLoading(false);
+      return false;
+    }
+
 
     const data = step3Form.getValues();
 
     console.log(data);
+    setLoading(true);
     try {
       const res = await CallApi(
-        constant.API.MOTOR.CAR.SHRIRAM.SAVESTEPONE,
+        constant.API.MOTOR.BIKE.SHRIRAM.SAVESTEPONE,
         "POST",
         data
       );
@@ -225,6 +231,7 @@ export default function StepperForm({ usersData, kycData }) {
       if (status === true || res === 1) {
         setStepThreeData(res.data);
         showSuccess("Step 3 saved successfully.");
+          setLoading(false); 
         return true;
       } else {
         if (errorDesc) {
@@ -232,11 +239,13 @@ export default function StepperForm({ usersData, kycData }) {
         } else {
           showError("Step 3 save failed. Please try again.");
         }
+        setLoading(false);
         return false;
       }
     } catch (error) {
       console.error("Step 3 API call error:", error);
       showError("Something went wrong while saving Step 3.");
+      setLoading(false);
       return false;
     }
     return result;
@@ -264,7 +273,7 @@ export default function StepperForm({ usersData, kycData }) {
     setLoading(true);
 
     router.push(
-      `/motor/car/vendor/shriram/payment?proposalNumber=${proposalNumber}&polSysId=${polSysId}&premium=${premium}&productcode=${productcode}`
+      `/motor/bike/vendor/shriram/payment?proposalNumber=${proposalNumber}&polSysId=${polSysId}&premium=${premium}&productcode=${productcode}`
     );
   };
 
@@ -394,13 +403,13 @@ const onSubmitStep = async () => {
     const fetchData = async () => {
       try {
         const res = await CallApi(
-          constant.API.MOTOR.CAR.SHRIRAM.SAVEDATA,
+          constant.API.MOTOR.BIKE.SHRIRAM.SAVEDATA,
           "GET"
         );
 
         console.log("Full response:", res);
         if (res?.data?.details) {
-          setCarData(res.data.details);
+          setBikeData(res.data.details);
         }
         if (res?.data?.user) {
           setJourneyData(res.data.user);
@@ -433,7 +442,7 @@ const onSubmitStep = async () => {
 
         //   try {
         //     const parsedDetails = JSON.parse(firstEntry.knowcar_reg_details);
-        //     setCarData(parsedDetails);
+        //     setBikeData(parsedDetails);
         //   } catch (err) {
         //     console.error("Failed to parse knowcar_reg_details:", err);
         //   }
@@ -449,7 +458,7 @@ const onSubmitStep = async () => {
   return (
     <>
       {loading ? (
-        <CarInsuranceLoader />
+        <BikeInsuranceLoader />
       ) : (
         <div className="min-h-screen bgcolor p-4 sm:p-8">
           <button
@@ -459,8 +468,8 @@ const onSubmitStep = async () => {
             <FaChevronLeft /> Go back to Previous
           </button>
 
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
-            <div className="flex-1 bg-white rounded-[32px] shadow p-8">
+          <div className="max-w-7xl mx-auto lg:flex lg:gap-6 flex-col lg:flex-row">
+           <div className="flex-1 bg-white rounded-[32px] shadow p-8">
               {/* Stepper */}
               <div className="flex justify-between items-center">
                 {steps.map((label, i) => {
@@ -527,7 +536,7 @@ const onSubmitStep = async () => {
                     verifieddata={verifieddata}
                     usersData={usersData}
                     kycData={kycData}
-                    cardata={cardata}
+                     bikedata={bikedata}
                     journeydata={journeydata}
                     userinfodata={userinfodata}
                       isPanKycHidden={isPanKycHidden}
@@ -545,7 +554,7 @@ const onSubmitStep = async () => {
                     inputClass={inputClass}
                     onSubmitStep={onSubmitStep}
                     usersData={usersData}
-                    cardata={cardata}
+                    bikedata={bikedata}
                     journeydata={journeydata}
                     bankdata={bankdata}
                     prevInsurdata={prevInsurdata}
@@ -575,29 +584,22 @@ const onSubmitStep = async () => {
               </div>
             </div>
 
-            {/* Summary Card */}
-            {/* <SummaryCard
-            tenure={summaryData.tenure}
-            coverAmount={summaryData.coverAmount}
-            totalPremium={summaryData.totalPremium}
-            selectedAddons={summaryData.selectedAddons}
-            compulsoryAddons={summaryData.compulsoryAddons}
-            tenurePrices={summaryData.tenurePrices}
-            addons={summaryData.addons}
-            fullAddonsName={summaryData.fullAddonsName}
-            currentStep={currentStep}
-            onGoToPayment={GoToPayment}
-          /> */}
+         
 
-            {(motortype === "knowbike" || motortype === "newbike") && (
+            <div className="lg:w-1/3 w-full ">
+    <div className="w-full lg:w-[415px] bg-white rounded-2xl shadow-sm p-6 text-sm self-start">
+        {(motortype === "knowbike" || motortype === "newbike") && (
               <VehicleCard
                 vehicleDetails={vehicleDetails}
                 title={motortype === "knowbike" ? "Private Bike" : "New Bike"}
-                icon={<FaCar className="text-blue-600 text-xl" />}
+                icon={<FaBicycle  className="text-blue-600 text-xl" />}
                 currentStep={currentStep}
                 onGoToPayment={GoToPayment}
               />
             )}
+      </div>
+     
+    </div>
           </div>
         </div>
       )}

@@ -17,8 +17,11 @@ export default function AddonModal({
   showAccessories,
   setShowAccessories,
   onSaveAccessories,
+  addon115Amount,
+  setAddon115Amount,
 }) {
   console.log("hello", selectedPlanType, tpaddonslist);
+
   const [accessoryData, setAccessoryData] = React.useState([
     { type: "electrical", checked: false, amount: "" },
     { type: "non-electrical", checked: false, amount: "" },
@@ -45,7 +48,7 @@ export default function AddonModal({
   const handleConfirm = () => {
     if (activeTab === "Tab1") {
       console.log(selectedPlanType, data);
-      handleSaveAddons();
+      handleSaveAddons(addon115Amount);
     } else if (activeTab === "Tab2") {
       const accessoriesPayload = accessoryData
         .filter((item) => item.checked && item.amount)
@@ -60,7 +63,7 @@ export default function AddonModal({
   };
 
   return (
-    <Modal
+   <Modal
       isOpen={open}
       onClose={onClose}
       title="Add Addons"
@@ -109,50 +112,41 @@ export default function AddonModal({
                   }))
                 : addons || []
               ).map((addon) => (
-                <div
-                  key={addon.id}
-                  onClick={() => handleAddonChange(addon.id)}
-                  className={`bg-blue-50 hover:bg-blue-100 cursor-pointer flex items-center p-2 rounded-md border ${
-                    selectedAddon.includes(addon.id) ? "border-blue-500" : ""
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedAddon.includes(addon.id)}
-                    onChange={() => {}}
-                    className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
-                  />
-                  <label className="text-sm font-medium truncate">
-                    {addon.label}
-                  </label>
+                <div key={addon.id}>
+                  <div
+                    onClick={() => handleAddonChange(addon.id)}
+                    className={`bg-blue-50 hover:bg-blue-100 cursor-pointer flex items-center p-2 rounded-md border ${
+                      selectedAddon.includes(addon.id) ? "border-blue-500" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedAddon.includes(addon.id)}
+                      onChange={() => {}}
+                      className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
+                    />
+                    <label className="text-sm font-medium truncate">
+                      {addon.label}
+                    </label>
+                  </div>
+                  {addon.id == 115 && selectedAddon.includes(addon.id) && (
+                    <input
+                      type="number"
+                      className="mt-2 p-1 inputcls"
+                      placeholder="Enter amount"
+                      value={addon115Amount}
+                      onChange={(e) => setAddon115Amount(e.target.value)}
+                    />
+                  )}
                 </div>
               ))}
             </div>
 
-            {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {addons?.map((addon) => (
-                <div
-                  key={addon.id}
-                  onClick={() => handleAddonChange(addon.id)}
-                  className={`bg-blue-50 hover:bg-blue-100 cursor-pointer flex items-center p-2 rounded-md border ${
-                    selectedAddon.includes(addon.id) ? "border-blue-500" : ""
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedAddon.includes(addon.id)}
-                    onChange={() => {}}
-                    className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
-                  />
-                  <label className="text-sm font-medium truncate">
-                    {addon.label}
-                  </label>
-                </div>
-              ))}
-            </div> */}
-
             <div className="mt-6 flex justify-center">
-              <button onClick={handleSaveAddons} className="py-2 px-8 thmbtn">
+              <button
+                onClick={() => handleSaveAddons(addon115Amount)}
+                className="py-2 px-8 thmbtn"
+              >
                 Save Changes
               </button>
             </div>
@@ -255,22 +249,24 @@ export function VendorAddonModal({
     >
       {selectedPlan?.addons && Object.keys(selectedPlan.addons).length > 0 ? (
         <ul className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {Object.entries(selectedPlan.addons).map(([addonId, price]) => (
-            <li
-              key={addonId}
-              className="flex items-start p-2 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all"
-            >
-              <FiCheckCircle className="text-green-500 mt-1 mr-3" size={20} />
-              <div>
-                <p className="text-sm font-semibold text-gray-800">
-                  {fullAddonsName[addonId] || `Addon ${addonId}`}
-                </p>
-                <span className="inline-block mt-1 text-xs font-medium bg-blue-100 text-blue-700 px-2 py-1 rounded-md">
-                  ₹ {price}
-                </span>
-              </div>
-            </li>
-          ))}
+          {Object.entries(selectedPlan.addons)
+            .filter(([_, price]) => String(price) !== "0") // ✅ exclude price == 0 (number or string)
+            .map(([addonId, price]) => (
+              <li
+                key={addonId}
+                className="flex items-start p-2 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all"
+              >
+                <FiCheckCircle className="text-green-500 mt-1 mr-3" size={20} />
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">
+                    {fullAddonsName[addonId] || `Addon ${addonId}`}
+                  </p>
+                  <span className="inline-block mt-1 text-xs font-medium bg-blue-100 text-blue-700 px-2 py-1 rounded-md">
+                    ₹ {price}
+                  </span>
+                </div>
+              </li>
+            ))}
         </ul>
       ) : (
         <p className="text-sm text-gray-600">

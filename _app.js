@@ -116,7 +116,7 @@ export default function App({ Component, pageProps }) {
     <div className={poppins.className}>
       <Header token={token} username={userData?.name} setUsername={setUserData} />
 
-      {/* Conditional Rendering */}
+     
       {loading ? (
         <HealthInsuranceLoader />
       ) : (

@@ -1,17 +1,21 @@
-import React from "react";
-import { useState, useEffect } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { showSuccess, showError } from "../../layouts/toaster";
-import { CallApi } from "../../api";
-import constant from "../../env";
+import { showSuccess, showError } from "@/layouts/toaster";
+import { CallApi } from "@/api";
+import constant from "@/env";
+import { FaUserShield } from "react-icons/fa";
+import Image from 'next/image';
+import { adminlogin } from "@/images/Image";
 
-const Index = () => {  // FIXED: Component name changed to uppercase
+const AdminLogin  = ({ usersData }) => {
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtp, setShowOtp] = useState(false);
   const [timer, setTimer] = useState(20);
   const [canResend, setCanResend] = useState(false);
-
+   const [stoken, setToken] = useState();
+  console.log(usersData)
   const router = useRouter();
 
   useEffect(() => {
@@ -37,24 +41,30 @@ const Index = () => {  // FIXED: Component name changed to uppercase
       }
 
       const payload = { mobile };
-      const response = await CallApi(constant.API.ADMIN.ADMINLOGIN, "POST", payload);
-
-      console.log(response);
-
+      const response = await CallApi(
+        constant.API.ADMIN.ADMINLOGIN,
+        "POST",
+        payload
+      );
+       console.log("verifiy mob",response)
       if (response.status === false) {
         showError(response.message);
         return;
       }
 
       if (response.status === true) {
+           localStorage.setItem("token", response.token);
+          setToken(response.token);
+          window.dispatchEvent(new Event("auth-change"));
         const data = { mobile };
-        const response = await CallApi(constant.API.ADMIN.SENDOTP, "POST", data);
-        console.log(response);
-
-        if (response.status === true) {
-          showSuccess(response.message);
-        }
-
+        const res = await CallApi(
+          constant.API.ADMIN.SENDOTP,
+          "POST",
+          data
+        );
+        if (res.status === true) showSuccess(res.message);
+       
+         
         setShowOtp(true);
         setTimer(20);
         setCanResend(false);
@@ -73,25 +83,23 @@ const Index = () => {  // FIXED: Component name changed to uppercase
         return;
       }
 
-      const data = {
-        mobile: mobile,
-        otp: otp,
-      };
-
+      const data = { mobile, otp };
       const response = await CallApi(
         constant.API.HEALTH.VERIFYOTP,
         "POST",
         data
       );
-      console.log(response);
+      console.log(response)
 
       if (response.status === false) {
         showError(response.message);
       }
 
       if (response.status === true) {
+      
         showSuccess("Welcome to admin dashboard");
-        router.push(constant.ROUTES.ADMIN.ADMINDASHBOARD);
+        // router.push(constant.ROUTES.ADMIN.ADMINDASHBOARD);
+        router.push(`adminpnlx/admin-dashboard`);
       }
     } catch (error) {
       console.log(error);
@@ -100,12 +108,7 @@ const Index = () => {  // FIXED: Component name changed to uppercase
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!showOtp) {
-      sendOTP();
-    } else {
-      console.log("Verifying OTP:", otp);
-    }
+    if (!showOtp) sendOTP();
   };
 
   const handleResend = () => {
@@ -116,89 +119,102 @@ const Index = () => {  // FIXED: Component name changed to uppercase
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="flex flex-col md:flex-row h-[500px] shadow-md">
-        {/* Left Sign-in part */}
-        <div className="bg-white p-8 rounded w-full">
-          <div className="flex flex-col items-center justify-center h-[500px]">
-            <h2 className="text-2xl font-bold mb-6 text-center">Sign-In</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!showOtp ? (
-                <>
-                  <input
-                    type="tel"
-                    placeholder="Enter Mobile Number"
-                    value={mobile}
-                    onChange={(e) => {
-                      const input = e.target.value;
-                      if (/^\d{0,10}$/.test(input)) {
-                        setMobile(input);
-                      }
-                    }}
-                    className="w-full border border-gray-300 p-2 rounded"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-                  >
-                    Submit
+    <div className="min-h-screen flex items-center justify-center bg-[#C2EBFF] px-4 mt-10">
+      <div className="bg-white shadow-xl rounded-3xl overflow-hidden w-full max-w-4xl grid md:grid-cols-[46%_54%] transition-all">
+        {/* Left Side */}
+        <div className="px-10 py-8 flex flex-col justify-center items-center space-y-4">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text flex items-center gap-3">
+            <FaUserShield className="text-4xl text-indigo-600 drop-shadow-md" />
+            Admin Login
+          </h2>
+          <p className="text-gray-500 text-center text-sm">
+            Enter your registered mobile number to receive an OTP.
+          </p>
+          <form onSubmit={handleSubmit} className="w-full space-y-4">
+            {!showOtp ? (
+              <>
+                <input
+                  type="tel"
+                  placeholder="Enter Mobile Number"
+                  value={mobile}
+                  onChange={(e) => {
+                    const input = e.target.value;
+                    if (/^\d{0,10}$/.test(input)) setMobile(input);
+                  }}
+                  className="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-blue-400 transition-all outline-none"
+                  required
+                />
+                <div className="text-center">
+                  <button type="submit" className="px-6 py-3 thmbtn">
+                    Send OTP
                   </button>
-                </>
-              ) : (
-                <>
-                  <input
-                    type="text"
-                    placeholder="Enter OTP"
-                    value={otp}
-                    onChange={(e) => {
-                      const input = e.target.value;
-                      if (/^\d{0,6}$/.test(input)) {
-                        setOtp(input);
-                      }
-                    }}
-                    className="w-full border border-gray-300 p-2 rounded"
-                    required
-                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChange={(e) => {
+                    const input = e.target.value;
+                    if (/^\d{0,6}$/.test(input)) setOtp(input);
+                  }}
+                  className="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-purple-400 transition-all outline-none"
+                  required
+                />
 
-                  {!canResend ? (
-                    <p className="text-red-600 text-center">
-                      Resend in {timer}s
-                    </p>
-                  ) : (
-                    <p
-                      className="text-red-600 text-center cursor-pointer"
-                      onClick={handleResend}
-                    >
-                      Didn&apos;t receive an OTP?{" "}
-                      <span className="text-blue-400">Resend</span>
-                    </p>
-                  )}
+                {!canResend ? (
+                  <p className="text-sm text-red-500 text-center">
+                    Resend OTP in <b>{timer}s</b>
+                  </p>
+                ) : (
+                  <p
+                    className="text-sm text-blue-500 text-center cursor-pointer hover:underline"
+                    onClick={handleResend}
+                  >
+                    Didn&apos;t receive OTP?{" "}
+                    <span className="font-semibold">Resend</span>
+                  </p>
+                )}
 
+                <div className="text-center">
                   <button
-                    type="submit"
-                    className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                    type="button"
                     onClick={verifyOTP}
+                    className="px-6 py-3 thmbtn"
                   >
-                    Verify
+                    Verify OTP
                   </button>
-                </>
-              )}
-            </form>
-          </div>
+                </div>
+              </>
+            )}
+          </form>
         </div>
 
-        {/* Right Image Part */}
-        <div className="bg-blue-200 w-full flex flex-col items-center justify-center">
-          <h2 className="font-semibold text-2xl">Welcome To DigiBima</h2>
-          <p className="p-4 text-sm">
-            Please enter your registered mobile number to access the admin
-            dashboard.
-          </p>
+        {/* Right Side Image - hidden on small screens */}
+        <div className="hidden md:block relative h-[512px] overflow-hidden">
+          <Image
+            src={adminlogin}
+            alt="Background"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="relative h-full flex flex-col justify-center items-center text-white px-6 text-center">
+            <h2 className="absolute top-[20%] w-full text-center text-3xl font-bold leading-snug">
+              Welcome
+              <br />
+              To Digibima
+            </h2>
+            <p className="absolute bottom-6 w-full text-center text-sm px-6">
+              Please enter your registered mobile number
+              <br />
+              to access the admin dashboard
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default Index;
+export default AdminLogin ;

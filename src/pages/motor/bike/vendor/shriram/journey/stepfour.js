@@ -48,13 +48,13 @@ export default function StepFourForm({
 
       {/*Vehicle Details */}
      <SectionCard title="Vehicle Details">
-      {motortype !== "newcar" && verify_details?.make && (
+      {motortype !== "newbike" && verify_details?.make && (
         <InfoRow label="Make" value={verify_details.make} />
       )}
       { verify_details?.model && (
         <InfoRow label="Model" value={verify_details.model} />
       )}
-      {motortype !== "newcar" && verify_details?.regdate && (
+      {motortype !== "newbike" && verify_details?.regdate && (
         <InfoRow label="Registration Date" value={verify_details.regdate} />
       )}
       {verify_details?.idv && (

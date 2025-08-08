@@ -1,27 +1,29 @@
 "use client";
 
-import { useState, useEffect,useCallback  } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { CallApi } from "@/api";
 import constant from "@/env";
-import { FaChevronLeft,FaCar ,FaInfoCircle  } from "react-icons/fa";
+import { FaChevronLeft, FaCar, FaInfoCircle } from "react-icons/fa";
 import PaCoverModal from "./pacovermodal";
-import AddonModal, {VendorAddonModal} from "./addonmodal";
+import AddonModal, { VendorAddonModal } from "./addonmodal";
 import UpdateIdvModal from "./updateIdvmodal";
 import VendorCard from "./vendorcard";
-import VehicleCard from '../../vehicledetails/index'
+import VehicleCard from "../../vehicledetails/index";
 import { MotorCardSkeleton } from "@/components/loader";
-console.log("MotorCardSkeleton:", MotorCardSkeleton); 
+import { showError } from "@/layouts/toaster";
+console.log("MotorCardSkeleton:", MotorCardSkeleton);
 
 export default function Plans() {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [IsAddonModalOpen, setIsAddonModalOpen] = useState(false);
+  const [isCompany, setIsCompany] = useState(false);
   const [paModalOpen, setIsPaModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Tab1");
   const [showAccessories, setShowAccessories] = useState(false);
   const [loading, setLoading] = useState(true);
   const [planTypes, setPlanTypes] = useState([]);
-   const [fullAddonsName, setFullAddonsName] = useState({});
+  const [fullAddonsName, setFullAddonsName] = useState({});
   const [addons, setAddons] = useState([]);
   const [selectedAddon, setSelectedAddon] = useState([]);
   const [vendorList, setVendorList] = useState([]);
@@ -35,9 +37,10 @@ export default function Plans() {
   const [selectedIdv, setSelectedIdv] = useState(null);
   const [paCoverChecked, setPaCoverChecked] = useState(false);
   const [vehicleDetails, setVehicleDetails] = useState([]);
-  const [idv,setIdv] = useState();
+  const [idv, setIdv] = useState();
   const [motortype, setMotorType] = useState([]);
-  const[Addonlist,setAddonlist] = useState([]);
+  const [Addonlist, setAddonlist] = useState([]);
+    const [addon115Amount, setAddon115Amount] = useState("");
 
   const router = useRouter();
 
@@ -45,12 +48,15 @@ export default function Plans() {
     async function getDetails() {
       try {
         const res = await CallApi(constant.API.MOTOR.CAR.PLANS, "GET");
+        if (res.data?.under === "company") {
+          setIsCompany(true);
+        }
         const addonObj = res.data?.addons || {};
         const addonList = Object.entries(addonObj).map(([key, label]) => ({
           id: key,
           label: label.trim(),
         }));
-        console.log("plandata",res);
+        console.log("plandata", res);
         setAddons(addonList);
 
         const plantypeObj = res.data?.plantype || {};
@@ -60,7 +66,7 @@ export default function Plans() {
         setPlanTypes(plantypeList);
 
         const vendorArr = res.data?.vendor || [];
-         setFullAddonsName(res.data?.addons || {});
+        setFullAddonsName(res.data?.addons || {});
 
         const activeVendors = vendorArr.filter((v) => v.isActive === "1");
         setVendorList(activeVendors);
@@ -68,14 +74,13 @@ export default function Plans() {
         const vehicleDetails = res.data?.vehicledetails || [];
         setVehicleDetails(vehicleDetails);
         const paCover = res.data?.pacover;
-         if(paCover == "1"){
-            setPaCoverChecked(paCover);
-         }
+        if (paCover == "1") {
+          setPaCoverChecked(paCover);
+        }
         const selectaddon = res.data?.selectedaddons || [];
         setSelectedAddon(selectaddon);
-          setMotorType(res.cache);
+        setMotorType(res.cache);
         console.log(selectaddon);
-       
       } catch (error) {
         console.error("Error loading plan data:", error);
       }
@@ -83,41 +88,41 @@ export default function Plans() {
     getDetails();
   }, []);
 
-const getQuote = useCallback(async () => {
-  if (!vendorList.length) return;
-  try {
-    const allPlans = [];
-    for (let i = 0; i < vendorList.length; i++) {
-      const payload = vendorList[i];
-      const response = await CallApi(
-        constant.API.MOTOR.CAR.QUOTE,
-        "POST",
-        payload
-      );
-      if (response?.status == "1" && response?.data) {
-        if (allPlans.length === 0) {
-          const data = response.data;
-          setIdvMin(data.minrange);
-          setIdvMax(data.maxrange);
-          setIdv(data.idv);
-          setSelectedIdv(data.selectedvalue);
+  const getQuote = useCallback(async () => {
+    if (!vendorList.length) return;
+    try {
+      const allPlans = [];
+      for (let i = 0; i < vendorList.length; i++) {
+        const payload = vendorList[i];
+        const response = await CallApi(
+          constant.API.MOTOR.CAR.QUOTE,
+          "POST",
+          payload
+        );
+        if (response?.status == "1" && response?.data) {
+          if (allPlans.length === 0) {
+            const data = response.data;
+            setIdvMin(data.minrange);
+            setIdvMax(data.maxrange);
+            setIdv(data.idv);
+            setSelectedIdv(data.selectedvalue);
+          }
+          allPlans.push({ ...response.data, vendorId: payload.vid });
         }
-        allPlans.push({ ...response.data, vendorId: payload.vid });
       }
+      setVendorPlans(allPlans);
+      console.log(allPlans);
+    } catch (error) {
+      console.error("Error loading quote:", error);
     }
-    setVendorPlans(allPlans);
-    console.log(allPlans);
-  } catch (error) {
-    console.error("Error loading quote:", error);
-  }
-}, [vendorList]);
-
-useEffect(() => {
-  getQuote();
-}, [getQuote]);
+  }, [vendorList]);
 
   useEffect(() => {
-   console.log("addon update ",Addonlist );
+    getQuote();
+  }, [getQuote]);
+
+  useEffect(() => {
+    console.log("addon update ", Addonlist);
   }, [Addonlist]);
 
   const handleIdvUpdate = async () => {
@@ -145,20 +150,41 @@ useEffect(() => {
     );
   };
 
-  const handleSaveAddons = async () => {
+  const handleSaveAddons = async (addon115Amount = null) => {
+    // console.log(addon115Amount);
+    // return false;
+    const presentAddon =
+      selectedAddon.includes("103") || selectedAddon.includes("104");
+    const requireAddon = selectedAddon.includes("101");
+
+    if (presentAddon && !requireAddon) {
+      showError(
+        "Zero / Nil Depreciation cover is mandatory when you select the Consumable Cover/Engine Protector"
+      );
+      const filteredAddons = selectedAddon.filter(
+        (id) => id !== 103 && id !== 104
+      );
+      setSelectedAddon(filteredAddons); // Update state
+      return;
+    }
+
     try {
-      
+        const payload = {
+      selectedaddon: selectedAddon,
+      addon115Amount: addon115Amount,
+    };
+    // console.log(payload);
+    // return false;
       const res = await CallApi(
         constant.API.MOTOR.CAR.ADDADDONS,
         "POST",
-        selectedAddon
+        payload
       );
       console.log("Saved successfully:", res);
-      if(res.status){
-      await getCacheQuote();
-      setIsAddonModalOpen(false);
-      }
-     else {
+      if (res.status) {
+        await getCacheQuote();
+        setIsAddonModalOpen(false);
+      } else {
         console.error("Addon update failed:", res);
       }
     } catch (error) {
@@ -175,7 +201,7 @@ useEffect(() => {
         pacover: paCoverChecked ? "1" : "0",
         planetype: newPlanType,
       });
-     console.log(selectedPlanType);
+      console.log(selectedPlanType);
       const allPlans = [];
       for (let i = 0; i < vendorList.length; i++) {
         const vendorPayload = vendorList[i];
@@ -184,12 +210,12 @@ useEffect(() => {
           "POST",
           vendorPayload
         );
-         console.log("third party adons" ,response)
+        console.log("third party adons", response);
         if (response?.status === "1" && response?.data) {
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
         }
         if (response?.status == "1" && response?.addonlist) {
-          setAddonlist(response?.addonlist)
+          setAddonlist(response?.addonlist);
         }
       }
       setVendorPlans(allPlans);
@@ -198,7 +224,7 @@ useEffect(() => {
     }
   };
 
-   const getCacheQuote = async () => {
+  const getCacheQuote = async () => {
     try {
       const allPlans = [];
       //const addonlist =[];
@@ -209,9 +235,8 @@ useEffect(() => {
           "POST",
           vendorPayload
         );
-        
+
         if (response?.status) {
-          
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
           setAddonlist(response.addonlist);
         }
@@ -242,14 +267,12 @@ useEffect(() => {
           "POST",
           vendorPayload
         );
-       
+
         if (response?.status === "1" && response?.data) {
-          
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
         }
       }
       setVendorPlans(allPlans);
-      
     } catch (error) {
       console.error("Error updating PA Cover:", error);
     }
@@ -257,12 +280,16 @@ useEffect(() => {
 
   const handleSaveAccessories = async (accessoriesPayload) => {
     try {
-      const res = await CallApi(constant.API.MOTOR.CAR.ACCESSORIES, "POST",accessoriesPayload);
+      const res = await CallApi(
+        constant.API.MOTOR.CAR.ACCESSORIES,
+        "POST",
+        accessoriesPayload
+      );
 
       if (res.status === "1" || res.status === true) {
         console.log("Accessories saved successfully:", res);
-     
-        await getCacheQuote(); 
+
+        await getCacheQuote();
       } else {
         console.error("Accessories update failed:", res);
       }
@@ -276,29 +303,27 @@ useEffect(() => {
   //   return () => clearTimeout(timer);
   // }, []);
   useEffect(() => {
-  if (vendorPlans.length > 0) {
-    setLoading(false);
-  }
-}, [vendorPlans]);
+    if (vendorPlans.length > 0) {
+      setLoading(false);
+    }
+  }, [vendorPlans]);
 
-const handleRedirect = () => {
-  if (motortype === "knowcar" || motortype === "") {
-    // console.log("➡ Redirecting to KNOWCARSTEPTHREE");
-    router.push(constant.ROUTES.MOTOR.CAR.KNOWCARSTEPTHREE);
-  } else if (motortype === "newcar") {
-    // console.log("➡ Redirecting to NEWCARDETAILSTWO");
-    router.push(constant.ROUTES.MOTOR.CAR.NEWCAR);
-  } else {
-    // console.log("⚠ Unhandled motortype:", motortype);
-  }
-};
-
-
+  const handleRedirect = () => {
+    if (motortype === "knowcar" || motortype === "") {
+      // console.log("➡ Redirecting to KNOWCARSTEPTHREE");
+      router.push(constant.ROUTES.MOTOR.CAR.KNOWCARSTEPTHREE);
+    } else if (motortype === "newcar") {
+      // console.log("➡ Redirecting to NEWCARDETAILSTWO");
+      router.push(constant.ROUTES.MOTOR.CAR.NEWCAR);
+    } else {
+      // console.log("⚠ Unhandled motortype:", motortype);
+    }
+  };
 
   return (
     <div className="bgcolor p-6  min-h-screen  overflow-x-hidden">
       <div className="mb-1">
-       <button
+        <button
           onClick={handleRedirect}
           className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
         >
@@ -309,10 +334,11 @@ const handleRedirect = () => {
       <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
         <div className="w-full  p-6 rounded-3xl shadow-2xl  bg-[#fff]">
           <div className="flex flex-col md:flex-row md:items-end gap-5 flex-wrap">
-            
             {/* Plan Type */}
             <div className="flex flex-col w-44">
-              <label className="font-semibold text-[#426D98] mb-2 text-sm">Plan Type</label>
+              <label className="font-semibold text-[#426D98] mb-2 text-sm">
+                Plan Type
+              </label>
               <select
                 className="border border-blue-300 rounded-xl px-4 py-2 text-sm text-[#1f3b57] bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                 value={selectedPlanType}
@@ -328,25 +354,37 @@ const handleRedirect = () => {
 
             {/* PA Cover */}
             <div
-              className="flex items-center  gap-3 px-4 py-3 bg-gradient-to-r from-[#cfe2ff] to-[#d6eaff] rounded-2xl shadow-md hover:shadow-lg cursor-pointer transition"
-              onClick={() => setIsPaModalOpen(true)}
+              className={`flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#cfe2ff] to-[#d6eaff] rounded-2xl shadow-md hover:shadow-lg transition ${
+                isCompany ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+              }`}
+              onClick={() => !isCompany && setIsPaModalOpen(true)}
             >
               <input
                 type="checkbox"
                 id="pa-cover"
-                className="form-checkbox accent-pink-500 h-4 w-4 cursor-pointer rounded border border-gray-300"
+                className="form-checkbox accent-pink-500 h-4 w-4 rounded border border-gray-300"
                 checked={paCoverChecked}
                 readOnly
+                disabled={isCompany}
               />
-              <label htmlFor="pa-cover" className="text-sm font-medium text-[#1f3b57] cursor-pointer">
+              <label
+                htmlFor="pa-cover"
+                className={`text-sm font-medium text-[#1f3b57] ${
+                  isCompany ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                }`}
+              >
                 PA Cover
               </label>
-              <span className="text-blue-600 text-sm font-bold"><FaInfoCircle/></span>
+              <span className="text-blue-600 text-sm font-bold">
+                <FaInfoCircle />
+              </span>
             </div>
 
             {/* IDV Input */}
             <div className="flex items-center gap-2">
-              <label className="font-semibold text-[#426D98] text-sm whitespace-nowrap">IDV:</label>
+              <label className="font-semibold text-[#426D98] text-sm whitespace-nowrap">
+                IDV:
+              </label>
               <input
                 type="text"
                 value={idv}
@@ -354,7 +392,6 @@ const handleRedirect = () => {
                 className="border border-blue-300 rounded-xl px-4 py-2 w-28 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm"
               />
             </div>
-
 
             {/* Buttons */}
             <div className="flex gap-4">
@@ -374,8 +411,6 @@ const handleRedirect = () => {
           </div>
         </div>
       </div>
-
-
 
       <PaCoverModal
         open={paModalOpen}
@@ -401,35 +436,40 @@ const handleRedirect = () => {
         setActiveTab={setActiveTab}
         addons={addons}
         tpaddonslist={Addonlist}
-        selectedPlanType ={selectedPlanType}
+        selectedPlanType={selectedPlanType}
         selectedAddon={selectedAddon}
         handleAddonChange={handleAddonChange}
         handleSaveAddons={handleSaveAddons}
         showAccessories={showAccessories}
         setShowAccessories={setShowAccessories}
-        onSaveAccessories={handleSaveAccessories} 
+        onSaveAccessories={handleSaveAccessories}
+        addon115Amount={addon115Amount}
+  setAddon115Amount={setAddon115Amount}
       />
 
-      <div className="flex flex-col gap-2 md:flex-row mt-4">
-        <div className="w-full lg:w-3/4 flex flex-wrap gap-6 justify-start lg:ml-16">
-            {loading
-              ? Array(2).fill(0).map((_, idx) => <MotorCardSkeleton key={idx} />)
-              : vendorPlans.map((plan) => (
-                  <VendorCard
-                    key={plan.vendorId}
-                    data={plan}
-                    onAddonsClick={(vendorData) => {
-                      setSelectedPlan(vendorData);
-                      setAddAddonModal(true);
-                    }}
-                    onPremiumClick={premiumBackupData}
-                  />
-            ))}
+<div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 py-6">
+  {/* Left: VendorCard Section (9 columns) */}
+  <div className="lg:col-span-9">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      {loading
+        ? Array(3).fill(0).map((_, idx) => <MotorCardSkeleton key={idx} />)
+        : vendorPlans.map((plan) => (
+            <VendorCard
+              key={plan.vendorId}
+              data={plan}
+              onAddonsClick={(vendorData) => {
+                setSelectedPlan(vendorData);
+                setAddAddonModal(true);
+              }}
+              onPremiumClick={premiumBackupData}
+            />
+          ))}
+    </div>
+  </div>
 
-
-          </div>
-
-       
+  {/* Right: VehicleCard Section (3 columns) */}
+  <div className="lg:col-span-3">
+    <div className="bg-white rounded-2xl shadow-sm p-6 text-sm sticky top-6">
       {(motortype === "knowcar" || motortype === "newcar") && (
         <VehicleCard
           vehicleDetails={vehicleDetails}
@@ -437,18 +477,21 @@ const handleRedirect = () => {
           icon={<FaCar className="text-blue-600 text-xl" />}
         />
       )}
+    </div>
+  </div>
+</div>
 
-      </div>
+
 
       <VendorAddonModal
-  isOpen={addAddonModal}
-  fullAddonsName={fullAddonsName}
-  onClose={() => {
-    setAddAddonModal(false);
-    setSelectedPlan(null);
-  }}
-  selectedPlan={selectedPlan}
-/>
+        isOpen={addAddonModal}
+        fullAddonsName={fullAddonsName}
+        onClose={() => {
+          setAddAddonModal(false);
+          setSelectedPlan(null);
+        }}
+        selectedPlan={selectedPlan}
+      />
     </div>
   );
 }

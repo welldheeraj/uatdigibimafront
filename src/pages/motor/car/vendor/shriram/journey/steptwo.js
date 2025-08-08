@@ -80,10 +80,10 @@ useEffect(() => {
   setValue("enginenumber", vehicleDetails.Enginenumber || "");
   setValue("chassisnumber", vehicleDetails.Chassisnumber || "");
   setValue("prevInsurance", policyDetails.prevInsuranceId || "");
-  setValue(
-    "policytype",
-    policyDetails.policytype || cardata?.prepolitype?.toUpperCase() || ""
-  );
+  // setValue(
+  //   "policytype",
+  //   policyDetails.policytype || cardata?.prepolitype?.toUpperCase() || ""
+  // );
   setValue("policynumber", policyDetails.policynumber || "");
 
   if (policyDetails.tpprevInsurance || policyDetails.tppolicynumber) {

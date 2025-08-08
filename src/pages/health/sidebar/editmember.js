@@ -12,7 +12,7 @@ export default function InsureSidebarComponent({ onClose }) {
   const router = useRouter();
   const { reset } = useForm();
 
-  const [gender, setGender] = useState("male");
+  const [gender, setGender] = useState("");
   const [members, setMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [children, setChildren] = useState([]);
@@ -23,7 +23,11 @@ export default function InsureSidebarComponent({ onClose }) {
     const getInsureData = async () => {
       try {
         const res = await CallApi(constant.API.HEALTH.GETINSURE);
+        console.log(res)
         if (res.status && res.data) {
+            if (res.gender) {
+              setGender(res.gender.toLowerCase()); 
+            }
           const apiData = res.data;
           const updatedMembers = [
             {

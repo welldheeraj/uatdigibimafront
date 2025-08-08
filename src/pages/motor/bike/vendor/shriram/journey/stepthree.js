@@ -13,7 +13,7 @@ export default function StepThreeForm({
   journeydata,
 }) {
   
-  // console.log("step THREE data",journeydata);
+  console.log("step THREE data",journeydata);
   const [dates, setDates] = useState({});
    const [isMinor, setIsMinor] = useState(false);
     const handleDateChange = (key, fieldNameInForm) => (date) => {
@@ -41,7 +41,9 @@ export default function StepThreeForm({
     if (month < birthDate.getMonth() || (month === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
       age--;
     }
+    
     return age;
+    
   };
 
 
@@ -67,10 +69,35 @@ useEffect(() => {
       }));
       step3Form.setValue("nomineedob", nominee.nomineedob);
     }
+    if (nominee.appointeename && nominee.appointeerelation) {
+  console.log("apointee data", nominee);
+  setIsMinor(true);
+
+  // defer setting values until inputs are mounted
+  setTimeout(() => {
+    step3Form.setValue("appointeename", nominee.appointeename);
+    step3Form.setValue("appointeerelation", nominee.appointeerelation);
+  }, 0);
+}
+
   } catch (err) {
     console.error("Invalid nominee_details JSON", err);
   }
 }, [journeydata,step3Form]);
+useEffect(() => {
+  if (isMinor) {
+    step3Form.register("appointeename", {
+      required: "Appointee Name is required",
+    });
+    step3Form.register("appointeerelation", {
+      required: "Please select the appointee relation",
+    });
+  } else {
+    step3Form.unregister("appointeename");
+    step3Form.unregister("appointeerelation");
+  }
+}, [isMinor, step3Form]);
+
 useEffect(() => {
   step3Form.setValue("physicalpolicy", "0");
 }, [step3Form]);

@@ -2,6 +2,12 @@
 import { FaCar } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { FaMotorcycle } from "react-icons/fa";
+import Lottie from "lottie-react";
+import dashboardLoader from "@/animation/dashboardloader.json";
+import HealthLoader from "@/animation/Healthloader.json";
+
+
+
 
 export default function CarInsuranceLoader() {
   return (
@@ -47,7 +53,7 @@ export function MotorCardSkeleton() {
 
 export  function BikeInsuranceLoader() {
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-100 to-purple-200 flex flex-col items-center justify-center z-[9999]">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center z-[9999]">
       {/* Animated Bike SVG */}
       <motion.div
         initial={{ y: 30, opacity: 0 }}
@@ -100,4 +106,27 @@ export  function BikeInsuranceLoader() {
     </div>
   );
 }
+
+export function HealthLoaderOne() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+      <div className="w-48 h-48 sm:w-60 sm:h-60 md:w-72 md:h-72">
+        <Lottie animationData={HealthLoader} loop={true} />
+      </div>
+    </div>
+  );
+}
+
+
+
+export function DashboardLoader() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+      <div className="w-32 h-32">
+        <Lottie animationData={dashboardLoader} loop={true} />
+      </div>
+    </div>
+  );
+}
+
 

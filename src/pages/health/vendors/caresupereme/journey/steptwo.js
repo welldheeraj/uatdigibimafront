@@ -251,11 +251,14 @@ useEffect(() => {
                   ? parse(field.value, "dd-MM-yyyy", new Date())
                   : null
               }
-              onChange={(date) => {
-                const formatted = date ? format(date, "dd-MM-yyyy") : "";
-                field.onChange(formatted);
-                handleDateChange("self", "proposerdob2")(date);
-              }}
+               onChange={(date) => {
+                if (date instanceof Date && !isNaN(date)) {
+                  const formatted = format(date, "dd-MM-yyyy");
+                  field.onChange(formatted);
+                   handleDateChange("self", "proposerdob2")(date);
+                }
+              }}  
+             
               error={!!fieldState.error}
               errorText={fieldState.error?.message}
               placeholder="Pick a date"
@@ -362,12 +365,14 @@ useEffect(() => {
                     }
                     data-age={member.age}
                     onChange={(date) => {
-                      const formatted = date ? format(date, "dd-MM-yyyy") : "";
-                      field.onChange(formatted);
-                      handleDateChange(
-                        `${prefix}${suffix}`,
-                        dobFieldName
-                      )(date);
+                      if (date instanceof Date && !isNaN(date)) {
+                        const formatted = format(date, "dd-MM-yyyy");
+                        field.onChange(formatted);
+                        handleDateChange(
+                          `${prefix}${suffix}`,
+                          dobFieldName
+                        )(date);
+                      }
                     }}
                     placeholder="Pick a date"
                     error={!!fieldState.error}
@@ -376,33 +381,32 @@ useEffect(() => {
                 )}
               />
 
-             {isChild ? (
-            // Child Relation select
-            <select
-              {...step2Form.register(`${prefix}relation${suffix}`, {
-                required: "Please select an occupation",
-              })}
-              className={inputClass}
-            >
-              <option value="">Child Relation</option>
-              <option value="son">Son</option>
-              <option value="daughter">Daughter</option>
-            </select>
-          ) : isWife ? (
-            // Occupation select only for wife
-            <select
-              {...step2Form.register(`${prefix}occupation`, {
-                required: "Please select an occupation",
-              })}
-              className={inputClass}
-            >
-              <option value="">Select Occupation</option>
-              <option value="Salaried">Salaried</option>
-              <option value="Self Employed">Self Employed</option>
-              <option value="Unemployed">Unemployed</option>
-            </select>
-          ) : null}
-
+              {isChild ? (
+                // Child Relation select
+                <select
+                  {...step2Form.register(`${prefix}relation${suffix}`, {
+                    required: "Please select an occupation",
+                  })}
+                  className={inputClass}
+                >
+                  <option value="">Child Relation</option>
+                  <option value="son">Son</option>
+                  <option value="daughter">Daughter</option>
+                </select>
+              ) : isWife ? (
+                // Occupation select only for wife
+                <select
+                  {...step2Form.register(`${prefix}occupation`, {
+                    required: "Please select an occupation",
+                  })}
+                  className={inputClass}
+                >
+                  <option value="">Select Occupation</option>
+                  <option value="Salaried">Salaried</option>
+                  <option value="Self Employed">Self Employed</option>
+                  <option value="Unemployed">Unemployed</option>
+                </select>
+              ) : null}
 
               <div className="flex gap-2">
                 <input
@@ -483,11 +487,13 @@ useEffect(() => {
                   ? parse(field.value, "dd-MM-yyyy", new Date())
                   : null
               }
-              onChange={(date) => {
-                const formatted = date ? format(date, "dd-MM-yyyy") : "";
-                field.onChange(formatted);
-                handleDateChange("nominee", "nomineedob")(date);
-              }}
+                onChange={(date) => {
+                if (date instanceof Date && !isNaN(date)) {
+                  const formatted = format(date, "dd-MM-yyyy");
+                  field.onChange(formatted);
+                  handleDateChange("nominee", "nomineedob")(date);
+                }
+              }} 
               error={!!fieldState.error}
               errorText={fieldState.error?.message}
               placeholder="Pick a date"

@@ -8,8 +8,8 @@
 
 }
 body{
-  /* background-color: #C2EBFF; */
-   background: linear-gradient(to bottom, #C2EBFF, #D3FFF8);
+  background-color: #C2EBFF;
+   /* background: linear-gradient(to bottom, #C2EBFF, #D3FFF8); */
 }
 .bgcolor{
   background: linear-gradient(to bottom, #C2EBFF, #D3FFF8);

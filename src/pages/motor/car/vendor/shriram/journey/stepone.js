@@ -356,6 +356,24 @@ useEffect(() => {
       }
     }
   }, [journeydata,step1Form]);
+    useEffect(() => {
+    const unregister = step1Form.unregister;
+    if (kycType !== "PAN Card") {
+      unregister("pancardno");
+      unregister("pancardDob");
+    }
+    if (kycType !== "Aadhar ( Last 4 Digits )") {
+      unregister("aadharno");
+      unregister("aadharName");
+      unregister("aadharDob");
+      unregister("aadhargender");
+    }
+    if (kycType !== "Others") {
+      unregister("identityProof");
+      unregister("addressProof");
+      // optional: unregister file upload fields too
+    }
+  }, [kycType, step1Form.unregister]);
 
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -390,9 +408,13 @@ useEffect(() => {
                       ? parse(field.value, "dd-MM-yyyy", new Date())
                       : null
                   }
-                  onChange={(date) =>
-                    field.onChange(date ? format(date, "dd-MM-yyyy") : "")
-                  }
+                  onChange={(date) => {
+                if (date instanceof Date && !isNaN(date)) {
+                  const formatted = format(date, "dd-MM-yyyy");
+                  field.onChange(formatted);
+                }
+              }}
+                 
                   placeholder="Pick a date"
                   error={!!fieldState.error}
                   errorText={fieldState.error?.message}
@@ -443,9 +465,12 @@ useEffect(() => {
                         ? parse(field.value, "dd-MM-yyyy", new Date())
                         : null
                     }
-                    onChange={(date) =>
-                      field.onChange(date ? format(date, "dd-MM-yyyy") : "")
-                    }
+                     onChange={(date) => {
+                if (date instanceof Date && !isNaN(date)) {
+                  const formatted = format(date, "dd-MM-yyyy");
+                  field.onChange(formatted);
+                }
+              }}
                     placeholder="Pick a date"
                     error={!!fieldState.error}
                     errorText={fieldState.error?.message}
@@ -512,7 +537,12 @@ useEffect(() => {
               id="pancardDob"
               name="pancardDob"
               value={dates.pancardno}
-              onChange={handleDateChange("pancardno", "pancardDob")}
+                onChange={(date) => {
+                if (date instanceof Date && !isNaN(date)) {
+                  const formatted = format(date, "dd-MM-yyyy");
+                  handleDateChange("pancardno", "pancardDob")
+                }
+              }}
               placeholder="Pick a start date"
               error={!dates.pan}
               errorText="Please select a valid date"
@@ -578,7 +608,12 @@ useEffect(() => {
                 id="aadharDob"
                 name="aadharDob"
                 value={dates.aadhar}
-                onChange={handleDateChange("aadhar", "aadharDob")}
+                  onChange={(date) => {
+                if (date instanceof Date && !isNaN(date)) {
+                  const formatted = format(date, "dd-MM-yyyy");
+                  handleDateChange("aadhar", "aadharDob");
+                }
+              }}
                 placeholder="Pick a start date"
                 error={!dates.aadhar}
                 errorText="Please select a valid date"
@@ -741,14 +776,20 @@ useEffect(() => {
             <div>
               <label className="labelcls">Upload Media</label>
               <div className="flex flex-col gap-2 items-start">
-                <input
+               <input
                   type="file"
                   id="media-upload"
                   className="hidden"
-                  onChange={(e) =>
-                    setMediaPreview(URL.createObjectURL(e.target.files?.[0]))
-                  }
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const objectUrl = URL.createObjectURL(file);
+                      setMediaPreview(objectUrl);
+                    }
+                  }}
                 />
+
                 <label
                   htmlFor="media-upload"
                   className="px-4 py-2 bg-cyan-500 text-white rounded cursor-pointer"
@@ -756,12 +797,15 @@ useEffect(() => {
                   Choose Photo
                 </label>
                 {mediaPreview && (
-                  <Image
-                    name="insurephoto"
-                    src={mediaPreview}
-                    alt="Preview"
-                    className="w-24 h-auto rounded border"
-                  />
+                 <div className="relative w-24 h-24">
+                    <Image
+                      name="insurephoto"
+                      src={mediaPreview}
+                      alt="Preview"
+                      fill
+                      className="object-cover rounded border"
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -804,6 +848,7 @@ useEffect(() => {
               });
 
               if (!mediaPreview) {
+                console.log("ram")
                 missingFields.push("Upload Media");
               }
 
@@ -875,9 +920,12 @@ useEffect(() => {
                         ? parse(field.value, "dd-MM-yyyy", new Date())
                         : null
                     }
-                    onChange={(date) =>
-                      field.onChange(date ? format(date, "dd-MM-yyyy") : "")
-                    }
+                     onChange={(date) => {
+                        if (date instanceof Date && !isNaN(date)) {
+                          const formatted = format(date, "dd-MM-yyyy");
+                          field.onChange(formatted);
+                        }
+                      }}
                     placeholder="Pick a date"
                     error={!!fieldState.error}
                     errorText={fieldState.error?.message}

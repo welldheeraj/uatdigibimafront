@@ -70,16 +70,16 @@ const constant = {
     },
 
     },
-    USER: {
+     USER: {
       INDEX: "/userpnlx",
       CLAIM: "/userpnlx/claim",
       POLICY: "/userpnlx/policy",
-      PROFILE: "/userpnlx/profile",
+      PROFILE: "/userpnlx/user-dashboard",
       // 'DASHBOARD': '/userpnlx/dashboard'
     },
     ADMIN: {
-      INDEX: "/adminpnlx",
-      ADMINDASHBOARD: "/adminpnlx/admin-dashboard",
+      INDEX: "/dashboard/admin/login",
+      ADMINDASHBOARD: "dashboard/admin/components",
     },
   },
   API: {
@@ -191,6 +191,20 @@ const constant = {
       ADMINLOGIN: "/api/adminpnlx/admin-login",
       SENDOTP: "/api/adminpnlx/sendotp",
       VERIFYOTP: "/api/adminpnlx/verifyotp",
+      ADMINLOGINDATA: "/api/adminpnlx/admin-dashboard",
+      MANAGEPLAN: "/api/adminpnlx/manage-plan",
+      EDITPLAN: "/api/adminpnlx/manage-updateplan",
+      ADDNEWPLAN: "/api/adminpnlx/manage-saveplan",
+      // vendor 
+       MANAGEVENDOR: "/api/adminpnlx/manage-vendor",
+       EDITVENDOR: "/api/adminpnlx/update-vendor",
+      ADDNEWVENDOR: "/api/adminpnlx/add-vendor",
+      // product 
+       PRODUCT: "/api/adminpnlx/manage-product",
+       EDITPRODUCT: "/api/adminpnlx/edit-vendor",
+      ADDNEWPRODUCT: "/api/adminpnlx/add-vendor",
+      // user 
+       MANAGEUSER: "/api/adminpnlx/manage-user",
     },
   },
   QUESTION: {
