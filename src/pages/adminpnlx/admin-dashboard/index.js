@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { showError } from "@/layouts/toaster";
 import Sidebar from "./sidebar";
 import TopBar from "./topbar";
 import DashboardCards from "../pages/dashboard";
@@ -21,15 +22,29 @@ export default function DashboardPage({ usersData }) {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
   const [admindata, setAdminData] = useState([]);
+   const [isAdminVerified, setIsAdminVerified] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);  
   const publicRoutes = ["/adminpnlx"];
 
+    useEffect(() => {
+    const loginType = localStorage.getItem("logintype");
+    if (loginType !== "admin") {
+      showError("You must be logged in as admin to access the dashboard.");
+      router.replace("/adminpnlx");
+    } else {
+      setIsAdminVerified(true); // allow second useEffect
+    }
+  }, []);
+
+
   // Fetch token from localStorage on initial load
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    console.log(storedToken)
-    setToken(storedToken);
-  }, []); 
+   useEffect(() => {
+    if (isAdminVerified) {
+      const storedToken = localStorage.getItem("token");
+      console.log(storedToken);
+      setToken(storedToken);
+    }
+  }, [isAdminVerified]);
 
   // Fetch user data once the token is available
   useEffect(() => {

@@ -4,6 +4,9 @@ import { useEffect, useState, useCallback } from "react";
 import { CallApi } from "@/api";
 import CarInsuranceLoader from "@/components/loader";
 import { showError } from "@/layouts/toaster";
+import Lottie from "lottie-react";
+import successAnimation from "@/animation/success.json";
+import Ribbon from "@/animation/ribbon.json";
 
 export default function ThankYou() {
   const [loading, setLoading] = useState(true);
@@ -58,10 +61,26 @@ export default function ThankYou() {
         </div>
       ) : policyData ? (
         <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-6 text-center border border-blue-100">
-          <div className="icon text-green-500 text-5xl mb-4">
-            <i className="fas fa-check-circle"></i>
+          <div className="flex justify-center">
+            <Lottie
+              animationData={successAnimation}
+             loop={true}
+              autoplay={true}
+              className="w-40 h-40"
+            />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Thank You!</h2>
+          <div className="relative flex items-center justify-center">
+            <Lottie
+              animationData={Ribbon}
+             loop={true}
+              autoplay={true}
+              className="absolute w-60 h-60  pointer-events-none"
+            />
+            <h2 className="text-3xl font-bold text-gray-800 relative z-10">
+              Thank You! 🎉
+            </h2>
+          </div>
+
           <p className="text-gray-700">
             Your policy has been successfully generated.
           </p>

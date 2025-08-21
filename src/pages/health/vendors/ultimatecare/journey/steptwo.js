@@ -284,7 +284,7 @@ const handleDateChange = useCallback(
           placeholder="Proposer Name"
           className={inputClass}
         />
-        <Controller
+       <Controller
           control={step2Form.control}
           name="proposerdob2"
           rules={{ required: "Proposer DOB required" }}
@@ -297,11 +297,14 @@ const handleDateChange = useCallback(
                   ? parse(field.value, "dd-MM-yyyy", new Date())
                   : null
               }
-              onChange={(date) => {
-                const formatted = date ? format(date, "dd-MM-yyyy") : "";
-                field.onChange(formatted);
-                handleDateChange("self", "proposerdob2")(date);
-              }}
+               onChange={(date) => {
+                if (date instanceof Date && !isNaN(date)) {
+                  const formatted = format(date, "dd-MM-yyyy");
+                  field.onChange(formatted);
+                   handleDateChange("self", "proposerdob2")(date);
+                }
+              }}  
+             
               error={!!fieldState.error}
               errorText={fieldState.error?.message}
               placeholder="Pick a date"
@@ -407,7 +410,7 @@ const handleDateChange = useCallback(
                 className={inputClass}
               />
 
-              <Controller
+             <Controller
                 control={step2Form.control}
                 name={dobFieldName}
                 rules={{ required: "Please select a valid date" }}
@@ -415,7 +418,6 @@ const handleDateChange = useCallback(
                   <UniversalDatePicker
                     id={dobFieldName}
                     name={dobFieldName}
-                    className={`${dobFieldName} ...`}
                     value={
                       field.value
                         ? parse(field.value, "dd-MM-yyyy", new Date())
@@ -423,12 +425,14 @@ const handleDateChange = useCallback(
                     }
                     data-age={member.age}
                     onChange={(date) => {
-                      const formatted = date ? format(date, "dd-MM-yyyy") : "";
-                      field.onChange(formatted);
-                      handleDateChange(
-                        `${fieldPrefix}${suffix}`,
-                        dobFieldName
-                      )(date);
+                      if (date instanceof Date && !isNaN(date)) {
+                        const formatted = format(date, "dd-MM-yyyy");
+                        field.onChange(formatted);
+                        handleDateChange(
+                          `${prefix}${suffix}`,
+                          dobFieldName
+                        )(date);
+                      }
                     }}
                     placeholder="Pick a date"
                     error={!!fieldState.error}
@@ -537,7 +541,7 @@ const handleDateChange = useCallback(
           placeholder="Enter Nominee Full Name"
           className={inputClass}
         />
-        <Controller
+          <Controller
           control={step2Form.control}
           name="nomineedob"
           rules={{ required: "Nominee DOB is required" }}
@@ -550,11 +554,13 @@ const handleDateChange = useCallback(
                   ? parse(field.value, "dd-MM-yyyy", new Date())
                   : null
               }
-              onChange={(date) => {
-                const formatted = date ? format(date, "dd-MM-yyyy") : "";
-                field.onChange(formatted); // updates RHF value
-                handleDateChange("nominee", "nomineedob")(date);
-              }}
+                onChange={(date) => {
+                if (date instanceof Date && !isNaN(date)) {
+                  const formatted = format(date, "dd-MM-yyyy");
+                  field.onChange(formatted);
+                  handleDateChange("nominee", "nomineedob")(date);
+                }
+              }} 
               error={!!fieldState.error}
               errorText={fieldState.error?.message}
               placeholder="Pick a date"

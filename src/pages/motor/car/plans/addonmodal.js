@@ -10,7 +10,6 @@ export default function AddonModal({
   setActiveTab,
   addons,
   selectedPlanType,
-  tpaddonslist,
   selectedAddon,
   handleAddonChange,
   handleSaveAddons,
@@ -19,8 +18,16 @@ export default function AddonModal({
   onSaveAccessories,
   addon115Amount,
   setAddon115Amount,
+  compAddonlist,
+  odAddonlist,
+  tpAddonlist,
+  odselectedAddon,
+  tpselectedAddon,
+  comselectedAddon,
+  savingAddons,
 }) {
-  console.log("hello", selectedPlanType, tpaddonslist);
+  console.log("hello", selectedPlanType, selectedAddon);
+  //console.log("hello", selectedPlanType,odAddonlist,tpAddonlist,odselectedAddon,tpselectedAddon,selectedAddon,addons,);
 
   const [accessoryData, setAccessoryData] = React.useState([
     { type: "electrical", checked: false, amount: "" },
@@ -47,7 +54,7 @@ export default function AddonModal({
   // onConfirm logic (optional if not needed)
   const handleConfirm = () => {
     if (activeTab === "Tab1") {
-      console.log(selectedPlanType, data);
+      // console.log(selectedPlanType, data);
       handleSaveAddons(addon115Amount);
     } else if (activeTab === "Tab2") {
       const accessoriesPayload = accessoryData
@@ -63,7 +70,7 @@ export default function AddonModal({
   };
 
   return (
-   <Modal
+    <Modal
       isOpen={open}
       onClose={onClose}
       title="Add Addons"
@@ -105,49 +112,68 @@ export default function AddonModal({
               Select the addons you&apos;d like to add.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {(String(selectedPlanType) === "3"
-                ? Object.entries(tpaddonslist || {}).map(([id, label]) => ({
-                    id: parseInt(id),
-                    label,
-                  }))
-                : addons || []
-              ).map((addon) => (
-                <div key={addon.id}>
-                  <div
-                    onClick={() => handleAddonChange(addon.id)}
-                    className={`bg-blue-50 hover:bg-blue-100 cursor-pointer flex items-center p-2 rounded-md border ${
-                      selectedAddon.includes(addon.id) ? "border-blue-500" : ""
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedAddon.includes(addon.id)}
-                      onChange={() => {}}
-                      className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
-                    />
-                    <label className="text-sm font-medium truncate">
-                      {addon.label}
-                    </label>
+              {(String(selectedPlanType) == 1
+                ? odAddonlist
+                : String(selectedPlanType) == 2
+                ? compAddonlist
+                : tpAddonlist
+              )?.map((addon) => {
+                const selectedArray =
+                  String(selectedPlanType) == 1
+                    ? odselectedAddon
+                    : String(selectedPlanType) == 2
+                    ? selectedAddon
+                    : tpselectedAddon;
+
+                return (
+                  <div key={addon.id}>
+                    <div
+                      onClick={() => handleAddonChange(addon.id)}
+                      className={`bg-blue-50 hover:bg-blue-100 cursor-pointer flex items-center p-2 rounded-md border ${
+                        selectedArray && addon.id in selectedArray
+                          ? "border-blue-500"
+                          : ""
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedArray && (addon.id in selectedArray)}
+                        onChange={() => {}}
+                        className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
+                      />
+                      <label className="text-sm font-medium truncate">
+                        {addon.label}
+                      </label>
+                    </div>
+
+                    {addon.id == 115 && selectedArray && (addon.id in selectedArray) && (
+                      <input
+                        type="number"
+                        className="mt-2 p-1 inputcls"
+                        placeholder="Enter amount"
+                        value={addon115Amount}
+                        onChange={(e) => setAddon115Amount(e.target.value)}
+                      />
+                    )}
                   </div>
-                  {addon.id == 115 && selectedAddon.includes(addon.id) && (
-                    <input
-                      type="number"
-                      className="mt-2 p-1 inputcls"
-                      placeholder="Enter amount"
-                      value={addon115Amount}
-                      onChange={(e) => setAddon115Amount(e.target.value)}
-                    />
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mt-6 flex justify-center">
               <button
                 onClick={() => handleSaveAddons(addon115Amount)}
-                className="py-2 px-8 thmbtn"
+                disabled={savingAddons}
+                className="py-2 px-8 thmbtn flex items-center gap-2"
               >
-                Save Changes
+                {savingAddons ? (
+                  <>
+                    Saving...
+                    <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </button>
             </div>
           </div>
@@ -236,21 +262,28 @@ export function VendorAddonModal({
   selectedPlan,
   fullAddonsName,
 }) {
-  console.log(selectedPlan, fullAddonsName);
+  // Addons key detect
+  const addonKeys = ["selectedaddon", "tpselectedaddon", "odselectedaddon"];
+  const currentAddonKey = addonKeys.find((key) => selectedPlan?.addons?.[key]);
+
+  const addonsData = currentAddonKey
+    ? selectedPlan.addons[currentAddonKey]
+    : {};
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Vendor Addons"
+      title="Vendor Add-ons"
       showConfirmButton={false}
       showCancelButton={true}
       cancelText="Close"
       width="max-w-5xl"
     >
-      {selectedPlan?.addons && Object.keys(selectedPlan.addons).length > 0 ? (
+      {addonsData && Object.keys(addonsData).length > 0 ? (
         <ul className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {Object.entries(selectedPlan.addons)
-            .filter(([_, price]) => String(price) !== "0") // ✅ exclude price == 0 (number or string)
+          {Object.entries(addonsData)
+            .filter(([_, price]) => String(price) !== "0")
             .map(([addonId, price]) => (
               <li
                 key={addonId}

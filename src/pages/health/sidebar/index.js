@@ -7,11 +7,11 @@ import PersonIcon from "@mui/icons-material/Person";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CloseIcon from "@mui/icons-material/Close";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
-
+import { showSuccess, showError } from  "@/layouts/toaster";
 import InsureSidebarComponent from "./editmember";
 import EditIllnessComponent from "./editillness";
-import { CallApi } from "../../../api";
-import constant from "../../../env";
+import { CallApi } from "@/api";
+import constant from "@/env";
 
 const SlidePanel = ({
   isSlideOpen,
@@ -21,6 +21,7 @@ const SlidePanel = ({
   setPincode,
   setMemberName,
 }) => {
+ // console.log("pincode aa gya",pincode)
   const [showPincodePanel, setShowPincodePanel] = useState(false);
   const [showMemberPanel, setShowMemberPanel] = useState(false);
   const [showIllnessPanel, setShowIllnessPanel] = useState(false);
@@ -29,9 +30,9 @@ const SlidePanel = ({
   const [error, setError] = useState("");
   const [displayedPincode, setDisplayedPincode] = useState(pincode);
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const pincodeRef = useRef();
-
   const handleCloseAll = () => {
     setShowPincodePanel(false);
     setShowMemberPanel(false);
@@ -40,13 +41,13 @@ const SlidePanel = ({
     setCities({});
     setError("");
   };
+    useEffect(() => {
+   setDisplayedPincode(pincode)
+  }, [pincode]);
 
-  useEffect(() => {
+   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        pincodeRef.current &&
-        !pincodeRef.current.contains(e.target)
-      ) {
+      if (pincodeRef.current && !pincodeRef.current.contains(e.target)) {
         setCities({});
       }
     };
@@ -72,14 +73,39 @@ const SlidePanel = ({
     }
   };
 
-  const handleCityClick = (pin, city) => {
-    const full = `${pin}-(${city})`;
-    setDisplayedPincode(full);
+  const handleCityClick = (pin) => {
+    console.log("Selected Pincode:", pin);
+    setDisplayedPincode(pin);
     setPincode(pin);
     setCities({});
     setIsButtonEnabled(true);
   };
+const updatePincode = async () => {
+  if (!isButtonEnabled) return;
 
+  setLoading(true);
+  try {
+    const res = await CallApi(
+      constant.API.HEALTH.UPDATEPINCODE,
+      "POST",
+      { findpincode: displayedPincode }
+    );
+
+    console.log("UPDATEPINCODE Response:", res);
+
+    if (res?.status) {
+      showSuccess("Pincode updated successfully!");
+    } else {
+      showError(res?.message || "Failed to update pincode. Try again.");
+    }
+  } catch (error) {
+    console.error("UPDATEPINCODE Error:", error);
+    showError("Something went wrong while updating pincode.");
+  } finally {
+    setLoading(false);
+    handleCloseAll();
+  }
+};
   return (
     <div className="md:col-span-3">
       <div className="bg-white border rounded-[30px] shadow-md p-4">
@@ -189,7 +215,7 @@ const SlidePanel = ({
             )}
 
             {/* Pincode Form */}
-            {showPincodePanel && (
+          {showPincodePanel && (
               <div ref={pincodeRef} className="relative">
                 <div className="mb-3">
                   <label className="text-sm font-medium text-gray-700 block mb-2">
@@ -197,7 +223,8 @@ const SlidePanel = ({
                   </label>
                   <input
                     type="text"
-                    value={displayedPincode}
+                    value={displayedPincode} 
+                    maxLength={6}
                     onChange={(e) => {
                       const cleaned = e.target.value.replace(/\D/g, "");
                       setPincode(cleaned);
@@ -215,29 +242,31 @@ const SlidePanel = ({
                 {/* Suggestions */}
                 {Object.keys(cities).length > 0 && (
                   <div className="absolute z-10 bg-white border rounded-md shadow-lg w-full mt-1 max-h-40 overflow-y-auto">
-                    {Object.entries(cities).map(([city, pin]) => (
+                    {Object.entries(cities).map(([pin, city]) => (
                       <div
-                        key={`${city}-${pin}`}
-                        onClick={() => handleCityClick(pin, city)}
+                        key={pin}
+                        onClick={() => handleCityClick(pin)}
                         className="px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 cursor-pointer"
                       >
-                        {pin}-({city})
+                        {pin} - ({city})
                       </div>
                     ))}
                   </div>
                 )}
 
-                <div className="mt-8">
+               <div className="mt-8">
                   <button
-                    onClick={handleCloseAll}
-                    disabled={!isButtonEnabled}
+                    onClick={updatePincode}
+                    disabled={!isButtonEnabled || loading}
                     className={`w-full px-6 py-2 thmbtn ${
-                      !isButtonEnabled ? "opacity-50 cursor-not-allowed" : ""
+                      !isButtonEnabled || loading ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
-                    Continue
+                    {loading ? "Processing..." : "Continue"}
                   </button>
                 </div>
+
+
               </div>
             )}
 

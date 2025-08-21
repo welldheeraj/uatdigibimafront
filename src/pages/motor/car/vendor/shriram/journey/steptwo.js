@@ -5,6 +5,7 @@ import { format, parse } from "date-fns";
 import { Controller } from "react-hook-form";
 import DropdownWithSearch from "../../../../../lib/DropdownWithSearch";
 import WindowedSelect from "react-windowed-select";
+import { isAlphaNumeric } from "@/styles/js/validation.js";
 const CHUNK_SIZE = 1000;
 export default function StepTwoForm({
   motortype,
@@ -28,6 +29,7 @@ export default function StepTwoForm({
   const { handleSubmit, control, register, setValue, formState } = step2Form;
 
 useEffect(() => {
+   console.log("car pre poli",cardata?.prepolitype)
   if (cardata?.prepolitype === "bundled") {
     setValue("policyfdate", cardata.bdfromdate || "");
     setValue("policytodate", cardata.bdtodate || "");
@@ -50,6 +52,7 @@ useEffect(() => {
   }
 
   if (cardata?.prepolitype) {
+    console.log("mila hai")
     setValue("policytype", cardata.prepolitype.toUpperCase());
   }
 }, [cardata, setValue]);
@@ -214,17 +217,21 @@ useEffect(() => {
           <div>
             <label className="labelcls">Engine Number</label>
             <input
-              type="text"
-              {...register("enginenumber")}
-              className={inputClass}
-              placeholder="Engine Number"
-            />
+            type="text"
+            {...register("enginenumber", { minLength: 5, maxLength: 21 })}
+            onChange={(e) => isAlphaNumeric(e, setValue, "enginenumber")}
+             maxLength={21} 
+            className={inputClass}
+            placeholder="Engine Number"
+          />
           </div>
           <div>
             <label className="labelcls">Chassis Number</label>
             <input
               type="text"
-              {...register("chassisnumber")}
+              {...register("chassisnumber", { minLength: 5, maxLength: 17 })}
+              onChange={(e) => isAlphaNumeric(e, setValue, "chassisnumber")}
+               maxLength={17}
               className={inputClass}
               placeholder="Chassis Number"
             />

@@ -50,7 +50,7 @@ export default function StepOneForm({
   isOtherKycHidden,
   setIsOtherKycHidden,
 }) {
-  console.log("data",userinfodata);
+  console.log("data",cardata);
   // console.log("car data aa gya", cardata);
   // const [proofs, setProofs] = useState({});
   const [mediaPreview, setMediaPreview] = useState(null);
@@ -133,6 +133,19 @@ useEffect(() => {
   }
 }, [userinfodata, cardata?.under, step1Form]);
 
+  useEffect(() => {
+  if (!journeydata) return;
+  if (cardata?.under === "company") {
+    const safeParse = (val) => { try { return val ? JSON.parse(val) : {}; } catch {
+          return {};}};
+    const company = safeParse(journeydata.company_details);
+        step1Form.setValue("ms", company.ms || "");
+        step1Form.setValue("companyname", company.companyname || "");
+        step1Form.setValue("dobincorporation", company.dobincorporation || "");
+        step1Form.setValue("gstnumber", company.gstnumber || "");
+  }
+}, [journeydata, cardata?.under, step1Form]);
+
 
 
   useEffect(() => {
@@ -155,19 +168,23 @@ useEffect(() => {
       pincode: "pincode",
     };
 
-    // Object.entries(directFields).forEach(([formKey, userKey]) => {
-    //   if (usersData[userKey]) {
-    //     set(formKey, usersData[userKey], { shouldValidate: true });
-    //   }
-    //   if (formKey === "pincode") {
-    //     handlePincodeInput({
-    //       target: { name: "pincode", value: usersData[userKey] },
-    //     });
-    //   }
-    // });
+    Object.entries(directFields).forEach(([formKey, userKey]) => {
+      if (usersData[userKey]) {
+        set(formKey, usersData[userKey], { shouldValidate: true });
+      }
+      if (formKey === "pincode") {
+        handlePincodeInput({
+          target: { name: "pincode", value: usersData[userKey] },
+        });
+      }
+    });
 
    
-    step1Form.setValue("email", usersData.email || "");
+    // step1Form.setValue("email", usersData.email || "");
+    // step1Form.setValue("contactmobile", usersData.mobile || "");
+    // step1Form.setValue("pincode", usersData.pincode || "");
+
+
   }, [usersData,step1Form]);
 
   const isPanAlreadyVerified = isPanVerified;
@@ -313,6 +330,7 @@ useEffect(() => {
   };
 
   useEffect(() => {
+    console.log("journey data resive",journeydata)
     if (journeydata && Object.keys(journeydata).length > 0) {
       const safeParse = (val) => {
         try {
@@ -327,7 +345,7 @@ useEffect(() => {
       step1Form.setValue("proposerdob1", journeydata.dob || "");
 
       const contact = safeParse(journeydata.contact_details);
-      step1Form.setValue("contactmobile", contact.contactmobile || "");
+      // step1Form.setValue("contactmobile", contact.contactmobile || "");
       step1Form.setValue("contactemergency", contact.contactemergency || "");
 
       const address = safeParse(journeydata.permanent_address);
@@ -346,14 +364,7 @@ useEffect(() => {
       step1Form.setValue("commcurrentstate", comm.commcurrentstate || "");
       step1Form.setValue("commcurrentpincode", comm.commcurrentpincode || "");
 
-      // You can also handle company details conditionally
-      if (journeydata.under === "company") {
-        const company = safeParse(journeydata.company_details);
-        step1Form.setValue("ms", company.ms || "");
-        step1Form.setValue("companyname", company.companyname || "");
-        step1Form.setValue("dobincorporation", company.dobincorporation || "");
-        step1Form.setValue("gstnumber", company.gstnumber || "");
-      }
+      
     }
   }, [journeydata,step1Form]);
     useEffect(() => {
@@ -390,6 +401,7 @@ useEffect(() => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
             <input
               {...step1Form.register("name")}
+              onChange={(e) => isAlpha(e, step1Form.setValue, "name")}
               placeholder="Full Name as per your ID Card"
               className={inputClass}
             />
@@ -648,9 +660,11 @@ useEffect(() => {
               type="text"
               className={inputClass}
               value={proofs.fatherName || ""}
-              onChange={(e) =>
-                setProofs({ ...proofs, fatherName: e.target.value })
-              }
+               onChange={(e) => {
+              isAlpha(e, step1Form.setValue, "fathername");
+              setProofs({...proofs,
+                fatherName: e.target.value});
+            }}
               placeholder="Father Name"
               required
             />
@@ -892,6 +906,7 @@ useEffect(() => {
 
             <input
               {...step1Form.register("proposername")}
+              onChange={(e) => isAlpha(e, step1Form.setValue, "proposername")}
               placeholder="Full Name as per your ID Card"
               className="border border-gray-300 px-3 py-2 rounded text-sm w-full md:col-span-6"
             />

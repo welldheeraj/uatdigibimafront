@@ -15,12 +15,14 @@ import  validateStepTwoData  from "./validatesteptwoagedata.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
-import HealthInsuranceLoader from "../../../loader";
+// import HealthInsuranceLoader from "../../../loader";
+import {HealthLoaderOne} from "@/components/loader";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
 export default function StepperForm({ usersData, kycData }) {
   const [loading, setLoading] = useState(false);
+  const [submitStepLoader, setSubmitStepLoader] = useState(false);
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [kycType, setKycType] = useState("");
@@ -85,7 +87,8 @@ export default function StepperForm({ usersData, kycData }) {
   const step4Form = useForm();
 
   const inputClass = "border border-gray-400 rounded px-3 py-2 text-sm w-full";
-  const steps = ["Step", "Step", "Step", ""];
+  // const steps = ["Step", "Step", "Step", ""];
+  const steps = ["", "", "", ""];
 
   const back = async () => {
     if (currentStep === 1) {
@@ -408,7 +411,7 @@ export default function StepperForm({ usersData, kycData }) {
         );
         if (response.proposalNumber) {
           router.push(
-            `/health/payment?proposalNumber=${response.proposalNumber}`
+            `/health/vendors/ultimatecare/payment?proposalNumber=${response.proposalNumber}`
           );
         }
       }
@@ -422,8 +425,9 @@ export default function StepperForm({ usersData, kycData }) {
   const goNext = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
 
   const onSubmitStep = async () => {
+      setSubmitStepLoader(true);
+       try {
     let isValid = false;
-    setLoading(true);
     if (currentStep === 1) isValid = await validateFormStepOne();
     else if (currentStep === 2) isValid = await validateFormStepTwo();
     else if (currentStep === 3)
@@ -431,7 +435,7 @@ export default function StepperForm({ usersData, kycData }) {
     else if (currentStep === 4) isValid = await GoToPayment();
 
     if (!isValid) {
-      setLoading(false);
+      setSubmitStepLoader(false);
       return;
     }
     const formToUse =
@@ -444,10 +448,13 @@ export default function StepperForm({ usersData, kycData }) {
         : step4Form;
 
     console.log(`Step ${currentStep} Data:`, formToUse.getValues());
-    goNext();
-    setLoading(false);
-  };
-
+   goNext();
+    } catch (e) {
+    } finally {
+      setSubmitStepLoader(false);
+    }
+      };
+    
   const handleVerifyPan = async () => {
     const values = step1Form.getValues();
     await validateKycStep(
@@ -506,7 +513,7 @@ export default function StepperForm({ usersData, kycData }) {
   return (
     <>
       {loading ? (
-        <HealthInsuranceLoader />
+        <HealthLoaderOne />
       ) : (
         <div className="min-h-screen bgcolor p-4 sm:p-8">
           <button

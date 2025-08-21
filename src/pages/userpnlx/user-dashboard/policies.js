@@ -1,10 +1,10 @@
 import DashboardLayout from "./DashboardLayout";
-import Dashboard from "./pages/dashboard";
+import Policy from "./pages/policies";
 
-export default function UserDashboardHome() {
+export default function PoliciesPage() {
   return (
     <DashboardLayout>
-      <Dashboard />
+      <Policy />
     </DashboardLayout>
   );
 }

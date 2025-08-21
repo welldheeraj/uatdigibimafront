@@ -27,7 +27,7 @@ export default function PolicyPeriodOptions({
       setPriceLoading(true);
       prevPricesRef.current = tenurePrices;
 
-      const timeout = setTimeout(() => setPriceLoading(false), 600); 
+      const timeout = setTimeout(() => setPriceLoading(false), 600);
       return () => clearTimeout(timeout);
     }
   }, [tenurePrices]);
@@ -35,22 +35,21 @@ export default function PolicyPeriodOptions({
   if (tenureOptions.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 sm:px-8 mb-6 w-full">
-  <div className="mb-2 h-4 w-32 bg-gray-300 rounded animate-pulse" />
-  <div className="mb-4 h-3 w-64 bg-gray-200 rounded animate-pulse" />
+        <div className="mb-2 h-4 w-32 bg-gray-300 rounded animate-pulse" />
+        <div className="mb-4 h-3 w-64 bg-gray-200 rounded animate-pulse" />
 
-  <div className="flex flex-wrap gap-4">
-    {[...Array(3)].map((_, i) => (
-      <div
-        key={i}
-        className="flex items-center space-x-2 border rounded-xl px-4 py-3 min-w-[150px] sm:w-[200px] h-[56px] bg-gray-100 animate-pulse"
-      >
-        <div className="h-4 w-4 rounded-full bg-gray-300" />
-        <div className="h-4 w-24 bg-gray-300 rounded" />
+        <div className="flex flex-wrap gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center space-x-2 border rounded-xl px-4 py-3 min-w-[150px] sm:w-[200px] h-[56px] bg-gray-100 animate-pulse"
+            >
+              <div className="h-4 w-4 rounded-full bg-gray-300" />
+              <div className="h-4 w-24 bg-gray-300 rounded" />
+            </div>
+          ))}
+        </div>
       </div>
-    ))}
-  </div>
-</div>
-
     );
   }
 

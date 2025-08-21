@@ -10,6 +10,11 @@ export const isAlpha = (e, setValue, fieldName, allowSpace = true) => {
   );
   setValue(fieldName, cleaned);
 }
+export const isAlphaNumeric = (e, setValue, fieldName) => {
+  const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  setValue(fieldName,cleaned);
+};
 
 
 export const validateFields = async (form, excluded = [], only = null) => {

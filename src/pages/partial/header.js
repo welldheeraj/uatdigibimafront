@@ -37,7 +37,7 @@ export default function Header({ token, username, setUsername }) {
       window.dispatchEvent(new Event("auth-change"));
       setIsDropdownOpen(false);
       showSuccess(response.message);
-   
+
       if (response.status === true) {
         router.push("/");
       } else {
@@ -47,13 +47,12 @@ export default function Header({ token, username, setUsername }) {
   };
 
   return (
-    
     <header className="w-full bg-[#C8EDFE]">
-       <Modal
+      <Modal
         isOpen={showNotificationModal}
         onClose={() => setShowNotificationModal(false)}
-         width="max-w-sm"
-         height="max-h-[70vh]"
+        width="max-w-sm"
+        height="max-h-[70vh]"
         title="Notifications"
         confirmText="Mark all read"
         onConfirm={() => {

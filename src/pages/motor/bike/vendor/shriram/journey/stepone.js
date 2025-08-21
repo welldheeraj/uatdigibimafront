@@ -403,6 +403,7 @@ export default function StepOneForm({
                 required:
                   bikedata?.under === "individual" ? "Name is required" : false,
               })}
+               onChange={(e) => isAlpha(e, step1Form.setValue, "name")}
               placeholder="Full Name as per your ID Card"
               className={inputClass}
             />
@@ -665,9 +666,11 @@ export default function StepOneForm({
               type="text"
               className={inputClass}
               value={proofs.fatherName || ""}
-              onChange={(e) =>
-                setProofs({ ...proofs, fatherName: e.target.value })
-              }
+               onChange={(e) => {
+                            isAlpha(e, step1Form.setValue, "fathername");
+                            setProofs({...proofs,
+                              fatherName: e.target.value});
+                          }}
               placeholder="Father Name"
               required
             />
@@ -907,6 +910,7 @@ export default function StepOneForm({
 
             <input
               {...step1Form.register("proposername")}
+               onChange={(e) => isAlpha(e, step1Form.setValue, "proposername")}
               placeholder="Full Name as per your ID Card"
               className="border border-gray-300 px-3 py-2 rounded text-sm w-full md:col-span-6"
             />

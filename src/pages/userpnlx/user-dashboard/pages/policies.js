@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { FaDownload } from "react-icons/fa";
+import { showSuccess, showError } from "@/layouts/toaster";
+import Link from "next/link";
 import {
   useReactTable,
   getCoreRowModel,
@@ -14,6 +17,7 @@ import constant from "@/env";
 import { AiOutlineArrowUp, AiOutlineArrowDown } from "react-icons/ai";
 
 export default function Policy() {
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -22,6 +26,7 @@ export default function Policy() {
   const [currentPage, setCurrentPage] = useState(1);
   const [fromIndex, setFromIndex] = useState(1);
 
+  const skeletonWidths = ["w-8", "w-24", "w-20", "w-28", "w-10","w-10","w-10","w-10","w-10"];
   // const [pagination, setPagination] = useState({
   //   // pageIndex: 0,
   //   // pageSize: 20,
@@ -62,10 +67,42 @@ export default function Policy() {
         header: "Status",
         accessorKey: "status",
       },
+      // {
+      //   header: "Action",
+      //   accessorKey: "action",
+      //    cell: ({ row }) => (
+      //   <button
+      //      onClick={() => handleDownload(row.original)}
+      //     className="text-blue-600 hover:text-blue-800"
+      //     title="Download Policy"
+      //   >
+      //     <FaDownload />
+      //   </button>
+      // ),
+      // },
       {
-        header: "Action",
-        accessorKey: "action",
-      },
+  header: "Action",
+  accessorKey: "action",
+  cell: ({ row }) =>
+    row.original?.policy_pdf ? (
+      <Link
+        href={row.original.policy_pdf}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:text-blue-800"
+        title="Download Policy"
+      >
+        <FaDownload />
+      </Link>
+    ) : (
+      <FaDownload
+        onClick={() => showError("Policy PDF not available")}
+        className="text-gray-400 cursor-pointer"
+        title="No Policy Available"
+      />
+    ),
+}
+
     ],
     [fromIndex]
   );
@@ -85,39 +122,60 @@ export default function Policy() {
     // pageCount: pageCount,
   });
 
-  async function getPolicyPage(pageNum) {
-    try {
-      const response = await CallApi(
-        `${constant.API.USER.POLICY}?page=${pageNum}`,
-        "GET"
-      );
+ async function getPolicyPage(pageNum) {
+  try {
+    setLoading(true); 
+    const response = await CallApi(
+      `${constant.API.USER.POLICY}?page=${pageNum}`,
+      "GET"
+    );
 
-      console.log("policy ka res", response);
+    console.log("policy ka res", response);
 
-      const tableData =
-        response?.data?.policies?.data?.map((item) => ({
-          proposerName: item.proposar_name,
-          policyName: item.policy_name,
-          policyType: item.policy_type,
-          proposalNumber: item.proposal,
-          policyNumber: item.policy,
-          // applyDate : item,
-          status: item.status_details || "NA",
-        })) || [];
+    const tableData =
+      response?.data?.policies?.data?.map((item) => ({
+        proposerName: item.proposar_name,
+        policyName: item.policy_name,
+        policyType: item.policy_type,
+        proposalNumber: item.proposal,
+        policyNumber: item.policy,
+        status: item.status_details || "NA",
+         policy_pdf: item.policy_pdf,
+      })) || [];
 
-      setData(tableData);
-      setPageCount(response?.data?.policies?.last_page || 0);
-      setTotalRecords(response?.data?.policies?.total || 0);
-      setCurrentPage(response?.data?.policies?.current_page || 1);
-      setFromIndex(response?.data?.policies?.from || 1);
-    } catch (error) {
-      console.error(error);
-    }
+    setData(tableData);
+    setPageCount(response?.data?.policies?.last_page || 0);
+    setTotalRecords(response?.data?.policies?.total || 0);
+    setCurrentPage(response?.data?.policies?.current_page || 1);
+    setFromIndex(response?.data?.policies?.from || 1);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setLoading(false); 
   }
+}
+
 
   useEffect(() => {
     getPolicyPage(1);
   }, []);
+
+const handleDownload = async (policy) => {
+    console.log("Download clicked row data:", policy);
+    // return false;
+  try {
+    setLoading(true);
+
+    const res = await CallApi(constant.API.USER.DOWNLOADPOLICY, "POST",policy.policy_pdf_path)
+ console.log(res)
+
+  } catch (error) {
+    console.error("Download failed:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleCSVImport = (e) => {
     const file = e.target.files[0];
@@ -141,9 +199,9 @@ export default function Policy() {
   };
 
   return (
-   <div className="w-full mt-5 overflow-x-auto">
-  <div className="rounded-xl shadow-lg border border-blue-200 bg-white overflow-x-auto min-w-full sm:min-w-[600px]">
-    <table className="w-full table-auto text-sm text-left text-gray-800">
+    <div className="w-full mt-5 overflow-x-auto">
+      <div className="rounded-xl shadow-lg border border-blue-200 bg-white overflow-x-auto min-w-full sm:min-w-[600px]">
+        <table className="w-full table-auto text-sm text-left text-gray-800">
           <thead className="bg-gradient-to-r from-blue-100 via-blue-200 to-blue-100 text-gray-700 text-xs uppercase tracking-wider">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -171,23 +229,38 @@ export default function Policy() {
             ))}
           </thead>
           <tbody className="divide-y divide-blue-100">
-            {table.getRowModel().rows.map((row, i) => (
-              <tr
-                key={row.id}
-                className={`transition-all hover:bg-blue-50 ${
-                  i % 2 === 0 ? "bg-white" : "bg-blue-50/30"
-                }`}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className="px-5 py-3 break-words max-w-[180px] align-top"
+            {loading
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <tr key={index}>
+                    {skeletonWidths.map((width, index) => (
+                      <td key={index} className="px-5 py-3">
+                        <div
+                          className={`h-4 ${width} bg-gray-200 animate-pulse rounded`}
+                        ></div>
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              : table.getRowModel().rows.map((row, i) => (
+                  <tr
+                    key={row.id}
+                    className={`transition-all hover:bg-blue-50 ${
+                      i % 2 === 0 ? "bg-white" : "bg-blue-50/30"
+                    }`}
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className="px-5 py-3 break-words max-w-[180px] align-top"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
+                  </tr>
                 ))}
-              </tr>
-            ))}
           </tbody>
         </table>
       </div>

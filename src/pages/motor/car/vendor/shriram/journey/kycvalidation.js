@@ -134,6 +134,31 @@ export default async function validateKycStep(
         showError("Missing fields or files.");
         return false;
       }
+        // 2 File type validation
+        const isPdf = (file) =>
+          file && file.type && file.type.toLowerCase() === "application/pdf";
+
+        const isAllowedImage = (file) => {
+          if (!file || !file.type) return false;
+          const allowedTypes = ["image/jpeg", "image/png", "image/bmp"];
+          return allowedTypes.includes(file.type.toLowerCase());
+        };
+
+        if (!isPdf(identityFile)) {
+          showError("Identity file must be a PDF.");
+          return false;
+        }
+
+        if (!isPdf(addressFile)) {
+          showError("Address file must be a PDF.");
+          return false;
+        }
+
+       if (!isAllowedImage(insurePhoto)) {
+          showError("Insured photo must be a JPG, JPEG, PNG, or BMP image.");
+          return false;
+        }
+
 
       const formData = new FormData();
       formData.append("identityfront", identityFile);

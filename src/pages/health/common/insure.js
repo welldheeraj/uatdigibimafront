@@ -15,19 +15,22 @@ export default function InsurePage() {
   const [gender, setGender] = useState("");
   const [members, setMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [childrenList, setChildrenList] = useState([]); 
+  const [childrenList, setChildrenList] = useState([]);
   const [isChildChecked, setIsChildChecked] = useState(false);
   const maxChildren = 4;
+
+  const [showModal, setShowModal] = useState(true);
+  const [planType, setPlanType] = useState("");
 
   useEffect(() => {
     const getInsureData = async () => {
       try {
         const res = await CallApi(constant.API.HEALTH.GETINSURE);
-        console.log("step two data",res);
+        console.log("step two data", res);
         if (res.status && res.data) {
           if (res.gender) {
-              setGender(res.gender.toLowerCase()); 
-            }
+            setGender(res.gender.toLowerCase());
+          }
           const apiData = res.data;
           const updatedMembers = [
             {
@@ -250,81 +253,167 @@ export default function InsurePage() {
     }
   };
 
+  useEffect(() => {
+    const handleLoad = () => {
+      const saved = localStorage.getItem("planType");
+
+      if (saved === "1" || saved === "2") {
+        setPlanType(saved);
+        setShowModal(false);
+      } else {
+        localStorage.removeItem("planType");
+        setShowModal(true);
+      }
+    };
+
+    window.addEventListener("load", handleLoad);
+
+    return () => window.removeEventListener("load", handleLoad);
+  }, []);
+
+ const handleplanSubmit = async () => {
+  if (!planType) {
+    showError("Please select a plan type.");
+    return;
+  }
+
+  try {
+    const response = await CallApi(constant.API.HEALTH.PLANTYPE,"POST", {"plantype": planType} );
+
+    console.log("Server response:",response, constant.API.HEALTH.PLANTYPE,planType);
+    // return false;
+
+     if (response.status) {
+      showSuccess("Plan submitted successfully!");
+      localStorage.setItem("planType", response.plantype);
+      setShowModal(false);
+    } else {
+      showError(response.error || "Failed to submit plan. Please try again.");
+    }
+  } catch (err) {
+    console.error("API error:", err);
+    showError("Something went wrong. Please try again.");
+  }
+};
+
+
   return (
-    <div className="bgcolor px-4 py-10 min-h-screen flex items-center justify-center">
-      <section
-        id="slide3"
-        className=" max-w-9xl rounded-[64px] bg-[#fff] text-white grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 md:p-10 gap-6"
-      >
-        <div className="hidden md:flex items-center justify-center">
-          <Image
-            src={healthTwo}
-            alt="Family Health"
-            className="max-w-[350px] w-full h-auto object-contain"
-          />
-        </div>
-
-        <div className="w-full">
-          <h2 className="text-[24px] md:text-[28px] font-bold mb-8 text-[#426D98] text-center md:text-left">
-            Select members you want to insure
-          </h2>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {members
-                .filter((m) => ["self", "wife", "husband"].includes(m.name))
-                .map((member) => (
-                  <MemberCard
-                    key={member.name}
-                    member={member}
-                    selectedMembers={selectedMembers}
-                    handleToggle={handleToggle}
-                    ageChange={ageChange}
-                  />
-                ))}
-              <div className="col-span-full">
-                <ChildrenSection
-                  isChildChecked={isChildChecked}
-                  toggleChildCheckbox={toggleChildCheckbox}
-                  childrenList={childrenList} // updated prop name
-                  addChild={addChild}
-                  removeChild={removeChild}
-                  childChange={childChange}
-                  maxChildren={maxChildren}
+    <>
+      {showModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-white w-[90%] max-w-md rounded-xl p-6 shadow-lg">
+            <h2 className="text-lg font-bold mb-4 text-gray-800 text-left">
+              Select Plan Type
+            </h2>
+            <div className="flex flex-col gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  value="1"
+                  checked={planType === "1"}
+                  onChange={(e) => setPlanType(e.target.value)}
                 />
-              </div>
-              {members
-                .filter((m) => !["self", "wife", "husband"].includes(m.name))
-                .map((member) => (
-                  <MemberCard
-                    key={member.name}
-                    member={member}
-                    selectedMembers={selectedMembers}
-                    handleToggle={handleToggle}
-                    ageChange={ageChange}
-                  />
-                ))}
+                <span className="text-gray-700">Business</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  value="2"
+                  checked={planType === "2"}
+                  onChange={(e) => setPlanType(e.target.value)}
+                />
+                <span className="text-gray-700">Port</span>
+              </label>
             </div>
-
-            <div className="flex flex-wrap gap-3 justify-start">
+            <div className="mt-6 text-center">
               <button
-                type="button"
-                onClick={() => router.push("/")}
-                className="px-6 py-2 thmbtn rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="px-6 py-2 thmbtn rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
+                onClick={handleplanSubmit}
+                className="bg-blue-500 text-white px-6 py-2 rounded-full font-medium text-sm hover:scale-105 transition"
               >
                 Continue
               </button>
             </div>
-          </form>
+          </div>
         </div>
-      </section>
-    </div>
+      ) : (
+        <div className="bgcolor px-4 py-10 min-h-screen flex items-center justify-center">
+          <section
+            id="slide3"
+            className=" max-w-9xl rounded-[64px] bg-[#fff] text-white grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 md:p-10 gap-6"
+          >
+            <div className="hidden md:flex items-center justify-center">
+              <Image
+                src={healthTwo}
+                alt="Family Health"
+                className="max-w-[350px] w-full h-auto object-contain"
+              />
+            </div>
+
+            <div className="w-full">
+              <h2 className="text-[24px] md:text-[28px] font-bold mb-8 text-[#426D98] text-center md:text-left">
+                Select members you want to insure
+              </h2>
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {members
+                    .filter((m) => ["self", "wife", "husband"].includes(m.name))
+                    .map((member) => (
+                      <MemberCard
+                        key={member.name}
+                        member={member}
+                        selectedMembers={selectedMembers}
+                        handleToggle={handleToggle}
+                        ageChange={ageChange}
+                      />
+                    ))}
+                  <div className="col-span-full">
+                    <ChildrenSection
+                      isChildChecked={isChildChecked}
+                      toggleChildCheckbox={toggleChildCheckbox}
+                      childrenList={childrenList} // updated prop name
+                      addChild={addChild}
+                      removeChild={removeChild}
+                      childChange={childChange}
+                      maxChildren={maxChildren}
+                    />
+                  </div>
+                  {members
+                    .filter(
+                      (m) => !["self", "wife", "husband"].includes(m.name)
+                    )
+                    .map((member) => (
+                      <MemberCard
+                        key={member.name}
+                        member={member}
+                        selectedMembers={selectedMembers}
+                        handleToggle={handleToggle}
+                        ageChange={ageChange}
+                      />
+                    ))}
+                </div>
+
+                <div className="flex flex-wrap gap-3 justify-start">
+                  <button
+                    type="button"
+                    onClick={() => router.push("/")}
+                    className="px-6 py-2 thmbtn rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="px-6 py-2 thmbtn rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+      )}
+    </>
   );
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FaBell,FaBars } from "react-icons/fa";
+import { FaBell, FaBars } from "react-icons/fa";
 import { FiSearch } from "react-icons/fi";
 import { useUser } from "@/context/UserContext";
 import { CallApi } from "@/api";
@@ -24,6 +24,9 @@ export default function TopBar({
   const { userData, token } = useUser();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+
+  const BASE = "/userpnlx/user-dashboard";
+
   const logout = async () => {
     const response = await CallApi("/api/logout", "POST", "");
     if (response.status) {
@@ -38,13 +41,12 @@ export default function TopBar({
   return (
     <div className="flex flex-wrap justify-between items-center p-4 bg-sky-100 gap-y-4">
 
-     <button
-  onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-  className="md:hidden p-2 text-gray-800"
->
-  <FaBars />
-</button>
-
+      <button
+        onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+        className="md:hidden p-2 text-gray-800"
+      >
+        <FaBars />
+      </button>
 
       {/* 🔍 Search Box */}
       <div className="relative w-full max-w-xs">
@@ -96,8 +98,10 @@ export default function TopBar({
                   <>
                     <li
                       onClick={() => {
+                        // ✅ highlight + redirect
                         setIsDropdownOpen(false);
                         setActivePage("profile");
+                        router.push(`${BASE}/profile`);
                       }}
                       className="px-5 py-3 hover:bg-blue-50 hover:text-blue-600 transition-all duration-150 cursor-pointer font-medium flex items-center gap-2"
                     >

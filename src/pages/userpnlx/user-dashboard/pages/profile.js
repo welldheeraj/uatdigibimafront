@@ -87,114 +87,117 @@ const Profile = ({ usersData, collapsed }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-      <div className="px-4 py-10 min-h-screen flex items-center justify-center">
-        <div
-          className={`bg-white w-full ${
-            collapsed ? "sm:w-5xl" : "sm:w-5xl"
-          } p-8 rounded-[64px] shadow-lg relative`}
-        >
-          {/* Profile Card */}
-          <div className="absolute -top-5 left-1/2 -translate-x-1/2">
-            <div className="flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-b from-[#7ba7ff] to-[#7998F4] text-white shadow-md">
-              <HiOutlineUserCircle className="w-5 h-5" />
-              <span className="font-semibold text-lg">Personal Details</span>
-            </div>
-          </div>
-
-          {/* Gender Selector */}
-          <div className="flex items-center justify-center gap-2 rounded-md mt-4">
-            <label className="cursor-pointer">
-              <input
-                type="radio"
-                value="male"
-                {...register("gender")}
-                name="gender"
-                className="hidden peer"
-              />
-              <div className="flex items-center gap-2 px-4 py-1 rounded bg-white text-black-500 border border-gray-400 peer-checked:bg-[#7998F4] peer-checked:text-white transition-colors duration-200">
-                Male
-              </div>
-            </label>
-
-            <label className="cursor-pointer">
-              <input
-                type="radio"
-                value="female"
-                {...register("gender")}
-                name="gender"
-                className="hidden peer"
-              />
-              <div className="flex items-center gap-2 px-4 py-1 rounded bg-white text-black-500 border border-gray-400 peer-checked:bg-[#7998F4] peer-checked:text-white transition-colors duration-200">
-                Female
-              </div>
-            </label>
-          </div>
-
-          {/* Fields */}
-          <div className="w-full px-16">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 px-5">
-              <Input
-                label="Full Name"
-                name="name"
-                placeholder="Enter Full Name"
-                register={register}
-              />
-              <Input
-                label="Mobile Number"
-                name="mobile"
-                placeholder="Enter Mobile Number"
-                register={register}
-                readOnly={true}
-              />
-              <Input
-                label="Email ID"
-                name="email"
-                placeholder="Enter Email ID"
-                register={register}
-              />
-              <Input
-                label="Date of Birth"
-                name="dob"
-                placeholder="Enter Date of Birth"
-                register={register}
-              />
-
-              {/* Annual Income */}
-              <div>
-                <label className="labelcls">Annual Income</label>
-                <select {...register("income")} className="inputcls">
-                  <option value="" disabled>
-                    Select Income
-                  </option>
-                  <option value="Below ₹5 Lakh">Below ₹5 Lakh</option>
-                  <option value="₹5-10 Lakh">₹5-10 Lakh</option>
-                  <option value="Above ₹10 Lakh">Above ₹10 Lakh</option>
-                </select>
-              </div>
-
-              {/* Marital Status */}
-              <div>
-                <label className="labelcls">Marital Status</label>
-               <select {...register("marital_status")} className="inputcls">
-  <option value="" disabled>Select marital status</option>
-  <option value="Single">Single</option>
-  <option value="Married">Married</option>
-</select>
-
-              </div>
-
-              <Input label="City" name="city" placeholder="" register={register} />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center mt-2">
-            <button type="submit" className="px-6 py-2 thmbtn">
-              Submit
-            </button>
-          </div>
+  <div className="px-4 py-5 min-h-screen flex items-center justify-center">
+    <div
+      className={`bg-white w-full max-w-5xl p-6 sm:p-8 rounded-[32px] sm:rounded-[48px] md:rounded-[64px] shadow-lg relative`}
+    >
+      {/* Profile Card */}
+      <div className="absolute -top-5 left-1/2 -translate-x-1/2">
+        <div className="flex items-center gap-2 px-4 sm:px-6 py-2 rounded-full bg-gradient-to-b from-[#7ba7ff] to-[#7998F4] text-white shadow-md">
+          <HiOutlineUserCircle className="w-5 h-5" />
+          <span className="font-semibold text-base sm:text-lg">
+            Personal Details
+          </span>
         </div>
       </div>
-    </form>
+
+      {/* Gender Selector */}
+      <div className="flex items-center justify-center gap-2 rounded-md mt-2 sm:mt-12 flex-wrap">
+        <label className="cursor-pointer">
+          <input
+            type="radio"
+            value="male"
+            {...register("gender")}
+            name="gender"
+            className="hidden peer"
+          />
+          <div className="flex items-center gap-2 px-4 py-1 rounded bg-white text-black border border-gray-400 peer-checked:bg-[#7998F4] peer-checked:text-white transition-colors duration-200">
+            Male
+          </div>
+        </label>
+
+        <label className="cursor-pointer">
+          <input
+            type="radio"
+            value="female"
+            {...register("gender")}
+            name="gender"
+            className="hidden peer"
+          />
+          <div className="flex items-center gap-2 px-4 py-1 rounded bg-white text-black border border-gray-400 peer-checked:bg-[#7998F4] peer-checked:text-white transition-colors duration-200">
+            Female
+          </div>
+        </label>
+      </div>
+
+      {/* Fields */}
+      <div className="w-full mt-6 sm:mt-10 px-0 sm:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Full Name"
+            name="name"
+            placeholder="Enter Full Name"
+            register={register}
+          />
+          <Input
+            label="Mobile Number"
+            name="mobile"
+            placeholder="Enter Mobile Number"
+            register={register}
+            readOnly={true}
+          />
+          <Input
+            label="Email ID"
+            name="email"
+            placeholder="Enter Email ID"
+            register={register}
+          />
+          <Input
+            label="Date of Birth"
+            name="dob"
+            placeholder="Enter Date of Birth"
+            register={register}
+          />
+
+          {/* Annual Income */}
+          <div>
+            <label className="labelcls">Annual Income</label>
+            <select {...register("income")} className="inputcls">
+              <option value="" disabled>
+                Select Income
+              </option>
+              <option value="Below ₹5 Lakh">Below ₹5 Lakh</option>
+              <option value="₹5-10 Lakh">₹5-10 Lakh</option>
+              <option value="Above ₹10 Lakh">Above ₹10 Lakh</option>
+            </select>
+          </div>
+
+          {/* Marital Status */}
+          <div>
+            <label className="labelcls">Marital Status</label>
+            <select {...register("marital_status")} className="inputcls">
+              <option value="" disabled>
+                Select marital status
+              </option>
+              <option value="Single">Single</option>
+              <option value="Married">Married</option>
+            </select>
+          </div>
+
+          <Input label="City" name="city" placeholder="" register={register} />
+        </div>
+      </div>
+
+      {/* Submit Button */}
+      <div className="flex items-center justify-center mt-6">
+        <button type="submit" className="px-6 py-2 thmbtn">
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+
   );
 };
 

@@ -12,7 +12,6 @@ import VendorCard from "./vendorcard";
 import VehicleCard from "../../vehicledetails/index";
 import { MotorCardSkeleton } from "@/components/loader";
 import { showError } from "@/layouts/toaster";
-console.log("MotorCardSkeleton:", MotorCardSkeleton);
 
 export default function Plans() {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -21,6 +20,7 @@ export default function Plans() {
   const [paModalOpen, setIsPaModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Tab1");
   const [showAccessories, setShowAccessories] = useState(false);
+  const [savingAddons, setSavingAddons] = useState(false);
   const [loading, setLoading] = useState(true);
   const [planTypes, setPlanTypes] = useState([]);
   const [fullAddonsName, setFullAddonsName] = useState({});
@@ -40,49 +40,123 @@ export default function Plans() {
   const [idv, setIdv] = useState();
   const [motortype, setMotorType] = useState([]);
   const [Addonlist, setAddonlist] = useState([]);
-    const [addon115Amount, setAddon115Amount] = useState("");
+  const [compAddonlist, setCompAddonlist] = useState([]);
+  const [odAddonlist, setOdAddonlist] = useState([]);
+  const [tpAddonlist, setTpAddonlist] = useState([]);
+  const [addon115Amount, setAddon115Amount] = useState("");
+  const [comselectedAddon, setComSelectedAddon] = useState([]);
+  const [odselectedAddon, setOdSelectedAddon] = useState([]);
+  const [tpselectedAddon, setTpSelectedAddon] = useState([]);
 
   const router = useRouter();
+
+
 
   useEffect(() => {
     async function getDetails() {
       try {
+        setLoading(true);
         const res = await CallApi(constant.API.MOTOR.CAR.PLANS, "GET");
+        console.log(res);
+
         if (res.data?.under === "company") {
           setIsCompany(true);
         }
-        const addonObj = res.data?.addons || {};
-        const addonList = Object.entries(addonObj).map(([key, label]) => ({
-          id: key,
-          label: label.trim(),
-        }));
-        console.log("plandata", res);
-        setAddons(addonList);
 
+        // Determine plan type from keys
+        const planTypeKeys = Object.keys(res.data?.plantype || {});
+        let planType = null;
+
+        if (planTypeKeys.includes("2")) {
+          planType = 2;
+        } else if (planTypeKeys.includes("1")) {
+          planType = 1;
+        } else if (planTypeKeys.includes("3")) {
+          planType = 3;
+        }
+
+        setSelectedPlanType(planType);
+
+        // Use local planType directly here
+        console.log("PlanType detected immediately:", planType);
+
+        // Pick addon list based on selected plan type
+        let addonSource = {};
+        if (planType === 2) {
+          addonSource = res.data?.addons || {};
+        } else if (planType === 1) {
+          addonSource = res.data?.odaddons || {};
+        } else if (planType === 3) {
+          addonSource = res.data?.tpaddons || {};
+        }
+        setAddons(
+          Object.entries(addonSource).map(([key, label]) => ({
+            id: key,
+            label: label.trim(),
+          }))
+        );
+        // Plan type list for dropdown
         const plantypeObj = res.data?.plantype || {};
         const plantypeList = Object.entries(plantypeObj).map(
-          ([key, label]) => ({ id: key, label })
+          ([key, label]) => ({
+            id: key,
+            label,
+          })
         );
         setPlanTypes(plantypeList);
 
+        // Vendors
         const vendorArr = res.data?.vendor || [];
         setFullAddonsName(res.data?.addons || {});
-
         const activeVendors = vendorArr.filter((v) => v.isActive === "1");
         setVendorList(activeVendors);
 
-        const vehicleDetails = res.data?.vehicledetails || [];
-        setVehicleDetails(vehicleDetails);
+        // Vehicle details
+        setVehicleDetails(res.data?.vehicledetails || []);
+
+        // PACover
         const paCover = res.data?.pacover;
-        if (paCover == "1") {
+        if (paCover === "1") {
           setPaCoverChecked(paCover);
         }
-        const selectaddon = res.data?.selectedaddons || [];
-        setSelectedAddon(selectaddon);
+
+        // Selected addons based on selected plan type
+        // if (planType === 2) {
+        //   setSelectedAddon(res.data?.selectedaddon || []);
+        // } else if (planType === 1) {
+        //   setSelectedAddon(res.data?.odselectedaddon || []);
+        // } else if (planType === 3) {
+        //   setSelectedAddon(res.data?.tpselectedaddon || []);
+        // }
+
+        // Motor type
         setMotorType(res.cache);
-        console.log(selectaddon);
+
+        // Still set all lists separately in case you need them later
+        setCompAddonlist(
+          Object.entries(res.data?.addons || {}).map(([key, label]) => ({
+            id: key,
+            label: label.trim(),
+          }))
+        );
+
+        setOdAddonlist(
+          Object.entries(res.data?.odaddons || {}).map(([key, label]) => ({
+            id: key,
+            label: label.trim(),
+          }))
+        );
+
+        setTpAddonlist(
+          Object.entries(res.data?.tpaddons || {}).map(([key, label]) => ({
+            id: key,
+            label: label.trim(),
+          }))
+        );
       } catch (error) {
         console.error("Error loading plan data:", error);
+      } finally {
+        setLoading(false);
       }
     }
     getDetails();
@@ -91,29 +165,55 @@ export default function Plans() {
   const getQuote = useCallback(async () => {
     if (!vendorList.length) return;
     try {
+      setLoading(true);
       const allPlans = [];
+      let data; //  define it here so it’s accessible later
+
       for (let i = 0; i < vendorList.length; i++) {
-        const payload = vendorList[i];
+       const vendorPayload = vendorList[i];
+        const route =
+          constant.ROUTES.MOTOR.VENDOR.CAR[String(vendorPayload.vid)] || "";
+          console.log("route",route);
+        const vendorWithRoute = {
+          ...vendorPayload,
+          route,
+        };
         const response = await CallApi(
           constant.API.MOTOR.CAR.QUOTE,
           "POST",
-          payload
+          vendorWithRoute
         );
-        if (response?.status == "1" && response?.data) {
+
+        data = response?.data; //  update it each iteration
+
+        console.log(response);
+
+        if (response?.status == "1" && data) {
           if (allPlans.length === 0) {
-            const data = response.data;
             setIdvMin(data.minrange);
             setIdvMax(data.maxrange);
             setIdv(data.idv);
             setSelectedIdv(data.selectedvalue);
           }
-          allPlans.push({ ...response.data, vendorId: payload.vid });
+          allPlans.push({ ...data });
         }
       }
+
       setVendorPlans(allPlans);
-      console.log(allPlans);
+
+      //  now `data` exists here
+      if (data?.plantype == "2") {
+        console.log("hello");
+        setSelectedAddon(data.addons?.selectedaddon || []);
+      } else if (data?.plantype == "1") {
+        setSelectedAddon(data.addons?.odselectedaddon || []);
+      } else if (data?.plantype == "3") {
+        setSelectedAddon(data.addons?.tpselectedaddon || []);
+      }
     } catch (error) {
       console.error("Error loading quote:", error);
+    } finally {
+      setLoading(false);
     }
   }, [vendorList]);
 
@@ -122,11 +222,24 @@ export default function Plans() {
   }, [getQuote]);
 
   useEffect(() => {
-    console.log("addon update ", Addonlist);
+    // console.log("addon update ", Addonlist);
   }, [Addonlist]);
+  useEffect(() => {
+    console.log("plane update ", selectedPlanType);
+    if (selectedPlanType == 2) {
+      console.log(compAddonlist);
+    }
+    if (selectedPlanType == 1) {
+      console.log(odAddonlist);
+    }
+    if (selectedPlanType == 3) {
+      console.log(tpAddonlist);
+    }
+  }, [selectedPlanType]);
 
   const handleIdvUpdate = async () => {
     try {
+      setLoading(true);
       const response = await CallApi(
         constant.API.MOTOR.CAR.UPDATEIDV,
         "POST",
@@ -141,78 +254,163 @@ export default function Plans() {
     } catch (error) {
       console.error("Error updating IDV:", error);
       alert("An error occurred while updating IDV.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // const handleAddonChange = (id) => {
+  //   if (String(selectedPlanType) == 1) {
+  //     setOdSelectedAddon((prev) =>
+  //       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  //     );
+  //   } else if (String(selectedPlanType) == 2) {
+  //     setSelectedAddon((prev) =>
+  //       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  //     );
+  //   } else {
+  //     setTpSelectedAddon((prev) =>
+  //       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  //     );
+  //   }
+  // };
+
   const handleAddonChange = (id) => {
-    setSelectedAddon((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    if (String(selectedPlanType) == 1) {
+      setOdSelectedAddon((prev) => {
+        const newState = { ...prev };
+        if (id in newState) {
+          delete newState[id];
+        } else {
+          newState[id] = 0; // or some default amount
+        }
+        return newState;
+      });
+    } else if (String(selectedPlanType) == 2) {
+      setSelectedAddon((prev) => {
+        const newState = { ...prev };
+        if (id in newState) {
+          delete newState[id];
+        } else {
+          newState[id] = 0;
+        }
+        return newState;
+      });
+    } else {
+      setTpSelectedAddon((prev) => {
+        const newState = { ...prev };
+        if (id in newState) {
+          delete newState[id];
+        } else {
+          newState[id] = 0;
+        }
+        return newState;
+      });
+    }
   };
 
   const handleSaveAddons = async (addon115Amount = null) => {
-    // console.log(addon115Amount);
-    // return false;
-    const presentAddon =
-      selectedAddon.includes("103") || selectedAddon.includes("104");
-    const requireAddon = selectedAddon.includes("101");
+    let currentAddons;
+    let payloadKey;
+
+    if (String(selectedPlanType) === "1") {
+      currentAddons = odselectedAddon;
+      payloadKey = "odselectedaddon";
+    } else if (String(selectedPlanType) === "3") {
+      currentAddons = tpselectedAddon;
+      payloadKey = "tpselectedaddon";
+    } else {
+      currentAddons = selectedAddon;
+      payloadKey = "selectedaddon";
+    }
+
+    const addonIds = Object.keys(currentAddons || {});
+
+    const presentAddon = addonIds.includes("103") || addonIds.includes("104");
+    const requireAddon = addonIds.includes("101");
 
     if (presentAddon && !requireAddon) {
       showError(
         "Zero / Nil Depreciation cover is mandatory when you select the Consumable Cover/Engine Protector"
       );
-      const filteredAddons = selectedAddon.filter(
-        (id) => id !== 103 && id !== 104
+
+      const filteredAddons = addonIds.filter(
+        (id) => id !== "103" && id !== "104"
       );
-      setSelectedAddon(filteredAddons); // Update state
+
+      const newAddons = {};
+      filteredAddons.forEach((id) => {
+        newAddons[id] = currentAddons[id];
+      });
+
+      if (String(selectedPlanType) == 1) {
+        setOdSelectedAddon(newAddons);
+      } else if (String(selectedPlanType) == 3) {
+        setTpSelectedAddon(newAddons);
+      } else {
+        setSelectedAddon(newAddons);
+      }
       return;
     }
 
     try {
-        const payload = {
-      selectedaddon: selectedAddon,
-      addon115Amount: addon115Amount,
-    };
-    // console.log(payload);
-    // return false;
+      setSavingAddons(true);
+      const payload = {
+        [payloadKey]: Object.keys(currentAddons || {}),
+        addon115Amount: addon115Amount,
+      };
+
+      console.log(payload);
+
       const res = await CallApi(
         constant.API.MOTOR.CAR.ADDADDONS,
         "POST",
         payload
       );
-      console.log("Saved successfully:", res);
+
       if (res.status) {
-        await getCacheQuote();
+        await getQuote();
         setIsAddonModalOpen(false);
       } else {
         console.error("Addon update failed:", res);
       }
     } catch (error) {
       console.error("Failed to save addons:", error);
+    } finally {
+      setSavingAddons(false);
     }
   };
 
   const handlePlanTypeChange = async (e) => {
     const newPlanType = e.target.value;
+    console.log("plane type change kiya hai", newPlanType);
     setSelectedPlanType(newPlanType);
 
     try {
+      setLoading(true);
       await CallApi(constant.API.MOTOR.CAR.CHANGEPLAN, "POST", {
         pacover: paCoverChecked ? "1" : "0",
         planetype: newPlanType,
       });
-      console.log(selectedPlanType);
+
       const allPlans = [];
       for (let i = 0; i < vendorList.length; i++) {
-        const vendorPayload = vendorList[i];
+       const vendorPayload = vendorList[i];
+        const route =
+          constant.ROUTES.MOTOR.VENDOR.CAR[String(vendorPayload.vid)] || "";
+
+        const vendorWithRoute = {
+          ...vendorPayload,
+          route,
+        };
         const response = await CallApi(
-          constant.API.MOTOR.CAR.GETCACHEQUOTE,
+          constant.API.MOTOR.CAR.QUOTE,
           "POST",
-          vendorPayload
+          vendorWithRoute
         );
-        console.log("third party adons", response);
+        // console.log("third party adons", response,selectedPlan);
         if (response?.status === "1" && response?.data) {
-          allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
+          allPlans.push({ ...response.data});
         }
         if (response?.status == "1" && response?.addonlist) {
           setAddonlist(response?.addonlist);
@@ -221,6 +419,8 @@ export default function Plans() {
       setVendorPlans(allPlans);
     } catch (error) {
       console.error("Plan type change failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -238,7 +438,7 @@ export default function Plans() {
 
         if (response?.status) {
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
-          setAddonlist(response.addonlist);
+          //setAddonlist(response.addonlist);
         }
       }
       setVendorPlans(allPlans);
@@ -251,6 +451,7 @@ export default function Plans() {
     setPaCoverChecked(checked);
 
     try {
+      setLoading(true);
       if (checked) {
         await CallApi(constant.API.MOTOR.CAR.CHANGEPLAN, "POST", {
           pacover: "1",
@@ -262,19 +463,28 @@ export default function Plans() {
       const allPlans = [];
       for (let i = 0; i < vendorList.length; i++) {
         const vendorPayload = vendorList[i];
+        const route =
+          constant.ROUTES.MOTOR.VENDOR.CAR[String(vendorPayload.vid)] || "";
+
+        const vendorWithRoute = {
+          ...vendorPayload,
+          route,
+        };
         const response = await CallApi(
-          constant.API.MOTOR.CAR.GETCACHEQUOTE,
+          constant.API.MOTOR.CAR.QUOTE,
           "POST",
-          vendorPayload
+          vendorWithRoute
         );
 
         if (response?.status === "1" && response?.data) {
-          allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
+          allPlans.push({ ...response.data });
         }
       }
       setVendorPlans(allPlans);
     } catch (error) {
       console.error("Error updating PA Cover:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -287,9 +497,9 @@ export default function Plans() {
       );
 
       if (res.status === "1" || res.status === true) {
-        console.log("Accessories saved successfully:", res);
+        // console.log("Accessories saved successfully:", res);
 
-        await getCacheQuote();
+        await getQuote();
       } else {
         console.error("Accessories update failed:", res);
       }
@@ -298,15 +508,28 @@ export default function Plans() {
     }
   };
 
+    const handlePlanSubmit = (plan) => {
+    const route = typeof plan === "string" ? plan : plan?.route;
+
+    if (!route) {
+      console.warn("No route found for the selected plan.");
+      return;
+    }
+
+    console.log("Redirecting to:", route);
+    router.push(route);
+  };
+
   // useEffect(() => {
   //   const timer = setTimeout(() => setLoading(false), 1500);
   //   return () => clearTimeout(timer);
   // }, []);
-  useEffect(() => {
-    if (vendorPlans.length > 0) {
-      setLoading(false);
-    }
-  }, [vendorPlans]);
+  // useEffect(() => {
+  //   if (vendorPlans.length > 0) {
+  //     setLoading(false);
+  //   }
+  // }, [vendorPlans]);
+  const showSkeleton = loading || vendorPlans.length === 0;
 
   const handleRedirect = () => {
     if (motortype === "knowcar" || motortype === "") {
@@ -434,8 +657,9 @@ export default function Plans() {
         onClose={() => setIsAddonModalOpen(false)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        addons={addons}
-        tpaddonslist={Addonlist}
+        compAddonlist={compAddonlist}
+        tpAddonlist={tpAddonlist}
+        odAddonlist={odAddonlist}
         selectedPlanType={selectedPlanType}
         selectedAddon={selectedAddon}
         handleAddonChange={handleAddonChange}
@@ -444,44 +668,49 @@ export default function Plans() {
         setShowAccessories={setShowAccessories}
         onSaveAccessories={handleSaveAccessories}
         addon115Amount={addon115Amount}
-  setAddon115Amount={setAddon115Amount}
+        setAddon115Amount={setAddon115Amount}
+        comselectedAddon={comselectedAddon}
+        odselectedAddon={odselectedAddon}
+        tpselectedAddon={tpselectedAddon}
+        savingAddons={savingAddons}
       />
 
-<div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 py-6">
-  {/* Left: VendorCard Section (9 columns) */}
-  <div className="lg:col-span-9">
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-      {loading
-        ? Array(3).fill(0).map((_, idx) => <MotorCardSkeleton key={idx} />)
-        : vendorPlans.map((plan) => (
-            <VendorCard
-              key={plan.vendorId}
-              data={plan}
-              onAddonsClick={(vendorData) => {
-                setSelectedPlan(vendorData);
-                setAddAddonModal(true);
-              }}
-              onPremiumClick={premiumBackupData}
-            />
-          ))}
-    </div>
-  </div>
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 py-6">
+        {/* Left: VendorCard Section (9 columns) */}
+        <div className="lg:col-span-9">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {showSkeleton
+              ? Array(3)
+                  .fill(0)
+                  .map((_, idx) => <MotorCardSkeleton key={idx} />)
+              : vendorPlans.map((plan) => (
+                  <VendorCard
+                    key={plan.vendorId}
+                    data={plan}
+                    onAddonsClick={(vendorData) => {
+                      setSelectedPlan(vendorData);
+                      setAddAddonModal(true);
+                    }}
+                    onPremiumClick={premiumBackupData}
+                     handlePlanSubmit={handlePlanSubmit}
+                  />
+                ))}
+          </div>
+        </div>
 
-  {/* Right: VehicleCard Section (3 columns) */}
-  <div className="lg:col-span-3">
-    <div className="bg-white rounded-2xl shadow-sm p-6 text-sm sticky top-6">
-      {(motortype === "knowcar" || motortype === "newcar") && (
-        <VehicleCard
-          vehicleDetails={vehicleDetails}
-          title={motortype === "knowcar" ? "Private Car" : "New Car"}
-          icon={<FaCar className="text-blue-600 text-xl" />}
-        />
-      )}
-    </div>
-  </div>
-</div>
-
-
+        {/* Right: VehicleCard Section (3 columns) */}
+        <div className="lg:col-span-3">
+          <div className="bg-white rounded-2xl shadow-sm p-6 text-sm sticky top-6">
+            {(motortype === "knowcar" || motortype === "newcar") && (
+              <VehicleCard
+                vehicleDetails={vehicleDetails}
+                title={motortype === "knowcar" ? "Private Car" : "New Car"}
+                icon={<FaCar className="text-blue-600 text-xl" />}
+              />
+            )}
+          </div>
+        </div>
+      </div>
 
       <VendorAddonModal
         isOpen={addAddonModal}

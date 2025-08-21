@@ -9,7 +9,7 @@ import PolicyPeriodOptions from "./policyperiodoptions";
 import AddOnSelection from "./addonselection";
 import MemberDetails from "./editmember";
 import SummaryCard from "./rightsection";
-import HealthInsuranceLoader from "../../../loader";
+// import HealthInsuranceLoader from "../../../loader";
 import SlidePanel from "../sidebar/index";
 
 import { CallApi } from "../../../../../api";
@@ -124,13 +124,13 @@ export default function ProposalUI() {
       .finally(() => setLoading(false));
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bgcolor">
-        <HealthInsuranceLoader />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bgcolor">
+  //       <HealthInsuranceLoader />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="bgcolor min-h-screen px-3 sm:px-10 lg:px-20 py-6">
@@ -167,6 +167,8 @@ export default function ProposalUI() {
             getCheckoutData={fetchCheckoutData}
             setApplyClicked={setApplyClicked}
             setIsAddOnsModified={setIsAddOnsModified}
+            setLoading={setLoading}
+            loading={loading}
           />
 
           <MemberDetails

@@ -1,6 +1,7 @@
 "use client";
 // main page image 
 import logo from "../../public/images/dashboard/logo.png";
+import ErrorPageImg from "../../public/images/404.png";
 import homecar from "../../public/images/homepage/car.png";
 import homebike from "../../public/images/homepage/bike.png";
 import homehealth from "../../public/images/homepage/health.png";
@@ -27,7 +28,7 @@ import travelImg from "../../public/images/dashboard/service/travel.jpeg";
 
 
 
-export {logo,
+export {logo,ErrorPageImg,
     healthOne,
 healthTwo,homecar,homebike,homehealth,homecommercial,
 shriramimage,

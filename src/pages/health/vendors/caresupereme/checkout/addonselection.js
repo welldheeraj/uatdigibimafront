@@ -402,8 +402,19 @@ const defaultAddons = useMemo(() => {
               plan.
             </p>
           </div>
-          <button type="submit" className="px-6 py-1 thmbtn" disabled={loading}>
-            {loading ? "Applying..." : "Apply"}
+          <button
+            type="submit"
+            className="px-6 py-1 thmbtn flex items-center justify-center gap-2"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                Applying
+                <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              </>
+            ) : (
+              "Apply"
+            )}
           </button>
         </div>
 
@@ -568,8 +579,19 @@ const defaultAddons = useMemo(() => {
         })}
 
         <div className="flex justify-end">
-          <button type="submit" className="px-6 py-1 thmbtn" disabled={loading}>
-            {loading ? "Applying..." : "Apply"}
+          <button
+            type="submit"
+            className="px-6 py-1 thmbtn flex items-center justify-center gap-2"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                Applying
+                <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              </>
+            ) : (
+              "Apply"
+            )}
           </button>
         </div>
       </form>

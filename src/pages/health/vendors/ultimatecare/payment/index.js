@@ -9,11 +9,11 @@ import handShake from "@/animation/policygenerate.json";
 export default function PaymentPage() {
   const searchParams = useSearchParams();
   const proposalNumber = searchParams.get("proposalNumber"); // AES encrypted value ideally
-  const returnURL = "https://stage.digibima.com/return/api/carethankyou.php";
+  const returnURL = "https://stage.digibima.com/return/api/ultimatethankyou.php";
   const gatewayURL = "https://apiuat.careinsurance.com/portalui/PortalPaymentV2.run";
 
   // Temporary static CSRF — in real case fetch from API
-  const csrfToken = "491F8765-7AE0-4484-84D7-18132A6B637B";
+  const csrfToken = "491FB765-7AE0-4484-84D7-18132ABE637B";
 
   return (
     <div className="min-h-screen bg-[#C8EDFE] flex items-center justify-center sm:p-8">
@@ -40,7 +40,7 @@ export default function PaymentPage() {
           <input type="hidden" name="proposalNum" value={proposalNumber} />
           <input type="hidden" name="source" value="PARTNER" />
           <input type="hidden" name="returnURL" value={returnURL} />
-
+           
           <button
             type="submit"
             className="w-full bg-[#7998F4] text-white font-semibold py-3 rounded-full flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-purple-600 transition"
@@ -49,6 +49,10 @@ export default function PaymentPage() {
             Payment
           </button>
         </form>
+        
+
+
+        
       </div>
     </div>
   );

@@ -20,53 +20,59 @@ export default function AddOnSelection({
     ? JSON.parse(selectedAddons)
     : Object.values(selectedAddons || {});
 
-  const tbAddon = normalizedAddons.find(
-    (val) => val.startsWith("tb") && val !== "tb"
-  );
-  const tbValueFromSelectedAddon = tbAddon?.replace("tb", "") || "";
-  const isTbChecked = normalizedAddons.includes("tb") || !!tbAddon;
+  const pedDefaultValue = normalizedAddons.includes("1")
+    ? "1"
+    : normalizedAddons.includes("2")
+    ? "2"
+    : "";
 
   const { register, handleSubmit, control, setValue } = useForm({
     defaultValues: {
-      addons: { tb: isTbChecked },
-      tbaddonvalue: tbValueFromSelectedAddon,
+      addons: {
+        ped: normalizedAddons.includes("ped"),
+      },
+      pedaddonvalue: pedDefaultValue,
     },
   });
 
   const [hasUserChanged, setHasUserChanged] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const isTbSelected = useWatch({ control, name: "addons.tb" });
+  const pedChecked = useWatch({ control, name: "addons.ped" });
+  const isPedSelected = !!pedChecked;
 
   const onSubmit = async (data) => {
     let selectedKeys = [];
     const addonsData = data.addons || {};
-    const istbChecked = addonsData.tb;
-    const tbValue = data.tbaddonvalue;
+    const isPedChecked = addonsData.ped;
+    const pedValue = data.pedaddonvalue;
+
+    Object.entries(addonsData).forEach(([key, checked]) => {
+      if (checked && key !== "ped") {
+        selectedKeys.push(key);
+      }
+    });
 
     if (!hasUserChanged) {
       showError("Please modify at least one add-on before applying.");
       return;
     }
 
-    Object.entries(addonsData).forEach(([key, checked]) => {
-      if (checked && key !== "tb") {
-        selectedKeys.push(key);
-      }
-    });
-
-    if (istbChecked) {
-      if (!tbValue) {
-        showError("Please select a value for TB Duration.");
+    if (isPedChecked) {
+      if (!pedValue) {
+        showError("Please select a value for PED Wait Period Modification.");
         return;
       }
-      selectedKeys.push(`tb${tbValue}`);
+      if (["1", "2"].includes(pedValue)) {
+        selectedKeys.push("ped", pedValue);
+      }
+    } else {
+      selectedKeys = selectedKeys.filter((val) => val !== "1" && val !== "2");
     }
 
     try {
       setLoading(true);
       const payload = { addon: selectedKeys };
-
       const response = await CallApi(
         constant.API.HEALTH.ULTIMATECARE.ADDADDONS,
         "POST",
@@ -75,8 +81,7 @@ export default function AddOnSelection({
       console.log("AddOns Applied:", response);
 
       if (typeof setApplyClicked === "function") setApplyClicked(true);
-      if (typeof setIsAddOnsModified === "function")
-        setIsAddOnsModified(false);
+      if (typeof setIsAddOnsModified === "function") setIsAddOnsModified(false);
 
       if (getCheckoutData) getCheckoutData();
       showSuccess("Add-Ons applied successfully.");
@@ -95,8 +100,32 @@ export default function AddOnSelection({
 
   if (optionalAddOns.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-4 px-6 mb-6 text-sm text-gray-500">
-        No optional add-ons available for this plan.
+      <div className="bg-white rounded-xl p-4 px-6 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <div className="h-4 w-24 bg-gray-300 rounded animate-pulse mb-2" />
+            <div className="h-3 w-72 bg-gray-200 rounded animate-pulse" />
+          </div>
+          <div className="h-8 w-20 bg-purple-200 rounded-full animate-pulse" />
+        </div>
+
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="border rounded-2xl p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center animate-pulse"
+          >
+            <div className="flex-1 pr-4">
+              <div className="h-4 w-40 bg-gray-300 rounded mb-2" />
+              <div className="h-3 w-64 bg-gray-200 rounded" />
+            </div>
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-4 md:mt-0">
+              <div className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-xl min-w-[120px]">
+                <div className="h-10 w-16 bg-gray-300 rounded" />
+                <div className="h-4 w-4 bg-gray-300 rounded-full" />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -112,19 +141,25 @@ export default function AddOnSelection({
               plan.
             </p>
           </div>
-          <button type="submit" className="px-6 py-1 thmbtn" disabled={loading}>
-            {loading ? "Applying..." : "Apply"}
+          <button
+            type="submit"
+            className="px-6 py-1 thmbtn flex items-center justify-center gap-2"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                Applying
+                <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              </>
+            ) : (
+              "Apply"
+            )}
           </button>
         </div>
 
         {optionalAddOns.map(([key, price]) => {
-          const selectedNames = normalizedAddons.map((v) =>
-            v.toLowerCase().trim()
-          );
-          const isTb = key.toLowerCase() === "tb";
-          const isChecked = isTb
-            ? isTbChecked
-            : selectedNames.includes(key.toLowerCase().trim());
+          const isChecked = normalizedAddons.includes(key);
+          const isPED = key.toLowerCase() === "ped";
 
           return (
             <div
@@ -143,7 +178,7 @@ export default function AddOnSelection({
 
               <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-4 md:mt-0">
                 <label className="flex items-center gap-2 px-4 py-3 border border-gray-400 rounded-xl min-w-[120px] cursor-pointer">
-                  {!isTb && (
+                  {!isPED && (
                     <div className="text-center leading-tight text-sm text-gray-800">
                       <p className="font-medium">Premium</p>
                       <p className="font-bold">
@@ -155,8 +190,7 @@ export default function AddOnSelection({
                   <input
                     type="checkbox"
                     {...register(`addons.${key}`)}
-                    defaultChecked={isChecked}
-                    className="accent-purple-500 w-4 h-4"
+                    defaultChecked={isPED ? pedChecked : isChecked}
                     onChange={(e) => {
                       setValue(`addons.${key}`, e.target.checked);
                       setHasUserChanged(true);
@@ -165,14 +199,14 @@ export default function AddOnSelection({
                       if (typeof setApplyClicked === "function")
                         setApplyClicked(false);
                     }}
+                    className="accent-purple-500 w-4 h-4"
                   />
 
-                  {isTb && (
+                  {isPED && (
                     <select
-                      {...register("tbaddonvalue")}
+                      {...register("pedaddonvalue")}
                       className="border rounded-md text-sm"
-                      defaultValue={tbValueFromSelectedAddon}
-                      disabled={!isTbSelected}
+                      disabled={!pedChecked}
                       onChange={() => {
                         setHasUserChanged(true);
                         if (typeof setIsAddOnsModified === "function")
@@ -184,9 +218,8 @@ export default function AddOnSelection({
                       <option value="" disabled>
                         Select
                       </option>
+                      <option value="1">1 Year</option>
                       <option value="2">2 Years</option>
-                      <option value="3">3 Years</option>
-                      <option value="4">4 Years</option>
                     </select>
                   )}
                 </label>
@@ -196,8 +229,19 @@ export default function AddOnSelection({
         })}
 
         <div className="flex justify-end">
-          <button type="submit" className="px-6 py-1 thmbtn" disabled={loading}>
-            {loading ? "Applying..." : "Apply"}
+          <button
+            type="submit"
+            className="px-6 py-1 thmbtn flex items-center justify-center gap-2"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                Applying
+                <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              </>
+            ) : (
+              "Apply"
+            )}
           </button>
         </div>
       </form>

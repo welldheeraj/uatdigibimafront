@@ -16,7 +16,7 @@ export default function HealthPlan() {
   const [plansData, setPlansData] = useState([]);
   const [coveragelist, setCoveragelist] = useState([]);
   const [tenurelist, setTenurelist] = useState([]);
-  const [filters, setFilters] = useState({ coverage: "", tenure: "" });
+  const [filters, setFilters] = useState({ plantype: "", coverage: "", tenure: "" });
 
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [shouldRefetch, setShouldRefetch] = useState(false);
@@ -32,9 +32,9 @@ export default function HealthPlan() {
   const filterData = useMemo(() => [
     {
       label: "Plan Type",
-      name: "planType",
-      options: ["Select", "Base", "Top-up"],
-      value: filters.planType || "",
+      name: "plantype",
+      options: ["Select", "Base", "Port"],
+      value: filters.plantype || "",
     },
     {
       label: "Coverage",
@@ -60,7 +60,7 @@ export default function HealthPlan() {
     {
       label: "Tenure",
       name: "tenure",
-      options: ["Select", ...tenurelist.map((val) => `${val} Year`)],
+      options: ["Select", ...tenurelist.map((val) => `${val} Year${val > 1 ? "s" : ""}`)],
       value: filters.tenure || "",
     },
   ], [coveragelist, tenurelist, filters]);
@@ -77,6 +77,7 @@ export default function HealthPlan() {
         setTenurelist(res.tenurelist || []);
         setPincode(res.pincode || "")
         setFilters({
+          plantype: res.plantype?.toString() || "",
           coverage: res.coverage?.toString() || "",
           tenure: res.tenure?.toString() || "",
         });
@@ -133,16 +134,20 @@ export default function HealthPlan() {
   }, [vendorData]);
 
   const onSubmit = async (data) => {
-    setLoadingPlans(true);
-
+    
+    console.log(data)
+    // return false;
     const formatted = {
       coverage: data.coverage?.includes("Cr")
         ? "100"
         : data.coverage?.replace(" Lac", ""),
       tenure: data.tenure?.replace(" Year", ""),
+      plantype: data?.plantype
     };
-
+    console.log("paass data",formatted)
+    // return false;
     try {
+      setLoadingPlans(true);
       const res = await CallApi(
         constant.API.HEALTH.FILTERPLAN,
         "POST",
@@ -193,6 +198,7 @@ export default function HealthPlan() {
         handleSubmit={handleSubmit}
         onSubmit={onSubmit}
         filters={filters}
+        loadingPlans={loadingPlans}
         onFilterChange={handleFilterChange}
       />
 

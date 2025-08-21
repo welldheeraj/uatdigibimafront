@@ -17,6 +17,8 @@ export async function CallApi(url, method = "POST", data = null) {
   if (data) {
     options.body = JSON.stringify({ data: data });
   }
+  console.log("url:",url);
+  console.log("data:",data);
   let res = await fetch(url, options);
   if (!res.ok) throw new Error("API request failed");
   return await res.json();

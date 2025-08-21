@@ -1,4 +1,5 @@
 import React from "react";
+
 const FilterForm = ({
   filterData,
   register,
@@ -6,6 +7,7 @@ const FilterForm = ({
   onSubmit,
   filters,
   onFilterChange,
+  loadingPlans
 }) => {
   return (
     <form
@@ -13,9 +15,8 @@ const FilterForm = ({
       className="flex flex-wrap items-center gap-3 text-sm mb-8"
     >
       {filterData.map((item, i) => {
-        const isDisabled = ["planType", "insurers", "features"].includes(
-          item.name
-        );
+        const isDisabled = ["insurers", "features"].includes(item.name);
+
         return (
           <div
             key={i}
@@ -25,9 +26,7 @@ const FilterForm = ({
                 : "border-gray-400"
             } shadow-sm hover:shadow-md transition-all duration-200`}
           >
-            <span className="text-indigo-600 text-xs pr-2">
-              {item.label}
-            </span>
+            <span className="text-indigo-600 text-xs pr-2">{item.label}</span>
             <select
               {...register(item.name)}
               disabled={isDisabled}
@@ -39,10 +38,19 @@ const FilterForm = ({
               }`}
             >
               {item.options.map((opt, idx) => {
-                let optionValue =
-                  opt === "1 Cr"
-                    ? "100"
-                    : opt.replace(" Lac", "").replace(" Year", "");
+                let optionValue;
+
+                if (item.name === "plantype") {
+                  if (opt === "Base") optionValue = "1";
+                  else if (opt === "Port") optionValue = "2";
+                  else optionValue = "";
+                } else {
+                  optionValue =
+                    opt === "1 Cr"
+                      ? "100"
+                      : opt.replace(" Lac", "").replace(" Year", "");
+                }
+
                 return (
                   <option
                     key={idx}
@@ -58,10 +66,23 @@ const FilterForm = ({
         );
       })}
 
-      <button type="submit" className="px-6 py-1 thmbtn">
-        Apply
-      </button>
+   <button
+  type="submit"
+  className="px-6 py-1 thmbtn flex items-center justify-center gap-2"
+  disabled={loadingPlans}
+>
+  {loadingPlans ? (
+    <>
+      Applying
+      <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+    </>
+  ) : (
+    "Apply"
+  )}
+</button>
+
     </form>
   );
 };
+
 export default FilterForm;

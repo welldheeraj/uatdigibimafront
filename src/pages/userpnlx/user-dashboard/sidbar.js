@@ -22,7 +22,18 @@ export default function Sidebar({
   isMobileMenuOpen,
   setIsMobileMenuOpen,
 }) {
+  const router = useRouter(); 
   const toggleCollapse = () => setCollapsed((prev) => !prev);
+
+  const BASE = "/userpnlx/user-dashboard";
+
+
+  const pathByKey = {
+    dashboard: BASE,
+    policies: `${BASE}/policies`,
+    claims: `${BASE}/claims`,
+    profile: `${BASE}/profile`,
+  };
 
   const menuItems = [
     { title: "Dashboard", icon: <FaHome className="text-xl" />, key: "dashboard" },
@@ -30,6 +41,15 @@ export default function Sidebar({
     { title: "Claims", icon: <HiOutlineClipboardCheck className="text-xl" />, key: "claims" },
     { title: "Profile", icon: <FaUserCircle className="text-xl" />, key: "profile" },
   ];
+
+
+  const handleItemClick = (key) => {
+    setActivePage(key);
+    router.push(pathByKey[key]);
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setIsMobileMenuOpen(false);
+    }
+  };
 
   return (
     <>
@@ -79,10 +99,7 @@ export default function Sidebar({
                 title={item.title}
                 collapsed={collapsed}
                 active={activePage === item.key}
-                onClick={() => {
-                  setActivePage(item.key);
-                  if (window.innerWidth < 768) setIsMobileMenuOpen(false); // Close mobile menu on item click
-                }}
+                onClick={() => handleItemClick(item.key)}   
               />
             ))}
           </div>

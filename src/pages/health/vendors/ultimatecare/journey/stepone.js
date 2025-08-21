@@ -1,13 +1,13 @@
 "use client";
-import React, { useState, useEffect,useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { isAlpha, isNumber } from "@/styles/js/validation";
 import { FiLoader } from "react-icons/fi";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import UniversalDatePicker from "../../../../datepicker/index";
 import { CallApi } from "@/api";
 import constant from "@/env";
-import { format,parse  } from "date-fns";
-  import { Controller } from "react-hook-form";
+import { format, parse } from "date-fns";
+import { Controller } from "react-hook-form";
 export default function StepOneForm({
   step1Form,
   kycType,
@@ -39,10 +39,10 @@ export default function StepOneForm({
   setIsOtherKycHidden,
   setQuoteData,
   setOldPincode,
-  setNewPincode
+  setNewPincode,
 }) {
-    const isPanAlreadyVerified = isPanVerified;
-const [priceChangeLoading, setPriceChangeLoading] = useState(false);
+  const isPanAlreadyVerified = isPanVerified;
+  const [priceChangeLoading, setPriceChangeLoading] = useState(false);
   const [usersData, setUsersData] = useState(false);
   const [isUserPrefilled, setIsUserPrefilled] = useState(false);
   const [isVerifiedPrefilled, setIsVerifiedPrefilled] = useState(false);
@@ -57,17 +57,83 @@ const [priceChangeLoading, setPriceChangeLoading] = useState(false);
     proposal: "",
   });
 
-    const handleDateChange = useCallback(
-      (key, field) => (date) => {
-        const formatted = format(date, "dd-MM-yyyy");
-        setDates((prev) => ({ ...prev, [key]: date }));
-        step1Form.setValue(field, formatted, {
-          shouldValidate: true,
-          shouldDirty: true,
+  const handleDateChange = useCallback(
+    (key, field) => (date) => {
+      const formatted = format(date, "dd-MM-yyyy");
+      setDates((prev) => ({ ...prev, [key]: date }));
+      step1Form.setValue(field, formatted, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    },
+    [step1Form]
+  );
+
+  const handlePincodeInput = useCallback(
+    async (e) => {
+      const value = e.target.value.trim();
+      const fieldId = e.target.name || e.target.id;
+
+      if (!/^\d{6}$/.test(value)) return;
+
+      try {
+        const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {
+          pincode: value,
         });
-      },
-      [step1Form]
-    );
+
+        if (res?.length > 0) {
+          const { state, district } = res[0];
+
+          if (fieldId === "Pincode") {
+            step1Form.setValue("City", district);
+            step1Form.setValue("State", state);
+
+            if (!fetchedPincode) {
+              setFetchedPincode(value);
+              setOldPincode(value);
+              setHasUserChangedPin(false);
+            } else if (value !== fetchedPincode) {
+              setHasUserChangedPin(true);
+              step1Form.setValue("newpincode", value);
+              setNewPincode(value);
+
+              try {
+                const quoteResponse = await CallApi(
+                  constant.API.HEALTH.ULTIMATECARE.CHANGEPINCODE,
+                  "POST",
+                  { newpincode: value }
+                );
+                console.log("CHANGEPINCODE Response:", quoteResponse);
+                if (quoteResponse?.status) {
+                  setQuoteData({
+                    totalpremium: quoteResponse.totalpremium,
+                    basepremium: quoteResponse.basepremium,
+                    coverage: quoteResponse.coverage,
+                  });
+                }
+              } catch (error) {
+                console.error("CHANGEPINCODE error:", error);
+              }
+            }
+          } else if (fieldId === "commcurrentPincode") {
+            step1Form.setValue("commcurrentCity", district);
+            step1Form.setValue("commcurrentState", state);
+          }
+        } else {
+          if (fieldId === "Pincode") {
+            step1Form.setValue("City", "");
+            step1Form.setValue("State", "");
+          } else if (fieldId === "commcurrentPincode") {
+            step1Form.setValue("commcurrentCity", "");
+            step1Form.setValue("commcurrentState", "");
+          }
+        }
+      } catch (error) {
+        console.error("Pincode API Error:", error);
+      }
+    },
+    [fetchedPincode, step1Form, setOldPincode, setNewPincode, setQuoteData]
+  );
 
   useEffect(() => {
     const fetchDataONE = async () => {
@@ -84,8 +150,6 @@ const [priceChangeLoading, setPriceChangeLoading] = useState(false);
     };
     fetchDataONE();
   }, [step1Form]);
-
-
 
   useEffect(() => {
     if (!usersData || isUserPrefilled) return;
@@ -202,10 +266,12 @@ const [priceChangeLoading, setPriceChangeLoading] = useState(false);
     setSameAddress,
   ]);
 
-
-
   useEffect(() => {
-    if (!verifiedData || Object.keys(verifiedData).length === 0 || isVerifiedPrefilled)
+    if (
+      !verifiedData ||
+      Object.keys(verifiedData).length === 0 ||
+      isVerifiedPrefilled
+    )
       return;
 
     const set = step1Form.setValue;
@@ -258,43 +324,43 @@ const [priceChangeLoading, setPriceChangeLoading] = useState(false);
     setIsOtherKycHidden,
   ]);
 
-useEffect(() => {
-  if (!sameAddress || userInteracted) return; 
+  useEffect(() => {
+    if (!sameAddress || userInteracted) return;
 
-  const get = step1Form.getValues;
-  const set = step1Form.setValue;
+    const get = step1Form.getValues;
+    const set = step1Form.setValue;
 
-  const syncFields = () => {
-    [
-      ["house", "commcurrenthouse"],
-      ["colony", "commcurrentcolony"],
-      ["Landmark", "commcurrentLandmark"],
-      ["City", "commcurrentCity"],
-      ["State", "commcurrentState"],
-      ["Pincode", "commcurrentPincode"],
-    ].forEach(([permanent, communication]) => {
-      set(communication, get(permanent), { shouldValidate: true });
+    const syncFields = () => {
+      [
+        ["house", "commcurrenthouse"],
+        ["colony", "commcurrentcolony"],
+        ["Landmark", "commcurrentLandmark"],
+        ["City", "commcurrentCity"],
+        ["State", "commcurrentState"],
+        ["Pincode", "commcurrentPincode"],
+      ].forEach(([permanent, communication]) => {
+        set(communication, get(permanent), { shouldValidate: true });
+      });
+    };
+
+    syncFields();
+
+    const subscription = step1Form.watch((values, { name }) => {
+      const permKeys = [
+        "house",
+        "colony",
+        "Landmark",
+        "City",
+        "State",
+        "Pincode",
+      ];
+      if (permKeys.includes(name)) {
+        syncFields();
+      }
     });
-  };
 
-  syncFields();
-
-  const subscription = step1Form.watch((values, { name }) => {
-    const permKeys = [
-      "house",
-      "colony",
-      "Landmark",
-      "City",
-      "State",
-      "Pincode",
-    ];
-    if (permKeys.includes(name)) {
-      syncFields();
-    }
-  });
-
-  return () => subscription.unsubscribe();
-}, [sameAddress, userInteracted,step1Form]);
+    return () => subscription.unsubscribe();
+  }, [sameAddress, userInteracted, step1Form]);
 
   const fields = {
     identity: [
@@ -308,69 +374,24 @@ useEffect(() => {
     address: ["AADHAR", "PASSPORT", "VOTER ID", "DRIVING LICENSE", "FORM 60"],
   };
 
- const handlePincodeInput = useCallback(
-    async (e) => {
-      const value = e.target.value.trim();
-      const fieldId = e.target.name || e.target.id;
-
-      if (!/^\d{6}$/.test(value)) return;
-
-      try {
-        const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", { pincode: value });
-
-        if (res?.length > 0) {
-          const { state, district } = res[0];
-
-          if (fieldId === "Pincode") {
-            step1Form.setValue("City", district);
-            step1Form.setValue("State", state);
-
-            if (!fetchedPincode) {
-              setFetchedPincode(value);
-              setOldPincode(value);
-              setHasUserChangedPin(false);
-            } else if (value !== fetchedPincode) {
-              setHasUserChangedPin(true);
-              step1Form.setValue("newpincode", value);
-              setNewPincode(value);
-
-              try {
-                const quoteResponse = await CallApi(
-                  constant.API.HEALTH.ULTIMATECARE.CHANGEPINCODE,
-                  "POST",
-                  { newpincode: value }
-                );
-                console.log("CHANGEPINCODE Response:", quoteResponse);
-                if (quoteResponse?.status) {
-                  setQuoteData({
-                    totalpremium: quoteResponse.totalpremium,
-                    basepremium: quoteResponse.basepremium,
-                    coverage: quoteResponse.coverage,
-                  });
-                }
-              } catch (error) {
-                console.error("CHANGEPINCODE error:", error);
-              }
-            }
-          } else if (fieldId === "commcurrentPincode") {
-            step1Form.setValue("commcurrentCity", district);
-            step1Form.setValue("commcurrentState", state);
-          }
-        } else {
-          if (fieldId === "Pincode") {
-            step1Form.setValue("City", "");
-            step1Form.setValue("State", "");
-          } else if (fieldId === "commcurrentPincode") {
-            step1Form.setValue("commcurrentCity", "");
-            step1Form.setValue("commcurrentState", "");
-          }
-        }
-      } catch (error) {
-        console.error("Pincode API Error:", error);
-      }
-    },
-    [fetchedPincode, step1Form, setOldPincode, setNewPincode, setQuoteData]
-  );
+  useEffect(() => {
+    const unregister = step1Form.unregister;
+    if (kycType !== "PAN Card") {
+      unregister("customerpancardno");
+      unregister("customerpancardDob");
+    }
+    if (kycType !== "Aadhar ( Last 4 Digits )") {
+      unregister("aadharLast4");
+      unregister("aadharName");
+      unregister("aadharDob");
+      unregister("aadharGender");
+    }
+    if (kycType !== "Others") {
+      unregister("identityProof");
+      unregister("addressProof");
+      // optional: unregister file upload fields too
+    }
+  }, [kycType, step1Form.unregister]);
 
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -444,44 +465,60 @@ useEffect(() => {
               }}
             />
 
-              <Controller
-                         control={step1Form.control}
-                         name="customerpancardDob"
-                         rules={{ required: "Please select a valid date" }}
-                         render={({ field, fieldState }) => (
-                             <UniversalDatePicker
-                               id="customerpancardDob"
-                               name="customerpancardDob"
-                               className={inputClass}
-                               value={field.value ? parse(field.value, "dd-MM-yyyy", new Date()) : null}
-                               onChange={(date) => {
-                                 const formatted = format(date, "dd-MM-yyyy");
-                                 setDates((prev) => ({ ...prev, customerpancardno: date }));
-                                 field.onChange(formatted);
-                               }}
-                               placeholder="Pick a date"
-                               error={!!fieldState.error}
-                               errorText={fieldState.error?.message}
-                             />
-                           )}
-                       />
+            <Controller
+              control={step1Form.control}
+              name="customerpancardDob"
+              rules={{ required: "Please select a valid date" }}
+              render={({ field, fieldState }) => (
+                <UniversalDatePicker
+                  id="customerpancardDob"
+                  name="customerpancardDob"
+                  className={inputClass}
+                  value={
+                    field.value
+                      ? parse(field.value, "dd-MM-yyyy", new Date())
+                      : null
+                  }
+                  onChange={(date) => {
+                    if (date instanceof Date && !isNaN(date)) {
+                      const formatted = format(date, "dd-MM-yyyy");
+                      field.onChange(formatted);
+                    }
+                    //  const formatted = format(date, "dd-MM-yyyy");
+                    //  setDates((prev) => ({ ...prev, customerpancardno: date }));
+                    //  field.onChange(formatted);
+                  }}
+                  placeholder="Pick a date"
+                  error={!!fieldState.error}
+                  errorText={fieldState.error?.message}
+                />
+              )}
+            />
 
-            <input
+            <button
               type="button"
               onClick={handleVerifyPan}
               disabled={isPanAlreadyVerified || loading}
-              value={
-                isPanAlreadyVerified
-                  ? "VERIFIED"
-                  : loading
-                  ? "Verifying..."
-                  : "VERIFY"
-              }
-              className={`px-4 py-2 thmbtn cursor-pointer
-    ${isPanAlreadyVerified ? "bg-green-600 cursor-not-allowed" : ""}
-    ${loading ? "opacity-70 cursor-not-allowed" : ""}
-  `}
-            />
+              className={`px-4 py-2 thmbtn cursor-pointer flex items-center justify-center gap-2
+                  ${
+                    isPanAlreadyVerified
+                      ? "bg-green-600 cursor-not-allowed"
+                      : ""
+                  }
+                  ${loading ? "opacity-70 cursor-not-allowed" : ""}
+                `}
+            >
+              {isPanAlreadyVerified ? (
+                "VERIFIED"
+              ) : loading ? (
+                <>
+                  <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  Verifying...
+                </>
+              ) : (
+                "VERIFY"
+              )}
+            </button>
           </div>
         </div>
       )}
@@ -526,7 +563,12 @@ useEffect(() => {
                 id="aadharDob"
                 name="aadharDob"
                 value={dates.aadhar}
-                onChange={handleDateChange("aadhar", "aadharDob")}
+                onChange={(date) => {
+                                 if (date instanceof Date && !isNaN(date)) {
+                                   const formatted = format(date, "dd-MM-yyyy");
+                                   handleDateChange("aadhar", "aadharDob");
+                                 }
+                               }}
                 placeholder="Pick a start date"
                 error={!dates.aadhar}
                 errorText="Please select a valid date"
@@ -543,6 +585,7 @@ useEffect(() => {
                 {loading ? (
                   <>
                     <FiLoader className="animate-spin" /> Verifying...
+                    <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                   </>
                 ) : (
                   "VERIFY"
@@ -617,6 +660,7 @@ useEffect(() => {
             {loading ? (
               <>
                 <FiLoader className="animate-spin" /> Verifying...
+                <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
               </>
             ) : (
               "VERIFY"
@@ -628,7 +672,7 @@ useEffect(() => {
       {kycVerified && (
         <div className="space-y-2">
           <label className="block font-semibold text-sm">
-             Proposer&apos;s details:
+            Proposer&apos;s details:
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
@@ -649,14 +693,32 @@ useEffect(() => {
             />
 
             <div className="md:col-span-4">
-              <UniversalDatePicker
-                id="proposerdob1"
+              <Controller
+                control={step1Form.control}
                 name="proposerdob1"
-                value={dates.proposal}
-                onChange={handleDateChange("proposal", "proposerdob1")}
-                placeholder="Pick a start date"
-                error={!dates.proposal}
-                errorText="Please select a valid date"
+                rules={{ required: "Please select a valid date" }}
+                render={({ field, fieldState }) => (
+                  <UniversalDatePicker
+                    id="proposerdob1"
+                    name="proposerdob1"
+                    className={inputClass}
+                    value={
+                      field.value
+                        ? parse(field.value, "dd-MM-yyyy", new Date())
+                        : null
+                    }
+                    onChange={(date) => {
+                      if (date instanceof Date && !isNaN(date)) {
+                        const formatted = format(date, "dd-MM-yyyy");
+                        setDates((prev) => ({ ...prev, proposal: date }));
+                        field.onChange(formatted);
+                      }
+                    }}
+                    placeholder="Pick a date"
+                    error={!!fieldState.error}
+                    errorText={fieldState.error?.message}
+                  />
+                )}
               />
             </div>
           </div>

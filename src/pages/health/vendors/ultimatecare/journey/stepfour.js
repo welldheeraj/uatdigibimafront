@@ -19,7 +19,7 @@ const handleEditStep = (stepNo) => {
   console.log("Ram")
   const currentParams = new URLSearchParams(searchParams.toString());
   currentParams.set("step", stepNo); 
-  router.push(`/health/journey?${currentParams.toString()}`);
+  router.push(`/health/vendors/ultimatecare/journey?${currentParams.toString()}`);
 };
 
   const proposer = stepthreedata?.proposar || {};

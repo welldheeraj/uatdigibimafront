@@ -1,10 +1,10 @@
 import DashboardLayout from "./DashboardLayout";
-import Dashboard from "./pages/dashboard";
+import Profile from "./pages/profile";
 
-export default function UserDashboardHome() {
+export default function ProfilePage() {
   return (
     <DashboardLayout>
-      <Dashboard />
+      <Profile />
     </DashboardLayout>
   );
 }

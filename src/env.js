@@ -12,6 +12,7 @@ const constant = {
     },
       HEALTH: {
           // 'INDEX': '/health',
+         
           INSURE: "/health/common/insure",
           ILLNESS: "/health/common/illness",
           PLANS: "/health/common/plans",
@@ -87,6 +88,7 @@ const constant = {
       SENDOTP: "/api/sendotp",
       VERIFYOTP: "/api/verifyotp",
       PINCODE: "/api/acpincode",
+       PLANTYPE: "/api/plantype",
       INSUREVIEW: "/api/insureview",
       GETINSURE: "/api/getinsureinfo",
       ILLNESS: "/api/illnesses",
@@ -184,8 +186,10 @@ const constant = {
       },
     },
     USER: {
+      USERDASHBOARD: "/api/userpnlx/user-profile",
       PROFILEUPDATE: "/api/userpnlx/user-profile-update",
       POLICY: "/api/userpnlx/user-policy",
+      DOWNLOADPOLICY: "api/userpnlx/policy-Pdf",
     },
     ADMIN: {
       ADMINLOGIN: "/api/adminpnlx/admin-login",

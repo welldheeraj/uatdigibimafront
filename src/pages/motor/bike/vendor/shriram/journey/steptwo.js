@@ -5,6 +5,7 @@ import { format, parse } from "date-fns";
 import { Controller } from "react-hook-form";
 import DropdownWithSearch from "../../../../../lib/DropdownWithSearch";
 import WindowedSelect from "react-windowed-select";
+import { isAlphaNumeric } from "@/styles/js/validation.js";
 const CHUNK_SIZE = 1000;
 export default function StepTwoForm({
   motortype,
@@ -217,21 +218,25 @@ useEffect(() => {
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="labelcls">Engine Number</label>
-            <input
-              type="text"
-              {...register("enginenumber")}
-              className={inputClass}
-              placeholder="Engine Number"
-            />
+             <input
+                        type="text"
+                        {...register("enginenumber", { minLength: 5, maxLength: 21 })}
+                        onChange={(e) => isAlphaNumeric(e, setValue, "enginenumber")}
+                         maxLength={21} 
+                        className={inputClass}
+                        placeholder="Engine Number"
+                      />
           </div>
           <div>
             <label className="labelcls">Chassis Number</label>
-            <input
-              type="text"
-              {...register("chassisnumber")}
-              className={inputClass}
-              placeholder="Chassis Number"
-            />
+             <input
+                          type="text"
+                          {...register("chassisnumber", { minLength: 5, maxLength: 17 })}
+                          onChange={(e) => isAlphaNumeric(e, setValue, "chassisnumber")}
+                           maxLength={17}
+                          className={inputClass}
+                          placeholder="Chassis Number"
+                        />
           </div>
         </div>
       </div>

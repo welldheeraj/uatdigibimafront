@@ -205,17 +205,17 @@ export default function StepperForm({ usersData, kycData }) {
   };
 
   const validateFormStepThree = async (step3Form, steptwodata) => {
-    setLoading(true); // Start loader before API call
+    // setLoading(true); 
 
     const fieldsValid = await validateFields(step3Form);
     if (!fieldsValid) {
-      setLoading(false); // Stop loader if validation fails
+      // setLoading(false); 
       return false;
     }
 
     const data = step3Form.getValues();
     console.log("save data33333", data);
-
+setLoading(true);
     try {
       const res = await CallApi(
         constant.API.MOTOR.CAR.SHRIRAM.SAVESTEPONE,
@@ -231,7 +231,7 @@ export default function StepperForm({ usersData, kycData }) {
       if (status === true || res === 1) {
         setStepThreeData(res.data);
         showSuccess("Step 3 saved successfully.");
-        setLoading(false); // Stop loader on success
+        setLoading(false); 
         return true;
       } else {
         if (errorDesc) {
