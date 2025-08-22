@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useState,useEffect} from "react";
+import { useState, useEffect } from "react";
 import Lottie from "lottie-react";
 import expiredpolicies from "@/animation/expiredpolicies.json";
 import activeAnimation from "@/animation/apporved.json";
@@ -8,30 +8,23 @@ import totalpolicies from "@/animation/totalpolicies.json";
 import { CallApi } from "@/api";
 import constant from "@/env";
 import Image from "next/image";
-import { useUser } from "@/context/UserContext";
 import {
   FaBell,
   FaPhoneAlt,
   FaEnvelope,
   FaUser,
-  FaShieldAlt,
   FaRegCalendarAlt,
-  FaFileInvoiceDollar,
   FaHeadset,
+  FaClock,
+  FaBuilding,
+  FaCarSide,
+  FaFileAlt,
+  FaIdCard,
+  FaRupeeSign,
+  FaCopy,
 } from "react-icons/fa";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+// recharts imports can stay commented if charts are disabled
+// import { ... } from "recharts";
 import {
   healthImg,
   twowheelerImg,
@@ -39,61 +32,165 @@ import {
   commercialImg,
   travelImg,
 } from "@/images/Image";
-import { Code } from "@mui/icons-material";
+
 export default function WelcomeBanner({
   collapsed,
   setCollapsed,
   openMenus,
   setOpenMenus,
 }) {
-   // Redirect if not user
+  const [stats, setStats] = useState({
+    totalpolicies: 0,
+    totalactivepolicies: 0,
+    totalclaims: 0,
+  });
+  const [notifications, setNotifications] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Modal state for viewing a single notification
+  const [openNote, setOpenNote] = useState(null);
+  const openNoteModal = (note) => setOpenNote(note);
+  const closeNoteModal = () => setOpenNote(null);
+
+  // Helpful formatters / helpers
+  const formatINR = (n) => {
+    if (n == null) return "-";
+    try {
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+      }).format(n);
+    } catch {
+      return `₹${n}`;
+    }
+  };
+  const copy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(String(text ?? ""));
+    } catch {}
+  };
+  const pickSummary = (n) =>
+    n?.summary ??
+    n?.description ??
+    n?.title ??
+    n?.message ??
+    "No summary available.";
+
+  // Small info row with icon + label + value + copy button
+  const InfoRow = ({ icon: Icon, label, value, mono, canCopy = true }) => {
+    if (!value) return null;
+    return (
+      <div className="flex items-start gap-3 p-3 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/70 hover:shadow-sm transition">
+        <div className="mt-0.5 shrink-0 rounded-lg bg-slate-100 p-2 text-slate-600">
+          <Icon size={14} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] uppercase tracking-wide text-slate-500">
+            {label}
+          </div>
+          <div
+            className={`text-sm text-slate-800 break-words ${
+              mono ? "font-mono" : ""
+            }`}
+          >
+            {value}
+          </div>
+        </div>
+        {canCopy && (
+          <button
+            onClick={() => copy(value)}
+            className="shrink-0 rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-600 hover:bg-slate-50 active:scale-95"
+            title="Copy"
+          >
+            <div className="flex items-center gap-1">
+              <FaCopy size={10} />
+              Copy
+            </div>
+          </button>
+        )}
+      </div>
+    );
+  };
+
   useEffect(() => {
     const fetchdata = async () => {
       try {
-        const response = await CallApi(constant.API.USER.USERDASHBOARD, "GET");
-        console.log("data", response);
+        const res = await CallApi(constant.API.USER.USERDASHBOARD, "GET");
+        console.log("data", res);
+
+        if (res?.status) {
+          setStats({
+            totalpolicies: res.totalpolicies ?? 0,
+            totalactivepolicies: res.totalactivepolicies ?? 0,
+            totalclaims: res.totalclaims ?? 0,
+          });
+          setNotifications(
+            Array.isArray(res.notification) ? res.notification : []
+          );
+          setPayments(Array.isArray(res.payment) ? res.payment : []);
+          setUser(res?.data?.user ?? null);
+        } else {
+          setStats({
+            totalpolicies: 0,
+            totalactivepolicies: 0,
+            totalclaims: 0,
+          });
+          setNotifications([]);
+          setPayments([]);
+          setUser(null);
+        }
       } catch (error) {
         console.error(error);
+        setStats({ totalpolicies: 0, totalactivepolicies: 0, totalclaims: 0 });
+        setNotifications([]);
+        setPayments([]);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
     };
     fetchdata();
-  },[]);
-  const { userData, token } = useUser();
-  const [notifications] = useState([
-    { id: 1, text: "Your health policy is expiring in 5 days", time: "2h ago" },
-    { id: 2, text: "New offer: 10% discount on renewals", time: "1d ago" },
-  ]);
-  const [renewals] = useState([
-    { id: 1, policy: "Health Insurance", expiry: "12 Aug 2025" },
-    { id: 2, policy: "Car Insurance", expiry: "18 Aug 2025" },
-  ]);
+  }, []);
 
-  const [feedback] = useState([
+  const expiredPolicies = Math.max(
+    0,
+    (stats.totalpolicies || 0) - (stats.totalactivepolicies || 0)
+  );
+
+  const cardData = [
     {
-      id: 1,
-      name: "Amit Sharma",
-      rating: 4,
-      comment: "Smooth process & fast claim!",
+      title: "Total Policies",
+      value: stats.totalpolicies,
+      subText: "All Time",
+      animation: totalpolicies,
+      bg: "from-blue-100 via-indigo-200 to-indigo-300",
     },
     {
-      id: 2,
-      name: "Priya Verma",
-      rating: 5,
-      comment: "Very satisfied with the support team.",
+      title: "Active Policies",
+      value: stats.totalactivepolicies,
+      subText: "Currently Active",
+      animation: activeAnimation,
+      bg: "from-green-100 via-emerald-200 to-teal-300",
     },
-  ]);
-  console.log(userData);
-  const colors = [
-    "from-[#D1C2F2] to-[#B09FE5] bg-gradient-to-br", // Lavender gradient
-    "from-[#FECDD3] to-[#FDA4AF] bg-gradient-to-br", // Soft pink
-    "from-[#FDE68A] to-[#FCD34D] bg-gradient-to-br", // Light yellow-orange
-    "from-[#BFDBFE] to-[#93C5FD] bg-gradient-to-br", // Sky blue
-
-    //  "from-[#C084FC] to-[#A855F7]",     // Total Policies – soft violet
-    // "from-[#FCA5A5] to-[#F87171]",     // Active Policies – warm pink red
-    // "from-[#FDBA74] to-[#FB923C]",     // Expired Policies – peachy orange
-    // "from-[#FCA5A5] to-[#F43F5E]",     // Total Claims – rose red
+    {
+      title: "Expired Policies",
+      value: expiredPolicies,
+      subText: "No Longer Active",
+      animation: expiredpolicies,
+      bg: "from-red-100 via-rose-200 to-pink-300",
+    },
+    {
+      title: "Total Claims",
+      value: stats.totalclaims,
+      subText: "Processed Claims",
+      animation: totalAnimation,
+      bg: "from-yellow-100 via-orange-200 to-amber-300",
+    },
   ];
+
   const categories = [
     { label: "Health", image: healthImg, redirectTo: "/health/common/insure" },
     {
@@ -117,84 +214,24 @@ export default function WelcomeBanner({
       redirectTo: "/motor/select-vehicle-type",
     },
   ];
-  const cardTitles = [
-    "Total Policies",
-    "Active Policies",
-    "Expired Policies",
-    "Total Claims",
-  ];
-  const cardAnimations = [
-    totalpolicies,
-    activeAnimation,
-    expiredpolicies,
-    totalAnimation,
-  ];
 
-  const cardData = [
-    {
-      title: "Total Policies",
-      value: "00",
-      subText: "All Time",
-      animation: totalpolicies,
-      bg: "from-blue-100 via-indigo-200 to-indigo-300",
-    },
-    {
-      title: "Active Policies",
-      value: "00",
-      subText: "Currently Active",
-      animation: activeAnimation,
-      bg: "from-green-100 via-emerald-200 to-teal-300",
-    },
-    {
-      title: "Expired Policies",
-      value: "00",
-      subText: "No Longer Active",
-      animation: expiredpolicies,
-      bg: "from-red-100 via-rose-200 to-pink-300",
-    },
-    {
-      title: "Total Claims",
-      value: "00",
-      subText: "Processed Claims",
-      animation: totalAnimation,
-      bg: "from-yellow-100 via-orange-200 to-amber-300",
-    },
-  ];
+  const [renewals] = useState([
+    { id: 1, policy: "Health Insurance", expiry: "12 Aug 2025" },
+    { id: 2, policy: "Car Insurance", expiry: "18 Aug 2025" },
+  ]);
 
-  // chart design Code
-  const [view, setView] = useState("Monthly");
+  // if (loading) { ... }  // your skeleton loader block (kept commented)
 
-  const claimsData = [
-    { month: "Jan", Approved: 800, Pending: 300 },
-    { month: "Feb", Approved: 1100, Pending: 250 },
-    { month: "Mar", Approved: 950, Pending: 400 },
-    { month: "Apr", Approved: 1200, Pending: 350 },
-    { month: "May", Approved: 1050, Pending: 500 },
-    { month: "Jun", Approved: 1300, Pending: 450 },
-    { month: "Jul", Approved: 1500, Pending: 600 },
-    { month: "Aug", Approved: 1700, Pending: 550 },
-    { month: "Sep", Approved: 1400, Pending: 500 },
-    { month: "Oct", Approved: 1300, Pending: 480 },
-    { month: "Nov", Approved: 1250, Pending: 520 },
-    { month: "Dec", Approved: 1600, Pending: 400 },
-  ];
-
-  // Insurance Overview Data
-  const insuranceData = [
-    { name: "Total Premiums Collected", value: 500000, color: "#22c55e" },
-    { name: "Claims Paid", value: 200000, color: "#3b82f6" },
-    { name: "Pending Claim Amount", value: 50000, color: "#f97316" },
-  ];
   return (
     <div className="w-full space-y-6">
-      {/* Welcome Section */}
+      {/* Welcome */}
       <div
         className="relative bg-cover bg-center rounded-3xl overflow-hidden shadow-md p-4 sm:p-6 flex items-center min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
         style={{ backgroundImage: "url('/images/dashboard/imgone.jpg')" }}
       >
         <div className="bg-white/10 backdrop-blur rounded-xl p-3 sm:p-4 md:p-5 w-full max-w-xl">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-700">
-            Hello {userData?.name || ""}...!
+            Hello{user?.name ? `, ${user.name}` : " ...!"}
           </h1>
           <p className="text-sm sm:text-base text-gray-800 mt-2">
             Welcome to Digibima Insurance. Your trusted partner in securing your
@@ -203,60 +240,19 @@ export default function WelcomeBanner({
         </div>
       </div>
 
-      {/*second type card design  Colored Cards Section */}
-      {/* <div className="flex flex-wrap gap-4 justify-center md:justify-between">
-        {cardTitles.map((title, index) => (
-          <div
-            key={index}
-            className={`bg-white rounded-3xl p-[3px] shadow-md h-[160px] transition-all duration-300 ease-in-out transform hover:scale-[1.05] hover:shadow-2xl
-      w-full ${collapsed ? "sm:w-[280px]" : "sm:w-[240px]"}`}
-          >
-            <div
-              className={`bg-gradient-to-tr ${colors[index]} rounded-3xl h-full w-full flex flex-col justify-center items-center`}
-            >
-              <Lottie
-                animationData={cardAnimations[index]}
-                loop
-                className="h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24 mb-2"
-              />
-              <div className="text-white font-semibold text-lg">{title}</div>
-            </div>
-          </div>
-        ))}
-      </div> */}
-      {/* <div className="relative w-64 p-4 rounded-xl overflow-hidden text-white">
-        <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500"></div>
-
-        <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white opacity-10"></div>
-
-        <div className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full bg-white opacity-5"></div>
-
-        <div className="relative z-10">
-          <div className="flex items-center mb-2">
-            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-              📈
-            </div>
-          </div>
-          <p className="text-sm font-medium">Ventas totales</p>
-          <h2 className="text-2xl font-bold">$2,500</h2>
-        </div>
-      </div> */}
-
+      {/* Cards */}
       <div className="flex flex-wrap justify-center md:justify-between gap-6">
         {cardData.map((card, index) => (
           <div
             key={index}
             className={`relative w-60 h-52 rounded-3xl p-4 shadow-md text-black bg-gradient-to-br ${card.bg} overflow-hidden`}
           >
-            {/* Background circles - match gradient tone */}
             <div
               className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${card.bg} opacity-40 mix-blend-overlay`}
-            ></div>
+            />
             <div
               className={`absolute -bottom-16 -left-16 w-40 h-40 rounded-full bg-gradient-to-br ${card.bg} opacity-40 mix-blend-overlay`}
-            ></div>
-
-            {/* Card content */}
+            />
             <div className="relative ">
               <div className="flex justify-between items-start">
                 <p className="text-sm font-medium">
@@ -275,6 +271,7 @@ export default function WelcomeBanner({
         ))}
       </div>
 
+      {/* Notifications from API */}
       <div className="bg-gradient-to-br from-white via-blue-50 to-white p-6 rounded-3xl shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-3">
           <div className="p-2 bg-blue-500 text-white rounded-full shadow-md">
@@ -285,169 +282,46 @@ export default function WelcomeBanner({
           </span>
         </h3>
 
-        <ul className="space-y-3 max-h-64  pr-1 ">
-          {notifications.map((note) => (
-            <li
-              key={note.id}
-              className="group p-4 bg-gradient-to-r from-blue-50 to-white rounded-xl shadow-sm border border-blue-100 hover:shadow-md hover:scale-[1.02] transition-all duration-300"
-            >
-              <div className="flex items-start justify-between">
-                <p className="text-sm text-gray-700 group-hover:text-gray-900 transition">
-                  {note.text}
-                </p>
-                <span className="flex items-center gap-1 text-xs text-gray-400 group-hover:text-blue-500 transition">
-                  <span className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></span>
-                  {note.time}
-                </span>
-              </div>
+        <ul className="space-y-3 max-h-64 pr-1">
+          {notifications.length === 0 ? (
+            <li className="p-4 bg-white rounded-xl border text-sm text-gray-500">
+              You’re all caught up!
             </li>
-          ))}
-        </ul>
-      </div>
+          ) : (
+            notifications.map((note, idx) => (
+              <li
+                key={idx}
+                className="group p-4 bg-gradient-to-r from-blue-50 to-white rounded-xl shadow-sm border border-blue-100 hover:shadow-md hover:scale-[1.02] transition-all duration-300"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-700 group-hover:text-gray-900 transition">
+                      {note.message}
+                    </p>
+                    {note?.time && (
+                      <span className="mt-1 inline-flex items-center gap-1 text-xs text-gray-400">
+                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+                        {note.time}
+                      </span>
+                    )}
+                  </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
-        {/* Claims Overview */}
-        <div className="md:col-span-2 bg-gradient-to-br from-white via-indigo-50 to-white p-6 rounded-3xl shadow-lg border border-indigo-100 hover:shadow-xl transition-all duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-lg mb-4 flex items-center gap-3">
-              <div className="p-2 bg-indigo-500 text-white rounded-full shadow-md">
-                <FaFileInvoiceDollar size={18} />
-              </div>
-              <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-transparent bg-clip-text">
-                Claims Overview
-              </span>
-            </h3>
-            <select
-              value={view}
-              onChange={(e) => setView(e.target.value)}
-              className="border rounded p-1 text-sm"
-            >
-              <option>Monthly</option>
-              <option>Yearly</option>
-            </select>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={claimsData} barGap={6}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "white",
-                  borderRadius: "10px",
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0px 4px 8px rgba(0,0,0,0.05)",
-                }}
-              />
-              <Legend />
-              <Bar
-                dataKey="Approved"
-                stackId="a"
-                fill="#93c5fd"
-                radius={[6, 6, 0, 0]}
-              />
-              <Bar
-                dataKey="Pending"
-                stackId="a"
-                fill="#60a5fa"
-                radius={[6, 6, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Insurance Overview */}
-        <div className="bg-gradient-to-br from-white via-pink-50 to-white p-6 rounded-3xl shadow-lg border border-pink-100 hover:shadow-xl transition-all duration-300">
-          <div className="flex justify-between items-center w-full mb-4">
-            <h2 className="font-semibold text-lg flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-tr from-pink-500 to-rose-500 text-white rounded-2xl shadow-lg shadow-pink-200">
-                <FaShieldAlt size={20} />
-              </div>
-              <span className="bg-gradient-to-r from-pink-500 to-rose-500 text-transparent bg-clip-text">
-                Insurance Overview
-              </span>
-            </h2>
-
-            <select
-              value={view}
-              onChange={(e) => setView(e.target.value)}
-              className="border border-pink-200 bg-white/60 backdrop-blur-md rounded-lg px-3 py-1 text-sm shadow-sm focus:ring-2 focus:ring-pink-300 outline-none transition"
-            >
-              <option>Monthly</option>
-              <option>Yearly</option>
-            </select>
-          </div>
-          <div className="w-full h-64 overflow-hidden">
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <defs>
-                  <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#4F46E5" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="#06B6D4" stopOpacity={0.9} />
-                  </linearGradient>
-                  <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#F43F5E" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="#F59E0B" stopOpacity={0.9} />
-                  </linearGradient>
-                </defs>
-
-                <Pie
-                  data={insuranceData}
-                  innerRadius={70}
-                  outerRadius={90}
-                  paddingAngle={3}
-                  dataKey="value"
-                  animationDuration={800}
-                  labelLine={false}
-                >
-                  {insuranceData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={index % 2 === 0 ? "url(#grad1)" : "url(#grad2)"}
-                      stroke="#fff"
-                      strokeWidth={2}
-                    />
-                  ))}
-                </Pie>
-
-                <Tooltip
-                  formatter={(value) => `$${value.toLocaleString()}`}
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    borderRadius: "10px",
-                    border: "none",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                  }}
-                />
-
-                <Legend
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  align="center"
-                  iconType="circle"
-                  formatter={(value) => (
-                    <span style={{ color: "#555", fontSize: "12px" }}>
-                      {value}
-                    </span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="text-green-500 font-bold text-xl">+13%</div>
-          <ul className="mt-4 text-sm">
-            {insuranceData.map((item, idx) => (
-              <li key={idx}>
-                <span
-                  className="inline-block w-3 h-3 mr-2 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                ></span>
-                {item.name}: ${item.value.toLocaleString()}
+                  {/* Soft View button */}
+                  <button
+                    type="button"
+                    onClick={() => openNoteModal(note)}
+                    className="shrink-0 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium
+                               bg-white/70 text-blue-700 border border-blue-200
+                               hover:bg-blue-50 hover:border-blue-300 hover:text-blue-800
+                               transition-colors"
+                  >
+                    View
+                  </button>
+                </div>
               </li>
-            ))}
-          </ul>
-        </div>
+            ))
+          )}
+        </ul>
       </div>
 
       <div className="bg-gradient-to-br from-white via-green-50 to-white p-6 rounded-3xl shadow-lg border border-green-100 hover:shadow-xl transition-all duration-300">
@@ -468,6 +342,7 @@ export default function WelcomeBanner({
           ))}
         </ul>
       </div>
+
       <div className="bg-white p-4 rounded-2xl shadow-md">
         <h3 className="font-semibold text-lg mb-4 flex items-center gap-3">
           <div className="p-2 bg-blue-500 text-white rounded-full shadow-md">
@@ -493,7 +368,6 @@ export default function WelcomeBanner({
         </div>
       </div>
 
-      {/* Categories Section */}
       <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-md grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 justify-items-center">
         {categories.map((item, index) => (
           <Link
@@ -519,6 +393,119 @@ export default function WelcomeBanner({
           </Link>
         ))}
       </div>
+
+      {/* Notification Summary Modal */}
+      {openNote && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          aria-modal="true"
+          role="dialog"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={closeNoteModal}
+          />
+
+          {/* Modal card */}
+          <div className="relative z-[61] w-full max-w-2xl rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden">
+            {/* Header / banner */}
+            <div className="relative overflow-hidden bg-[#7998F4]">
+              <div className="absolute inset-0 opacity-20 bg-[#fff]" />
+              <div className="relative px-5 sm:px-6 py-5 text-black">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-xl bg-white/15 p-2.5">
+                    <FaFileAlt size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs uppercase tracking-wide text-white/80">
+                      Notification
+                    </div>
+                    <div className="text-base sm:text-lg font-semibold leading-snug line-clamp-2">
+                      {openNote.message || pickSummary(openNote)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* chips */}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {openNote.time && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px]">
+                      <FaClock size={10} /> {openNote.time}
+                    </span>
+                  )}
+                  {openNote.vendor && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px]">
+                      <FaBuilding size={10} /> {openNote.vendor}
+                    </span>
+                  )}
+                  {openNote.type && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px]">
+                      <FaIdCard size={10} /> {openNote.type}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <InfoRow
+                  icon={FaFileAlt}
+                  label="Policy No"
+                  value={openNote.policyno}
+                  mono
+                />
+                <InfoRow
+                  icon={FaIdCard}
+                  label="Proposal No"
+                  value={openNote.proposalno}
+                  mono
+                />
+                <InfoRow
+                  icon={FaUser}
+                  label="Proposer"
+                  value={openNote.proposar_name}
+                />
+                <InfoRow
+                  icon={FaCarSide}
+                  label="Vehicle Type"
+                  value={openNote.vehicle_type}
+                />
+                <InfoRow
+                  icon={FaRupeeSign}
+                  label="Price"
+                  value={formatINR(openNote.price)}
+                  canCopy={false}
+                />
+              </div>
+
+              <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-1" />
+
+              {/* Optional raw JSON for debugging */}
+              <details className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-3">
+                <summary className="cursor-pointer text-xs text-slate-600 hover:text-slate-800">
+                  View raw data
+                </summary>
+                <pre className="mt-2 max-h-56 overflow-auto rounded-md bg-white p-3 text-[11px] leading-5 text-slate-800">
+                  {JSON.stringify(openNote, null, 2)}
+                </pre>
+              </details>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 sm:p-6 border-t flex items-center justify-end gap-2">
+              <button
+                onClick={closeNoteModal}
+                className="px-4 py-1.5 rounded-full text-sm border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
