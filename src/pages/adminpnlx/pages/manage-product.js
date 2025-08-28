@@ -5,6 +5,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ProductEditForm from "./editproduct/index";
 import AddonForm from "./addnewproduct/index";
+import { showSuccess, showError } from "@/layouts/toaster";
 import {
   useReactTable,
   getCoreRowModel,
@@ -34,45 +35,82 @@ const ManageProduct = ({ token }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const productEditRef = useRef();
-const addonFormRef = useRef();
 
-  const fetchProductData = async () => {
+  const productEditRef = useRef();
+  const addonFormRef = useRef();
+
+
+  const fetchProductData = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await CallApi(constant.API.ADMIN.PRODUCT, "GET");
+      const response = await CallApi(
+        `${constant.API.ADMIN.PRODUCT}?page=${page}`,
+        "GET"
+      );
+      console.log("ManageProduct API:", response);
+
       if (response?.status) {
-        setData(response.data || []);
-        setTotalRecords(response.data.length);
-        setVendors(response.vendors || []);
-        setPlans(response.plans || []);
+        const productPage = response?.data;   
+        const vendorsPage = response?.vendors; 
+        const plansPage = response?.plans;     
+
+        setData(productPage?.data ?? []);
+        setTotalRecords(productPage?.total ?? 0);
+        setPageCount(productPage?.last_page ?? 0);
+        setCurrentPage(productPage?.current_page ?? 1);
+        setFromIndex(productPage?.from ?? 1);
+
+        // For forms we only need the arrays
+        setVendors(vendorsPage?.data ?? []);
+        setPlans(plansPage?.data ?? []);
+      } else {
+        setData([]);
+        setTotalRecords(0);
+        setPageCount(0);
+        setCurrentPage(1);
+        setFromIndex(1);
+        setVendors([]);
+        setPlans([]);
       }
     } catch (error) {
       console.error("API Error:", error);
+      setData([]);
+      setTotalRecords(0);
+      setPageCount(0);
+      setCurrentPage(1);
+      setFromIndex(1);
+      setVendors([]);
+      setPlans([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (token) fetchProductData();
+    if (token) fetchProductData(1);
   }, [token]);
 
-  const deleteVendor = async () => {
-    if (!selectedProduct?._id) return;
-
+  const deleteProduct = async () => {
+    if (!selectedProduct?.id) return;
     try {
       const response = await CallApi(
-        `${constant.API.ADMIN.PRODUCT}/${selectedProduct._id}`,
-        "DELETE"
+        constant.API.ADMIN.DELETEPRODUCT,
+        "POST",
+        { id: selectedProduct.id }
       );
+      console.log("DeleteProduct API:", response);
       if (response?.status) {
-        fetchProductData(); // refresh list
+        showSuccess(response?.message || "Product deleted successfully!");
+
+        fetchProductData(currentPage);
         setShowDeleteModal(false);
         setSelectedProduct(null);
+      } else {
+        showError(response?.message || "Failed to delete product.");
       }
     } catch (error) {
       console.error("API Error:", error);
+      showError("Something went wrong!");
     }
   };
 
@@ -146,14 +184,15 @@ const addonFormRef = useRef();
     getSortedRowModel: getSortedRowModel(),
   });
 
+
   const getProductPage = (page) => {
-    setCurrentPage(page);
-    setFromIndex((page - 1) * 10 + 1);
-    table.setPageIndex(page - 1);
+    if (page < 1 || page > pageCount) return;
+    fetchProductData(page);
   };
 
   return (
     <>
+      {/* Edit Modal */}
       <Modal
         isOpen={showEditModal}
         onClose={() => {
@@ -163,11 +202,11 @@ const addonFormRef = useRef();
         title="Edit Product"
         width="max-w-3xl"
         height="max-h-[70vh]"
-         showConfirmButton={true}
-  showCancelButton={true}
-  confirmText="Save"
-  cancelText="Cancel"
-  onConfirm={() => productEditRef.current?.submit()}
+        showConfirmButton={true}
+        showCancelButton={true}
+        confirmText="Save"
+        cancelText="Cancel"
+        onConfirm={() => productEditRef.current?.submit()}
       >
         <ProductEditForm
           ref={productEditRef}
@@ -177,10 +216,11 @@ const addonFormRef = useRef();
             setShowEditModal(false);
             setSelectedProduct(null);
           }}
-          refreshData={fetchProductData}
+          refreshData={() => fetchProductData(currentPage)}
         />
       </Modal>
 
+      {/* Add Modal */}
       <Modal
         isOpen={showAddModal}
         onClose={() => {
@@ -190,47 +230,48 @@ const addonFormRef = useRef();
         title="Add New Product"
         width="max-w-3xl"
         height="max-h-[70vh]"
-         showConfirmButton={true}
-  showCancelButton={true}
-  confirmText="Save"
-  cancelText="Cancel"
-  onConfirm={() => addonFormRef.current?.submit()}
+        showConfirmButton={true}
+        showCancelButton={true}
+        confirmText="Save"
+        cancelText="Cancel"
+        onConfirm={() => addonFormRef.current?.submit()}
       >
         <AddonForm
-           ref={addonFormRef}
+          ref={addonFormRef}
           closeModal={() => {
             setShowAddModal(false);
             setSelectedProduct(null);
           }}
-          refreshData={fetchProductData}
+          refreshData={() => fetchProductData(currentPage)}
           vendors={vendors}
           plans={plans}
         />
       </Modal>
 
-     <Modal
-  isOpen={showDeleteModal}
-  onClose={() => {
-    setShowDeleteModal(false);
-    setSelectedProduct(null);
-  }}
-  title="Delete Product"
-  width="max-w-md"
-  height="max-h-[40vh]"
-  showConfirmButton={true}
-  showCancelButton={true}
-  confirmText="Delete"
-  cancelText="Cancel"
-  onConfirm={deleteVendor}
->
-  <div className="p-4">
-    <p className="text-gray-700 mb-2">
-      Are you sure you want to delete{" "}
-      <strong>{selectedProduct?.productname}</strong>? This action cannot be undone.
-    </p>
-  </div>
-</Modal>
-
+      {/* Delete Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setSelectedProduct(null);
+        }}
+        title="Delete Product"
+        width="max-w-md"
+        height="max-h-[40vh]"
+        showConfirmButton={true}
+        showCancelButton={true}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={deleteProduct}
+      >
+        <div className="p-4">
+          <p className="text-gray-700 mb-2">
+            Are you sure you want to delete{" "}
+            <strong>{selectedProduct?.productname}</strong>? This action cannot
+            be undone.
+          </p>
+        </div>
+      </Modal>
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-white shadow-sm rounded-xl">

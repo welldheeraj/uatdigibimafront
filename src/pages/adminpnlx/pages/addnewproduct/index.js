@@ -1,12 +1,13 @@
-import { forwardRef, useImperativeHandle, useState, useEffect,useMemo } from "react";
+import { forwardRef, useImperativeHandle, useState, useEffect, useMemo } from "react";
 import Select from "react-select";
 import { CallApi } from "@/api";
 import constant from "@/env";
 
-const NewProduct =  forwardRef(({ selectedProduct, closeModal, refreshData, plans }, ref) => {
+const NewProduct = forwardRef(({ selectedProduct, closeModal, refreshData, plans, vendors }, ref) => {
+  console.log(vendors);
   const [formValues, setFormValues] = useState({
     productName: "",
-    vendorName: "",
+    vendorName: null,   // will hold vendor object { value, label }
     selectedPlan: null,
     selectedAddons: [],
   });
@@ -20,6 +21,14 @@ const NewProduct =  forwardRef(({ selectedProduct, closeModal, refreshData, plan
   const [newAddonOption, setNewAddonOption] = useState(null);
   const [showNewAddon, setShowNewAddon] = useState(false);
 
+  // ✅ Vendors ko react-select ke options me convert karna
+  const vendorOptions = useMemo(() => {
+    return (vendors || []).map((v) => ({
+      value: v.id,
+      label: v.vendorname,
+    }));
+  }, [vendors]);
+
   const planOptions = useMemo(() => {
     return (plans || []).map((plan) => ({
       value: plan.id,
@@ -29,6 +38,10 @@ const NewProduct =  forwardRef(({ selectedProduct, closeModal, refreshData, plan
 
   const handleInputChange = (e) => {
     setFormValues({ ...formValues, [e.target.name]: e.target.value });
+  };
+
+  const handleVendorChange = (selectedVendor) => {
+    setFormValues({ ...formValues, vendorName: selectedVendor });
   };
 
   const handlePlanChange = (selectedPlan) => {
@@ -62,8 +75,10 @@ const NewProduct =  forwardRef(({ selectedProduct, closeModal, refreshData, plan
   const handleSave = async () => {
     const payload = {
       productname: formValues.productName,
-      vendorname: formValues.vendorName,
-      planname: formValues.selectedPlan?.label,
+      vendorid: formValues.vendorName?.value || null, // ✅ vendor id
+      vendorname: formValues.vendorName?.label || "", // ✅ vendor name
+      planid: formValues.selectedPlan?.value || null, // ✅ plan id
+      planname: formValues.selectedPlan?.label || "",
       addons: formValues.selectedAddons.map((addon) => addon.value),
     };
     console.log("Saving product:", payload);
@@ -78,21 +93,24 @@ const NewProduct =  forwardRef(({ selectedProduct, closeModal, refreshData, plan
       console.error("API Error:", error);
     }
   };
-   useImperativeHandle(ref, () => ({
+
+  useImperativeHandle(ref, () => ({
     submit: handleSave,
   }));
 
   return (
     <div className="space-y-4">
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-        <input
-          type="text"
-          name="vendorName"
-          value={formValues.vendorName}
-          onChange={handleInputChange}
+        {/* ✅ Vendor Select */}
+        <Select
+          options={vendorOptions}
           placeholder="Vendor Name"
-          className="inputcls"
+          onChange={handleVendorChange}
+          value={formValues.vendorName}
+          className="mt-1"
+          isSearchable
         />
+
         <div>
           <div className="flex gap-2">
             <div className="flex-1">
@@ -114,7 +132,6 @@ const NewProduct =  forwardRef(({ selectedProduct, closeModal, refreshData, plan
           </div>
         </div>
       </div>
-
 
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
         <Select
@@ -146,7 +163,6 @@ const NewProduct =  forwardRef(({ selectedProduct, closeModal, refreshData, plan
         </div>
       </div>
 
-
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
         <input
           type="text"
@@ -157,18 +173,9 @@ const NewProduct =  forwardRef(({ selectedProduct, closeModal, refreshData, plan
           className="inputcls w-full"
         />
       </div>
-
-
-      {/* <div className="max-w-4xl mx-auto flex justify-start gap-3 mt-4">
-        <button onClick={closeModal} className="px-4 py-2 thmbtn">
-          Cancel
-        </button>
-        <button onClick={handleSave} className="px-4 py-2 thmbtn">
-          Save
-        </button>
-      </div> */}
     </div>
   );
 });
 
+NewProduct.displayName = "NewProduct";
 export default NewProduct;

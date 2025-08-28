@@ -5,14 +5,15 @@ import { showSuccess, showError } from "@/layouts/toaster";
 const VendorEditForm = forwardRef(({ selectedVendor, closeModal, refreshData }, ref) => {
   const [formValues, setFormValues] = useState({ id: "", vendorname: "" });
   console.log("selectedVendor", selectedVendor);
-  useEffect(() => {
-    if (selectedVendor && (selectedVendor.vendorName || selectedVendor.name)) {
-      setFormValues({
-        id: selectedVendor.id?.toString() || "0",
-        vendorname: selectedVendor.vendorName || selectedVendor.name || "",
-      });
-    }
-  }, [selectedVendor]);
+useEffect(() => {
+  if (selectedVendor) {
+    setFormValues({
+      id: selectedVendor.id?.toString() || "0",
+      vendorname: selectedVendor.vendorname || selectedVendor.vendorName || selectedVendor.name || "",
+    });
+  }
+}, [selectedVendor]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,11 +22,11 @@ const VendorEditForm = forwardRef(({ selectedVendor, closeModal, refreshData }, 
 
   const handleSubmit = async () => {
     try {
-      const payload = {
-        // id: formValues.id || "0",
-        vendorname: formValues.vendorname, 
-        prevendor: selectedVendor?.vendorName || selectedVendor?.name || "",
-      };
+     const payload = {
+  vendorname: formValues.vendorname,
+  prevendor: selectedVendor?.vendorname || selectedVendor?.vendorName || selectedVendor?.name || "",
+};
+
       console.log(payload);
       // return false;
       const res = await CallApi(constant.API.ADMIN.EDITVENDOR, "POST", payload);
@@ -71,4 +72,6 @@ const VendorEditForm = forwardRef(({ selectedVendor, closeModal, refreshData }, 
   );
 });
 
+
+VendorEditForm.displayName = "VendorEditForm";
 export default VendorEditForm;

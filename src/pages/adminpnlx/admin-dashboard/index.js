@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { showError } from "@/layouts/toaster";
 import Sidebar from "./sidebar";
 import TopBar from "./topbar";
 import DashboardCards from "../pages/dashboard";
@@ -9,10 +8,12 @@ import ManagePlan from "../pages/manage-plan";
 import ManageProduct from "../pages/manage-product";
 import ManageUser from "../pages/manage-user";
 import ManageVendor from "../pages/manage-vendor";
+import ManagePolicy from "../pages/manage-policy";
 import { DashboardLoader } from "@/components/loader";
 import { useRouter } from "next/router";
 import { CallApi } from "@/api";
 import constant from "@/env";
+ const publicRoutes = ["/adminpnlx"];
 
 export default function DashboardPage({ usersData }) {
   const router = useRouter();
@@ -22,29 +23,16 @@ export default function DashboardPage({ usersData }) {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
   const [admindata, setAdminData] = useState([]);
-   const [isAdminVerified, setIsAdminVerified] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);  
-  const publicRoutes = ["/adminpnlx"];
-
-    useEffect(() => {
-    const loginType = localStorage.getItem("logintype");
-    if (loginType !== "admin") {
-      showError("You must be logged in as admin to access the dashboard.");
-      router.replace("/adminpnlx");
-    } else {
-      setIsAdminVerified(true); // allow second useEffect
-    }
-  }, []);
-
+  const { pathname } = router;
+ 
 
   // Fetch token from localStorage on initial load
-   useEffect(() => {
-    if (isAdminVerified) {
-      const storedToken = localStorage.getItem("token");
-      console.log(storedToken);
-      setToken(storedToken);
-    }
-  }, [isAdminVerified]);
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    console.log(storedToken)
+    setToken(storedToken);
+  }, []); 
 
   // Fetch user data once the token is available
   useEffect(() => {
@@ -100,6 +88,8 @@ export default function DashboardPage({ usersData }) {
         return <ManageUser token={token} />;
       case "managevendor":
         return <ManageVendor token={token} />;
+      case "managepolicy":
+        return <ManagePolicy token={token} />;
       default:
         return <p>Page Not Found</p>;
     }
@@ -120,7 +110,7 @@ useEffect(() => {
   };
 
   checkAuth();
-}, [router.pathname]);
+},[pathname, router]); 
 
 
   return (

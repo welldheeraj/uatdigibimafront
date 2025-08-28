@@ -5,6 +5,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VendorEditForm from "./editvendor/index";
 import AddVendorForm from "./addnewvendor/index";
+import { showSuccess, showError } from "@/layouts/toaster";
 import {
   useReactTable,
   getCoreRowModel,
@@ -32,64 +33,72 @@ const ManageVendor = ({ token }) => {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [loading, setLoading] = useState(true);
   const vendorEditRef = useRef();
   const addVendorRef = useRef();
 
-  const fetchVendorData = async () => {
-    setLoading(true);
-    try {
-      const response = await CallApi(constant.API.ADMIN.MANAGEVENDOR, "GET");
-      if (response?.status && response?.data?.vendors) {
-        const vendorsObj = response.data.vendors;
+const fetchVendorData = async () => {
+  setLoading(true);
+  try {
+    const response = await CallApi(constant.API.ADMIN.MANAGEVENDOR, "GET");
+    console.log(response);
 
-        const vendorArray = Object.entries(vendorsObj).map(
-          ([id, vendorName]) => ({
-            id,
-            vendorName,
-          })
-        );
+    if (response?.status && response?.data?.vendors) {
+      const vendorArray = response.data.vendors; // already [{id, vendorname}, ...]
 
-        setVendorList(vendorArray);
-        setData(vendorArray);
-        setTotalRecords(vendorArray.length);
-        setPageCount(Math.ceil(vendorArray.length / 10)); // Assuming 10 items per page
-      }
+      setVendorList(vendorArray);
+      setData(vendorArray);
+      setTotalRecords(vendorArray.length);
+      setPageCount(Math.ceil(vendorArray.length / 10));
+
       if (response.data.plans) {
         setPlans(response.data.plans);
       }
-    } catch (error) {
-      console.error("API Error:", error);
-      setTotalRecords(0);
-      setData([]);
+    } else {
       setVendorList([]);
-    } finally {
-      setLoading(false);
+      setData([]);
+      setTotalRecords(0);
     }
-  };
+  } catch (error) {
+    console.error("API Error:", error);
+    setTotalRecords(0);
+    setData([]);
+    setVendorList([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     if (token) fetchVendorData();
   }, [token]);
 
-  const deleteVendor = async () => {
-    if (!selectedVendor?._id) return;
-
-    try {
-      const response = await CallApi(
-        `${constant.API.ADMIN.PRODUCT}/${selectedVendor._id}`,
-        "DELETE"
-      );
-      if (response?.status) {
-        fetchVendorData(); // refresh list
-        setShowEditModal(false);
-        setSelectedVendor(null);
-      }
-    } catch (error) {
-      console.error("API Error:", error);
+const deleteVendor = async () => {
+  console.log(selectedVendor)
+  if (!selectedVendor?.id) return;
+  try {
+    const response = await CallApi(
+      constant.API.ADMIN.MANAGEVENDOR,
+      "POST",
+      { id: selectedVendor.id }
+    );
+    if (response?.status) {
+      console.log(response)
+      showSuccess(response?.message || "Vendor deleted successfully!");
+      fetchVendorData();
+      setShowEditModal(false);
+      setSelectedVendor(null);
+    } else {
+      showError(response?.message || "Failed to delete vendor.");
     }
-  };
+  } catch (error) {
+    console.error("API Error:", error);
+    showError("Something went wrong!");
+  }
+};
 
   const columns = useMemo(
     () => [
@@ -100,7 +109,7 @@ const ManageVendor = ({ token }) => {
       },
       {
         header: "Vendor Name",
-        accessorKey: "vendorName",
+         accessorKey: "vendorname"
       },
       {
         header: "Action",
@@ -116,15 +125,15 @@ const ManageVendor = ({ token }) => {
             >
               <EditIcon />
             </button>
-            <button
-              onClick={() => {
-                setSelectedVendor(row.original);
-                setShowEditModal(true);
-              }}
-              className="hover:text-red-600"
-            >
-              <DeleteIcon />
-            </button>
+            {/* <button
+  onClick={() => {
+    setSelectedVendor(row.original);
+    setShowDeleteModal(true);
+  }}
+  className="hover:text-red-600"
+>
+  <DeleteIcon />
+</button> */}
           </div>
         ),
       },
@@ -220,6 +229,29 @@ const ManageVendor = ({ token }) => {
           refreshData={fetchVendorData}
         />
       </Modal>
+      <Modal
+  isOpen={showDeleteModal}
+  onClose={() => {
+    setShowDeleteModal(false);
+    setSelectedVendor(null);
+  }}
+  title="Delete Vendor"
+  width="max-w-md"
+  height="max-h-[40vh]"
+  showConfirmButton={true}
+  showCancelButton={true}
+  confirmText="Delete"
+  cancelText="Cancel"
+  onConfirm={async () => {
+    await deleteVendor();
+    setShowDeleteModal(false);
+  }}
+>
+  <div className="py-4 text-gray-700">
+    Are you sure you want to delete vendor{" "}
+   <span className="font-semibold">{selectedVendor?.vendorname}</span>?
+  </div>
+</Modal>
 
       <div className="flex items-center justify-between px-4 py-3 bg-white shadow-sm rounded-xl">
         <h2 className="text-xl font-semibold">Manage Vendor</h2>

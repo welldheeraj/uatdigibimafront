@@ -24,16 +24,24 @@ const ManageUser = ({ token }) => {
   const [fromIndex, setFromIndex] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null); 
+  const [selectedUser, setSelectedUser] = useState(null);
 
-  const fetchUserData = async () => {
+  const fetchUserData = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await CallApi(constant.API.ADMIN.MANAGEUSER, "GET");
+      const response = await CallApi(
+        `${constant.API.ADMIN.MANAGEUSER}?page=${page}`,
+        "GET"
+      );
+      console.log("API Response:", response);
+
       if (response?.status) {
-        setData(response.data || []);
-        setTotalRecords((response.data || []).length);
-        setPageCount(Math.ceil((response.data || []).length / 10));
+        const userData = response?.data?.user;
+        setData(userData?.data || []);
+        setTotalRecords(userData?.total || 0);
+        setPageCount(userData?.last_page || 0);
+        setCurrentPage(userData?.current_page || 1);
+        setFromIndex(userData?.from || 1);
       }
     } catch (error) {
       console.error("API Error:", error);
@@ -45,7 +53,7 @@ const ManageUser = ({ token }) => {
   };
 
   useEffect(() => {
-    if (token) fetchUserData();
+    if (token) fetchUserData(1);
   }, [token]);
 
   const columns = useMemo(
@@ -73,8 +81,8 @@ const ManageUser = ({ token }) => {
         cell: ({ row }) => (
           <button
             onClick={() => {
-              setSelectedUser(row.original); 
-              setShowViewModal(true); 
+              setSelectedUser(row.original);
+              setShowViewModal(true);
             }}
             className="text-blue-600 hover:underline"
           >
@@ -98,10 +106,10 @@ const ManageUser = ({ token }) => {
     getSortedRowModel: getSortedRowModel(),
   });
 
+  // ✅ Server-side pagination
   const getUserPage = (page) => {
-    setCurrentPage(page);
-    setFromIndex((page - 1) * 10 + 1);
-    table.setPageIndex(page - 1);
+    if (page < 1 || page > pageCount) return;
+    fetchUserData(page);
   };
 
   return (
@@ -155,18 +163,6 @@ const ManageUser = ({ token }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
             />
           </div>
-
-          {/* <div className="flex justify-start gap-4 pt-2">
-            <button
-              className="px-4 py-2 thmbtn"
-              onClick={() => {
-                setShowViewModal(false);
-                setSelectedUser(null);
-              }}
-            >
-              Close
-            </button>
-          </div> */}
         </div>
       </Modal>
 
@@ -200,7 +196,10 @@ const ManageUser = ({ token }) => {
                       className="px-5 py-3 cursor-pointer"
                     >
                       <div className="flex items-center gap-1">
-                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                         {header.column.getIsSorted() === "asc" && <span>🔼</span>}
                         {header.column.getIsSorted() === "desc" && <span>🔽</span>}
                       </div>
@@ -209,43 +208,42 @@ const ManageUser = ({ token }) => {
                 </tr>
               ))}
             </thead>
-           <tbody className="divide-y divide-blue-100">
-  {loading ? (
-    Array.from({ length: 5 }).map((_, index) => (
-      <tr key={index}>
-        <td className="px-5 py-3">
-          <div className="h-4 w-8 bg-gray-200 animate-pulse rounded"></div>
-        </td>
-        <td className="px-5 py-3">
-          <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
-        </td>
-        <td className="px-5 py-3">
-          <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
-        </td>
-        <td className="px-5 py-3">
-          <div className="h-4 w-28 bg-gray-200 animate-pulse rounded"></div>
-        </td>
-        <td className="px-5 py-3">
-          <div className="h-4 w-10 bg-gray-200 animate-pulse rounded"></div>
-        </td>
-      </tr>
-    ))
-  ) : (
-    table.getRowModel().rows.map((row, i) => (
-      <tr
-        key={row.id}
-        className={i % 2 === 0 ? "bg-white" : "bg-blue-50/30"}
-      >
-        {row.getVisibleCells().map((cell) => (
-          <td key={cell.id} className="px-5 py-3">
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </td>
-        ))}
-      </tr>
-    ))
-  )}
-</tbody>
-
+            <tbody className="divide-y divide-blue-100">
+              {loading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <tr key={index}>
+                    <td className="px-5 py-3">
+                      <div className="h-4 w-8 bg-gray-200 animate-pulse rounded"></div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="h-4 w-28 bg-gray-200 animate-pulse rounded"></div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="h-4 w-10 bg-gray-200 animate-pulse rounded"></div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                table.getRowModel().rows.map((row, i) => (
+                  <tr
+                    key={row.id}
+                    className={i % 2 === 0 ? "bg-white" : "bg-blue-50/30"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="px-5 py-3">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
           </table>
         </div>
 
@@ -256,6 +254,7 @@ const ManageUser = ({ token }) => {
           </div>
 
           <div className="flex gap-2 flex-wrap items-center">
+            {/* First + Prev */}
             <button
               onClick={() => getUserPage(1)}
               disabled={currentPage === 1}
@@ -271,20 +270,37 @@ const ManageUser = ({ token }) => {
               ‹
             </button>
 
-            {Array.from({ length: pageCount }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => getUserPage(i + 1)}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  currentPage === i + 1
-                    ? "bg-blue-800 text-white"
-                    : "bg-blue-100 text-blue-800 hover:bg-blue-200"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+            {/* Page Numbers (Sliding Window) */}
+            {(() => {
+              const pageWindow = 5; // ek baar me dikhne wale pages
+              const startPage = Math.max(
+                1,
+                currentPage - Math.floor(pageWindow / 2)
+              );
+              const endPage = Math.min(pageCount, startPage + pageWindow - 1);
 
+              return Array.from(
+                { length: endPage - startPage + 1 },
+                (_, i) => {
+                  const page = startPage + i;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => getUserPage(page)}
+                      className={`px-3 py-1 rounded-full text-sm ${
+                        currentPage === page
+                          ? "bg-blue-800 text-white"
+                          : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                }
+              );
+            })()}
+
+            {/* Next + Last */}
             <button
               onClick={() => getUserPage(currentPage + 1)}
               disabled={currentPage === pageCount}

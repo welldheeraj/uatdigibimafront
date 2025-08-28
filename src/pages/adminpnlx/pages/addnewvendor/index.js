@@ -5,6 +5,7 @@ import { showSuccess, showError } from "@/layouts/toaster";
 import Select from "react-select";
 
 const AddVendorForm = forwardRef(({ plans, closeModal, refreshData }, ref) => {
+  
   const [formValues, setFormValues] = useState({
     vendorname: "",
     selectplan: null, 
@@ -85,4 +86,5 @@ const handleSubmit = async () => {
   );
 });
 
+AddVendorForm.displayName = "AddVendorForm";
 export default AddVendorForm;

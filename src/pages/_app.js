@@ -34,8 +34,8 @@ export default function App({ Component, pageProps }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const route = router.pathname;
-  const publicRoutes = ["/","/login?type=health","/login?type=motor","/adminpnlx"];
-   const isDashboard = router.pathname.startsWith("/userpnlx") ||  router.pathname.startsWith("/adminpnlx");
+  const publicRoutes = ["/","/login?type=health","/login?type=motor","/login/mainlogin","/adminpnlx"];
+    const isDashboard = router.pathname.startsWith("/userpnlx") ||  router.pathname.startsWith("/adminpnlx")||  router.pathname.startsWith("/dashboard");
   const splitRoute = route
     .trim()
     .split("/")

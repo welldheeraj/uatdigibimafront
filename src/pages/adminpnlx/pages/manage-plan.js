@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState,useRef  } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,6 +8,7 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { AiOutlineArrowDown, AiOutlineArrowUp } from "react-icons/ai";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
@@ -16,6 +17,7 @@ import constant from "@/env";
 import Modal from "@/components/modal";
 import PlanEditForm from "./editmangeplan/index";
 import AddPlanForm from "./addnewmanageplan/index";
+import { showSuccess, showError } from "@/layouts/toaster";
 
 const ManagePlan = ({ token }) => {
   const [data, setData] = useState([]);
@@ -28,11 +30,15 @@ const ManagePlan = ({ token }) => {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [loading, setLoading] = useState(true);
-    const formRef = useRef();
-   const addFormRef = useRef();
 
+  const formRef = useRef();
+  const addFormRef = useRef();
+
+  // Fetch plans
   const fetchUserData = async () => {
     setLoading(true);
     try {
@@ -40,7 +46,7 @@ const ManagePlan = ({ token }) => {
       if (response?.status && Array.isArray(response?.data?.plan)) {
         setTotalRecords(response.data.plan.length);
         setData(response.data.plan);
-        setPageCount(Math.ceil(response.data.plan.length / 10)); // Assuming 10 items per page
+        setPageCount(Math.ceil(response.data.plan.length / 10)); // 10 per page
       } else {
         setTotalRecords(0);
         setData([]);
@@ -64,12 +70,36 @@ const ManagePlan = ({ token }) => {
     setShowEditModal(true);
   };
 
+  const deletePlan = async () => {
+  console.log(selectedPlan)
+  if (!selectedPlan?.id) return;
+  try {
+    const response = await CallApi(
+      constant.API.ADMIN.DELETEPLAN,
+      "POST",
+      { id: selectedPlan.id }
+    );
+    if (response?.status) {
+      console.log(response)
+      showSuccess(response?.message || "Plans deleted successfully!");
+     fetchUserData();
+      setShowEditModal(false);
+      setSelectedPlan(null);
+    } else {
+      showError(response?.message || "Failed to delete Plans.");
+    }
+  } catch (error) {
+    console.error("API Error:", error);
+    showError("Something went wrong!");
+  }
+};
+
   const columns = useMemo(
     () => [
       {
         header: "S.No.",
         id: "serial",
-        cell: ({ row }) => fromIndex + row.index,
+        cell: ({ row }) => (currentPage - 1) * 10 + row.index + 1,
       },
       {
         header: "Plan Name",
@@ -79,17 +109,29 @@ const ManagePlan = ({ token }) => {
         header: "Action",
         id: "id",
         cell: ({ row }) => (
-          <button
-            onClick={() => handleEdit(row.original)}
-            className="text-blue-600 hover:text-blue-800"
-            title="Edit"
-          >
-            <EditIcon />
-          </button>
+          <div className="flex items-center gap-3 text-blue-600">
+            <button
+              onClick={() => handleEdit(row.original)}
+              className="text-blue-600 hover:text-blue-800"
+              title="Edit"
+            >
+              <EditIcon />
+            </button>
+            <button
+              onClick={() => {
+                setSelectedPlan(row.original);
+                setShowDeleteModal(true);
+              }}
+              className="hover:text-red-600"
+              title="Delete"
+            >
+              <DeleteIcon />
+            </button>
+          </div>
         ),
       },
     ],
-    [fromIndex]
+    [currentPage]
   );
 
   const table = useReactTable({
@@ -104,15 +146,17 @@ const ManagePlan = ({ token }) => {
     getSortedRowModel: getSortedRowModel(),
   });
 
+  // CSV import
   const handleCSVImport = (e) => {
     const file = e.target.files[0];
     Papa.parse(file, {
       header: true,
       complete: (result) =>
-        setData(result.data.filter((row) => row.name && row.position)),
+        setData(result.data.filter((row) => row.name)), // only check name
     });
   };
 
+  // Excel import
   const handleExcelImport = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -120,21 +164,47 @@ const ManagePlan = ({ token }) => {
       const workbook = XLSX.read(reader.result, { type: "binary" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const parsed = XLSX.utils.sheet_to_json(sheet);
-      setData(parsed.filter((row) => row.name && row.position));
+      setData(parsed.filter((row) => row.name));
     };
     reader.readAsBinaryString(file);
   };
 
-  // Pagination logic
+  // Pagination
   const getPlanPage = (page) => {
     setCurrentPage(page);
-    setFromIndex((page - 1) * 10 + 1); // Calculate starting index
+    setFromIndex((page - 1) * 10 + 1);
     table.setPageIndex(page - 1);
   };
 
   return (
     <>
-     <Modal
+      {/* Delete Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setSelectedPlan(null);
+        }}
+        title="Delete Plan"
+        width="max-w-md"
+        height="max-h-[40vh]"
+        showConfirmButton={true}
+        showCancelButton={true}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={async () => {
+          await deletePlan();
+          setShowDeleteModal(false);
+        }}
+      >
+        <div className="py-4 text-gray-700">
+          Are you sure you want to delete plan{" "}
+          <span className="font-semibold">{selectedPlan?.name}</span>?
+        </div>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
@@ -160,6 +230,7 @@ const ManagePlan = ({ token }) => {
         />
       </Modal>
 
+      {/* Add Modal */}
       <Modal
         isOpen={showAddModal}
         onClose={() => {
@@ -168,19 +239,20 @@ const ManagePlan = ({ token }) => {
         title="Add New Plan"
         width="max-w-xl"
         height="max-h-[70vh]"
-         showConfirmButton={true}
-  showCancelButton={true}
-  confirmText="Save"
-  cancelText="Cancel"
-  onConfirm={() => addFormRef.current?.submit()}
+        showConfirmButton={true}
+        showCancelButton={true}
+        confirmText="Save"
+        cancelText="Cancel"
+        onConfirm={() => addFormRef.current?.submit()}
       >
         <AddPlanForm
-        ref={addFormRef}
+          ref={addFormRef}
           closeModal={() => setShowAddModal(false)}
           refreshData={fetchUserData}
         />
       </Modal>
 
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 bg-white shadow-sm rounded-xl">
         <h2 className="text-xl font-semibold">Manage Plan</h2>
         <button
@@ -191,6 +263,7 @@ const ManagePlan = ({ token }) => {
         </button>
       </div>
 
+      {/* Table */}
       <div className="w-full mt-5 overflow-x-auto">
         <div className="rounded-xl shadow-lg border border-blue-200 bg-white overflow-x-auto min-w-full sm:min-w-[600px]">
           <div className="p-4">
@@ -266,6 +339,7 @@ const ManagePlan = ({ token }) => {
           </table>
         </div>
 
+        {/* Pagination */}
         <div className="flex justify-between items-center flex-wrap gap-4 pt-4 px-2 sm:px-0">
           <div className="bg-yellow-100 text-gray-800 px-4 py-2 rounded-full text-sm shadow-inner">
             Total <span className="font-semibold">{totalRecords}</span> Records

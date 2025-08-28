@@ -305,7 +305,7 @@ useEffect(() => {
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        className="sr-only"
+                        className="sr-only peer"
                         checked={ownershipToggle}
                          onChange={() => {
                         const value = !ownershipToggle ? "1" : "0";
@@ -313,7 +313,7 @@ useEffect(() => {
                         setValue("ownershiptoggle", value);
                       }}
                       />
-                      <div className="w-12 h-6 bg-gray-300 rounded-full peer-checked:bg-indigo-500 transition-colors" />
+                      <div className="w-12 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors" />
                       <div
                         className={`absolute left-0 top-0 w-6 h-6 bg-white border border-gray-200 rounded-full shadow transform transition-transform ${
                           ownershipToggle ? "translate-x-6" : ""
@@ -333,7 +333,7 @@ useEffect(() => {
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        className="sr-only"
+                        className="sr-only peer"
                         checked={policyToggle}
                           onChange={() => {
                         const value = !policyToggle ? "1" : "0";

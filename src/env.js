@@ -88,6 +88,7 @@ const constant = {
       SENDOTP: "/api/sendotp",
       VERIFYOTP: "/api/verifyotp",
       PINCODE: "/api/acpincode",
+      
        PLANTYPE: "/api/plantype",
       INSUREVIEW: "/api/insureview",
       GETINSURE: "/api/getinsureinfo",
@@ -186,12 +187,14 @@ const constant = {
       },
     },
     USER: {
+      NOTIFICATION: "/api/userpnlx/notification-show",
+      MARKNOTIFICATION: "/api/userpnlx/user-notification",
       USERDASHBOARD: "/api/userpnlx/user-profile",
       PROFILEUPDATE: "/api/userpnlx/user-profile-update",
       POLICY: "/api/userpnlx/user-policy",
       DOWNLOADPOLICY: "api/userpnlx/policy-Pdf",
     },
-    ADMIN: {
+     ADMIN: {
       ADMINLOGIN: "/api/adminpnlx/admin-login",
       SENDOTP: "/api/adminpnlx/sendotp",
       VERIFYOTP: "/api/adminpnlx/verifyotp",
@@ -202,13 +205,17 @@ const constant = {
       // vendor 
        MANAGEVENDOR: "/api/adminpnlx/manage-vendor",
        EDITVENDOR: "/api/adminpnlx/update-vendor",
+       DELETEVENDOR: "/api/adminpnlx/delete-vendor",
       ADDNEWVENDOR: "/api/adminpnlx/add-vendor",
       // product 
        PRODUCT: "/api/adminpnlx/manage-product",
        EDITPRODUCT: "/api/adminpnlx/edit-vendor",
+       DELETEPRODUCT: "/api/adminpnlx/manage-deleteplan",
       ADDNEWPRODUCT: "/api/adminpnlx/add-vendor",
       // user 
        MANAGEUSER: "/api/adminpnlx/manage-user",
+        //  managepolicy
+       MANAGEPOLICY: "/api/adminpnlx/admin-policy",
     },
   },
   QUESTION: {

@@ -208,4 +208,5 @@ const AddonForm =  forwardRef(({ selectedProduct, closeModal, refreshData, plans
   );
 });
 
+AddonForm.displayName = "AddonForm";
 export default AddonForm;

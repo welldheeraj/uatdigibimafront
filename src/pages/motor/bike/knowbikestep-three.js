@@ -319,7 +319,7 @@ useEffect(() => {
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        className="sr-only"
+                        className="sr-only peer"
                         checked={ownershipToggle}
                          onChange={() => {
                         const value = !ownershipToggle ? "1" : "0";
@@ -347,7 +347,7 @@ useEffect(() => {
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        className="sr-only"
+                        className="sr-only peer"
                         checked={policyToggle}
                           onChange={() => {
                         const value = !policyToggle ? "1" : "0";

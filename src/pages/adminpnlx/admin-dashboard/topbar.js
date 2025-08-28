@@ -17,7 +17,6 @@ export default function TopBar({ setActivePage, admindata, token,setIsMobileMenu
     const response = await CallApi("/api/logout", "POST", "");
     if (response.status) {
       localStorage.removeItem("token");
-      localStorage.removeItem("logintype");
       window.dispatchEvent(new Event("auth-change"));
       setIsDropdownOpen(false);
       showSuccess(response.message);

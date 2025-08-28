@@ -21,6 +21,7 @@ export default function Plans() {
   const [isCompany, setIsCompany] = useState(false);
     const [savingAddons, setSavingAddons] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [quoteError, setQuoteError] = useState(false);
   const [planTypes, setPlanTypes] = useState([]);
   const [fullAddonsName, setFullAddonsName] = useState({});
   const [addons, setAddons] = useState([]);
@@ -159,31 +160,27 @@ export default function Plans() {
     getDetails();
   }, []);
 
+  // 📌 Fetch quote
   const getQuote = useCallback(async () => {
     if (!vendorList.length) return;
     try {
       setLoading(true);
-      const allPlans = [];
-      let data; //  define it here so it’s accessible later
+      setQuoteError(false);
 
+      const allPlans = [];
+      let data;
       for (let i = 0; i < vendorList.length; i++) {
         const vendorPayload = vendorList[i];
         const route =
           constant.ROUTES.MOTOR.VENDOR.BIKE[String(vendorPayload.vid)] || "";
+        const vendorWithRoute = { ...vendorPayload, route };
 
-        const vendorWithRoute = {
-          ...vendorPayload,
-          route,
-        };
         const response = await CallApi(
           constant.API.MOTOR.BIKE.QUOTE,
           "POST",
           vendorWithRoute
         );
-
-        data = response?.data; //  update it each iteration
-
-        console.log(response);
+        data = response?.data;
 
         if (response?.status == "1" && data) {
           if (allPlans.length === 0) {
@@ -192,27 +189,29 @@ export default function Plans() {
             setIdv(data.idv);
             setSelectedIdv(data.selectedvalue);
           }
-          allPlans.push({ ...data});
+          allPlans.push({ ...data });
         }
       }
 
-      setVendorPlans(allPlans);
-
-      //  now `data` exists here
-      if (data?.plantype == "2") {
-        console.log("hello");
-        setSelectedAddon(data.addons?.selectedaddon || []);
-      } else if (data?.plantype == "1") {
-        setSelectedAddon(data.addons?.odselectedaddon || []);
-      } else if (data?.plantype == "3") {
-        setSelectedAddon(data.addons?.tpselectedaddon || []);
+      if (allPlans.length > 0) {
+        setVendorPlans(allPlans);
+      } else {
+        setVendorPlans([]);
+        setQuoteError(true);
       }
+
+      // selected addons
+      if (data?.plantype == "2") setSelectedAddon(data.addons?.selectedaddon || []);
+      else if (data?.plantype == "1") setSelectedAddon(data.addons?.odselectedaddon || []);
+      else if (data?.plantype == "3") setSelectedAddon(data.addons?.tpselectedaddon || []);
     } catch (error) {
       console.error("Error loading quote:", error);
+      setQuoteError(true);
     } finally {
       setLoading(false);
     }
   }, [vendorList]);
+
 
   useEffect(() => {
     getQuote();
@@ -254,21 +253,7 @@ export default function Plans() {
     }
   };
 
-  // const handleAddonChange = (id) => {
-  //   if (String(selectedPlanType) == 1) {
-  //     setOdSelectedAddon((prev) =>
-  //       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-  //     );
-  //   } else if (String(selectedPlanType) == 2) {
-  //     setSelectedAddon((prev) =>
-  //       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-  //     );
-  //   } else {
-  //     setTpSelectedAddon((prev) =>
-  //       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-  //     );
-  //   }
-  // };
+
     const handleAddonChange = (id) => {
     if (String(selectedPlanType) == 1) {
       setOdSelectedAddon((prev) => {
@@ -375,48 +360,58 @@ export default function Plans() {
      }
    };
 
-  const handlePlanTypeChange = async (e) => {
+ const handlePlanTypeChange = async (e) => {
     const newPlanType = e.target.value;
-    console.log("plane type change kiya hai", newPlanType);
     setSelectedPlanType(newPlanType);
 
     try {
       setLoading(true);
+      setQuoteError(false);
+
       await CallApi(constant.API.MOTOR.BIKE.CHANGEPLAN, "POST", {
         pacover: paCoverChecked ? "1" : "0",
         planetype: newPlanType,
       });
 
       const allPlans = [];
+      let gotValidPlan = false;
+
       for (let i = 0; i < vendorList.length; i++) {
         const vendorPayload = vendorList[i];
         const route =
           constant.ROUTES.MOTOR.VENDOR.BIKE[String(vendorPayload.vid)] || "";
+        const vendorWithRoute = { ...vendorPayload, route };
 
-        const vendorWithRoute = {
-          ...vendorPayload,
-          route,
-        };
         const response = await CallApi(
           constant.API.MOTOR.BIKE.QUOTE,
           "POST",
           vendorPayload
         );
-        // console.log("third party adons", response,selectedPlan);
+
         if (response?.status === "1" && response?.data) {
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
+          gotValidPlan = true;
         }
-        if (response?.status == "1" && response?.addonlist) {
+        if (response?.status === "1" && response?.addonlist) {
           setAddonlist(response?.addonlist);
         }
       }
-      setVendorPlans(allPlans);
+
+      if (gotValidPlan) {
+        setVendorPlans(allPlans);
+      } else {
+        setVendorPlans([]);
+        setQuoteError(true);
+      }
     } catch (error) {
       console.error("Plan type change failed:", error);
+      setQuoteError(true);
     } finally {
       setLoading(false);
     }
   };
+
+
 
   const getCacheQuote = async () => {
     try {
@@ -441,7 +436,8 @@ export default function Plans() {
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
         }
       }
-      setVendorPlans(allPlans);
+     setVendorPlans(allPlans.length > 0 ? allPlans : []);
+
     } catch (error) {
       console.error("Cache quote fetch failed:", error);
     }finally {
@@ -509,7 +505,7 @@ export default function Plans() {
   //   const timer = setTimeout(() => setLoading(false), 1500);
   //   return () => clearTimeout(timer);
   // }, []);
-    const showSkeleton = loading || vendorPlans.length === 0;
+const showSkeleton = loading || (vendorPlans.length === 0 && !quoteError);
   const handleRedirect = () => {
     console.log("ram",motortype)
     if (motortype === "knowbike" || motortype === "") {
@@ -652,23 +648,27 @@ export default function Plans() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 py-6">
         {/* Left: VendorCard Section (9 columns) */}
         <div className="lg:col-span-9">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {showSkeleton
-                         ? Array(3)
-                             .fill(0)
-                             .map((_, idx) => <MotorCardSkeleton key={idx} />)
-                         : vendorPlans.map((plan) => (
-                             <VendorCard
-                               key={plan.vendorId}
-                               data={plan}
-                               onAddonsClick={(vendorData) => {
-                                 setSelectedPlan(vendorData);
-                                 setAddAddonModal(true);
-                               }}
-                                handlePlanSubmit={handlePlanSubmit}
-                               onPremiumClick={premiumBackupData}
-                             />
-                           ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {showSkeleton ? (
+              Array(3).fill(0).map((_, idx) => <MotorCardSkeleton key={idx} />)
+            ) : quoteError ? (
+              <div className="col-span-full text-center text-gray-500 py-10">
+                🚫 No Plans Available
+              </div>
+            ) : (
+              vendorPlans.map((plan) => (
+                <VendorCard
+                  key={plan.vendorId}
+                  data={plan}
+                  onAddonsClick={(vendorData) => {
+                    setSelectedPlan(vendorData);
+                    setAddAddonModal(true);
+                  }}
+                  handlePlanSubmit={handlePlanSubmit}
+                  onPremiumClick={premiumBackupData}
+                />
+              ))
+            )}
           </div>
         </div>
       

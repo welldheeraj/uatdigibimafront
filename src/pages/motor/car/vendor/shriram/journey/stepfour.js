@@ -70,19 +70,26 @@ export default function StepFourForm({
       </SectionCard>
 
       {/*Payment Summary */}
-     <SectionCard title="Payment Summary">
-  {Object.entries(paymentSummery || {}).map(([key, val]) => {
-    const isTotal = key.toLowerCase().includes("total");
+
+<SectionCard title="Payment Summary">
+  {(paymentSummery || []).map((item, idx) => {
+    const label = item.CoverDesc;
+    const value = item.Premium;
+    const isTotal = label?.toLowerCase().includes("total") || 
+                    label?.toLowerCase().includes("final");
+
     return (
       <InfoRow
-        key={key}
-        label={key}
-        value={`₹ ${val}`}
+        key={idx}
+        label={label}
+        value={`₹ ${value}`}
         isTotal={isTotal}
       />
     );
   })}
 </SectionCard>
+
+
     </div>
   );
 }

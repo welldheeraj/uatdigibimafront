@@ -27,20 +27,19 @@ export default function Sidebar({
 
   const menuItems = [
     { title: "Dashboard", icon: <FaHome />, key: "dashboard" },
-    {
-      title: "Manage",
-      icon: <FaUsers />,
-      submenu: [
+    { title: "Manage", icon: <FaUsers />, submenu: [
         { label: "Manage Plan", key: "manageplan" },
         { label: "Manage Vendor", key: "managevendor" },
         { label: "Manage Product", key: "manageproduct" },
         { label: "Manage User", key: "manageuser" },
-      ],
-    },
+        { label: "Manage Policy", key: "managepolicy" },
+      ] },
     {
       title: "Edit Footer",
       icon: <FaUsers />,
-      submenu: [{ label: "Edit Footer", key: "editfooter" }],
+      submenu: [
+       { label: "Edit Footer", key: "editfooter" },
+      ],
     },
   ];
 
@@ -56,12 +55,11 @@ export default function Sidebar({
 
       {/* Sidebar */}
       <div
-        className={`fixed z-50 top-0 left-0 h-full bg-white shadow-lg p-4
-  transition-[width] duration-300 ease-in-out overflow-x-hidden
-  ${collapsed ? "w-20" : "w-[80vw] sm:w-[60vw] md:w-60"}
-  ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
-  md:translate-x-0 md:static
-  rounded-tr-3xl rounded-br-3xl flex flex-col justify-between overflow-y-auto`}
+        className={`fixed z-50 top-0 left-0 h-full bg-white shadow-lg p-4 transition-all duration-300 ease-in-out
+          ${collapsed ? "w-20" : "w-[80vw] sm:w-[60vw] md:w-60"} 
+          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static
+          rounded-tr-3xl rounded-br-3xl flex flex-col justify-between overflow-y-auto`}
       >
         {/* Header */}
         <div>
@@ -70,9 +68,7 @@ export default function Sidebar({
             <Image
               src={collapsed ? logoicon : logoTwo}
               onClick={collapsed ? toggleCollapse : undefined}
-              className={`object-contain transition-all duration-300 ease-in-out ${
-                collapsed ? "h-8 w-10 cursor-pointer" : "h-8 w-32"
-              }`}
+              className={`object-contain transition-all duration-300 ease-in-out ${collapsed ? "h-8 w-10 cursor-pointer" : "h-8 w-32"}`}
               alt="Logo"
             />
 
@@ -106,24 +102,14 @@ export default function Sidebar({
                       setIsMobileMenuOpen(false); // Close menu on page change in mobile view
                     }
                   }}
-                  active={
-                    activePage === item.key ||
-                    (item.submenu &&
-                      item.submenu.some((sub) => sub.key === activePage))
-                  }
+                  active={activePage === item.key || (item.submenu && item.submenu.some((sub) => sub.key === activePage))}
                 />
 
                 {/* Submenu */}
                 {item.submenu && (
                   <div
                     className={`transition-all duration-300 ease-in-out overflow-hidden origin-top
-                      ${
-                        collapsed
-                          ? "max-h-0 opacity-0 pointer-events-none"
-                          : openMenus[item.title]
-                          ? "max-h-60 opacity-100 pointer-events-auto"
-                          : "max-h-0 opacity-0 pointer-events-none"
-                      }
+                      ${collapsed ? "max-h-0 opacity-0 pointer-events-none" : openMenus[item.title] ? "max-h-60 opacity-100 pointer-events-auto" : "max-h-0 opacity-0 pointer-events-none"}
                     `}
                   >
                     {item.submenu.map((subItem) => (
@@ -154,43 +140,23 @@ export default function Sidebar({
 }
 
 // Menu Item Component
-function MenuItem({
-  icon,
-  label,
-  collapsed,
-  isOpen,
-  onClick,
-  active,
-  dropdown = false,
-}) {
+function MenuItem({ icon, label, collapsed, isOpen, onClick, active, dropdown = false }) {
   return (
     <div
       className={`flex items-center justify-between rounded-lg px-3 py-2 cursor-pointer transition-all duration-300 group
-        ${
-          active
-            ? "bg-[#7998F4] text-white"
-            : "hover:bg-[#7998F4] hover:text-white"
-        }`}
+        ${active ? "bg-[#7998F4] text-white" : "hover:bg-[#7998F4] hover:text-white"}`}
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
         <span className="text-lg">{icon}</span>
-        <span
-          className={`whitespace-nowrap transition-all duration-500 ease-in-out ${
-            collapsed
-              ? "opacity-0 max-w-0 overflow-hidden"
-              : "opacity-100 max-w-[200px]"
-          }`}
-        >
+        <span className={`whitespace-nowrap transition-all duration-500 ease-in-out ${collapsed ? "opacity-0 max-w-0 overflow-hidden" : "opacity-100 max-w-[200px]"}`}>
           {label}
         </span>
       </div>
       {!collapsed && dropdown && (
         <IoMdArrowDropdown
           size={18}
-          className={`transition-transform duration-300 ease-in-out ${
-            isOpen ? "rotate-180" : "group-hover:rotate-180"
-          }`}
+          className={`transition-transform duration-300 ease-in-out ${isOpen ? "rotate-180" : "group-hover:rotate-180"}`}
         />
       )}
     </div>
@@ -203,11 +169,7 @@ function SubMenuItem({ label, onClick, active }) {
     <div
       className={`flex items-center gap-2 ml-8 mt-1 px-3 py-1 rounded-md cursor-pointer
         transition-colors duration-300 shadow-sm hover:shadow-md
-        ${
-          active
-            ? "bg-[#7998F4] text-white"
-            : "text-gray-600 hover:bg-[#7998F4] hover:text-white"
-        }`}
+        ${active ? "bg-[#7998F4] text-white" : "text-gray-600 hover:bg-[#7998F4] hover:text-white"}`}
       role="menuitem"
       tabIndex={0}
       onClick={onClick}

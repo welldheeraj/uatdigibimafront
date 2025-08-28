@@ -6,11 +6,11 @@ import totalAnimation from "@/animation/amount.json";
 import totalpolicies from "@/animation/totalpolicies.json";
 import Image from "next/image";
 import {
-  healthImg,
-  twowheelerImg,
-  fourwheelerImg,
-  commercialImg,
-  travelImg,
+  homehealth,
+  homebike,
+  homecar,
+  homecommercial,
+  
 } from "@/images/Image";
 import {
   FaUserPlus,
@@ -42,50 +42,65 @@ export default function WelcomeBanner({
 }) {
   console.log(admindata);
 
-  const colors = [
-    "from-[#E9D5FF] to-[#C4B5FD]",
-    "from-[#FECDD3] to-[#FDA4AF]",
-    "from-[#FDE68A] to-[#FCD34D]",
-    "from-[#BFDBFE] to-[#93C5FD]",
-  ];
+
 
   const categories = [
-    { label: "Health", image: healthImg, redirectTo: "/health/common/insure" },
+    { label: "Health", image: homehealth, redirectTo: "/health/common/insure" },
     {
       label: "Two Wheeler",
-      image: twowheelerImg,
+      image: homebike,
       redirectTo: "/motor/select-vehicle-type",
     },
     {
       label: "Four Wheeler",
-      image: fourwheelerImg,
+      image: homecar,
       redirectTo: "/motor/select-vehicle-type",
     },
     {
       label: "Commercial",
-      image: commercialImg,
+      image: homecommercial,
       redirectTo: "/motor/select-vehicle-type",
     },
     {
       label: "Travel",
-      image: travelImg,
+      image: homecommercial,
       redirectTo: "/motor/select-vehicle-type",
     },
   ];
 
-  const cardTitles = [
-    `Total Policies ${admindata?.policyCount ?? "--"}`,
-    `Active Policies ${admindata?.activepolicies ?? "--"}`,
-    `Expired Policies ${admindata?.expiredpolicies ?? "--"}`,
-    `Total Claims ${admindata?.totalClaims ?? "--"}`,
+
+   const cardData = [
+    {
+      title: "Total Policies",
+      value: admindata?.policyCount ?? "--",
+      subText: "All Time",
+      animation: totalpolicies,
+      bg: "from-blue-100 via-indigo-200 to-indigo-300",
+    },
+    {
+      title: "Active Policies",
+      value: admindata?.activepolicies ?? "--",
+      subText: "Currently Active",
+      animation: activeAnimation,
+      bg: "from-green-100 via-emerald-200 to-teal-300",
+    },
+    {
+      title: "Expired Policies",
+      value: admindata?.expiredpolicies ?? "--",
+      subText: "No Longer Active",
+      animation: expiredpolicies,
+      bg: "from-red-100 via-rose-200 to-pink-300",
+    },
+    {
+      title: "Total Claims",
+      value: admindata?.totalClaims ?? "--",
+      subText: "Processed Claims",
+      animation: totalAnimation,
+      bg: "from-yellow-100 via-orange-200 to-amber-300",
+    },
   ];
 
-  const cardAnimations = [
-    totalpolicies,
-    activeAnimation,
-    expiredpolicies,
-    totalAnimation,
-  ];
+
 
   // Dummy data for new sections
   const activityData = [
@@ -154,27 +169,38 @@ export default function WelcomeBanner({
       </div>
 
       {/* KPI Cards */}
-      <div className="flex flex-wrap gap-4 justify-center md:justify-between">
-        {cardTitles.map((title, index) => (
-          <div
-            key={index}
-            className={`bg-white rounded-3xl p-[3px] shadow-md h-[160px] transition-all duration-300 ease-in-out transform hover:scale-[1.05] hover:shadow-2xl w-full ${
-              collapsed ? "sm:w-[280px]" : "sm:w-[240px]"
-            } sm:w-full md:w-[230px]`}
-          >
+      <div className="flex flex-wrap justify-center md:justify-between gap-6">
+          {cardData.map((card, index) => (
             <div
-              className={`bg-gradient-to-tr ${colors[index]} rounded-3xl h-full w-full flex flex-col justify-center items-center`}
+              key={index}
+              className={`relative w-60 h-52 rounded-3xl p-4 shadow-md text-black bg-gradient-to-br ${card.bg} overflow-hidden`}
             >
-              <Lottie
-                animationData={cardAnimations[index]}
-                loop
-                className="h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24 mb-2"
+              <div
+                className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${card.bg} opacity-40 mix-blend-overlay`}
               />
-              <div className="text-white font-semibold text-lg">{title}</div>
+              <div
+                className={`absolute -bottom-16 -left-16 w-40 h-40 rounded-full bg-gradient-to-br ${card.bg} opacity-40 mix-blend-overlay`}
+              />
+              <div className="relative ">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm font-medium">
+                    {card.title.split(" ")[0]}
+                    <br />
+                    {card.title.split(" ")[1]}
+                  </p>
+                  <Lottie
+                    animationData={card.animation}
+                    className="w-20 h-18"
+                  />
+                </div>
+                <div>
+                  <h2 className="text-4xl font-bold">{card.value}</h2>
+                  <p className="text-sm text-gray-700 mt-1">{card.subText}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
 
 

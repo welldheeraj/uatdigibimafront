@@ -54,4 +54,6 @@ const PlanEditForm = forwardRef(({ selectedPlan, closeModal, refreshData }, ref)
   );
 });
 
+
+PlanEditForm.displayName = "PlanEditForm";
 export default PlanEditForm;

@@ -3,7 +3,7 @@ import { CallApi } from "@/api";
 import constant from "@/env";
 import { showSuccess, showError } from "@/layouts/toaster";
 
-const AddPlanForm = forwardRef(({ closeModal, refreshData }, ref) => {
+const AddPlanForm = forwardRef(function AddPlanForm({ closeModal, refreshData }, ref) {
  const [formValues, setFormValues] = useState({ planname: "" });
 
   const handleChange = (e) => {
@@ -48,5 +48,5 @@ const AddPlanForm = forwardRef(({ closeModal, refreshData }, ref) => {
     </div>
   );
 });
-
+AddPlanForm.displayName = "AddPlanForm";
 export default AddPlanForm;
