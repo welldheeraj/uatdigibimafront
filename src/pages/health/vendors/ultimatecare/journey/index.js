@@ -200,10 +200,9 @@ export default function StepperForm({ usersData, kycData }) {
     let firstInvalidInput = null;
     let dobErrorShown = false;
 
-    if (!agreeTnC || !standingInstruction) {
+    if (!agreeTnC ) {
       // Optional: Focus on the first missing field
       if (!agreeTnC) step3Form.setFocus("agreeTnC");
-      else if (!standingInstruction) step3Form.setFocus("standingInstruction");
 
       showError(
         "Please agree to Terms & Conditions and Standing Instruction to continue."

@@ -7,7 +7,7 @@ const FilterForm = ({
   onSubmit,
   filters,
   onFilterChange,
-  loadingPlans
+  loadingPlans,
 }) => {
   return (
     <form
@@ -55,7 +55,10 @@ const FilterForm = ({
                   <option
                     key={idx}
                     value={optionValue}
-                    disabled={opt === "Select"}
+                    disabled={
+                      opt === "Select" &&
+                      !(item.name === "insurers" || item.name === "coverage")
+                    }
                   >
                     {opt}
                   </option>
@@ -66,21 +69,20 @@ const FilterForm = ({
         );
       })}
 
-   <button
-  type="submit"
-  className="px-6 py-1 thmbtn flex items-center justify-center gap-2"
-  disabled={loadingPlans}
->
-  {loadingPlans ? (
-    <>
-      Applying
-      <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-    </>
-  ) : (
-    "Apply"
-  )}
-</button>
-
+      <button
+        type="submit"
+        className="px-6 py-1 thmbtn flex items-center justify-center gap-2"
+        disabled={loadingPlans}
+      >
+        {loadingPlans ? (
+          <>
+            Applying
+            <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          </>
+        ) : (
+          "Apply"
+        )}
+      </button>
     </form>
   );
 };

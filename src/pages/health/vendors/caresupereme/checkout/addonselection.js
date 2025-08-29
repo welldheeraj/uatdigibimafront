@@ -456,12 +456,23 @@ const defaultAddons = useMemo(() => {
                   <input
                     type="checkbox"
                     {...register(`addons.${key}`)}
-                    onChange={(e) => {
-                      setValue(`addons.${key}`, e.target.checked);
-                      setHasUserChanged(true);
-                      setIsAddOnsModified?.(true);
-                      setApplyClicked?.(false);
-                    }}
+                   onChange={(e) => {
+                    const checked = e.target.checked;
+                    setValue(`addons.${key}`, checked);
+                    setHasUserChanged(true);
+                    setIsAddOnsModified?.(true);
+                    setApplyClicked?.(false);
+
+                    // Auto-select first dropdown value on manual check
+                    if (checked) {
+                      if (key === "ped") setValue("pedaddonvalue", "1");
+                      else if (key === "ic") setValue("icaddonvalue", "ic");
+                      else if (key === "cs") setValue("csaddonvalue", "cs");
+                      else if (key === "opd") setValue("opdaddonvalue", "opd");
+                      else if (key === "ncb") setValue("ncbaddonvalue", "ncb");
+                    }
+                  }}
+
                     className="accent-purple-500 w-4 h-4"
                     disabled={
                       (isPED && isIcSelected) || (isIC && isPedSelected)

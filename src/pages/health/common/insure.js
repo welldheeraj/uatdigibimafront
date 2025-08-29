@@ -271,66 +271,107 @@ export default function InsurePage() {
     return () => window.removeEventListener("load", handleLoad);
   }, []);
 
- const handleplanSubmit = async () => {
-  if (!planType) {
-    showError("Please select a plan type.");
-    return;
-  }
-
-  try {
-    const response = await CallApi(constant.API.HEALTH.PLANTYPE,"POST", {"plantype": planType} );
-
-    console.log("Server response:",response, constant.API.HEALTH.PLANTYPE,planType);
-    // return false;
-
-     if (response.status) {
-      showSuccess("Plan submitted successfully!");
-      localStorage.setItem("planType", response.plantype);
-      setShowModal(false);
-    } else {
-      showError(response.error || "Failed to submit plan. Please try again.");
+  const handleplanSubmit = async () => {
+    if (!planType) {
+      showError("Please select a plan type.");
+      return;
     }
-  } catch (err) {
-    console.error("API error:", err);
-    showError("Something went wrong. Please try again.");
-  }
-};
 
+    try {
+      const response = await CallApi(constant.API.HEALTH.PLANTYPE, "POST", {
+        plantype: planType,
+      });
+
+      console.log(
+        "Server response:",
+        response,
+        constant.API.HEALTH.PLANTYPE,
+        planType
+      );
+      // return false;
+
+      if (response.status) {
+        showSuccess("Plan submitted successfully!");
+        localStorage.setItem("planType", response.plantype);
+        setShowModal(false);
+      } else {
+        showError(response.error || "Failed to submit plan. Please try again.");
+      }
+    } catch (err) {
+      console.error("API error:", err);
+      showError("Something went wrong. Please try again.");
+    }
+  };
 
   return (
     <>
       {showModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-white w-[90%] max-w-md rounded-xl p-6 shadow-lg">
-            <h2 className="text-lg font-bold mb-4 text-gray-800 text-left">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white w-[90%] max-w-md rounded-2xl p-8 shadow-2xl animate-fadeIn">
+            <h2 className="text-xl font-semibold mb-6 text-gray-800  border-b pb-3">
               Select Plan Type
             </h2>
-            <div className="flex flex-col gap-4">
-              <label className="flex items-center gap-2">
+
+            <div className="flex flex-col gap-5">
+              <label
+                className={`flex items-center gap-3 cursor-pointer p-4 rounded-2xl transition-all border-2 
+      ${
+        planType === "1"
+          ? "bg-pink-50"
+          : "border-gray-200 hover:border-pink-300"
+      }`}
+              >
                 <input
                   type="radio"
                   value="1"
                   checked={planType === "1"}
                   onChange={(e) => setPlanType(e.target.value)}
+                  className="hidden"
                 />
-                <span className="text-gray-700">Business</span>
+                <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-pink-400">
+                  {planType === "1" && (
+                    <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-lg font-semibold text-gray-800">
+                  New Plan
+                </span>
               </label>
-              <label className="flex items-center gap-2">
+
+              {/* Port Existing */}
+              <label
+                className={`flex items-center gap-3 cursor-pointer p-4 rounded-2xl transition-all border-2 
+      ${
+        planType === "2"
+          ? "bg-pink-50"
+          : "border-gray-200 hover:border-pink-300"
+      }`}
+              >
                 <input
                   type="radio"
                   value="2"
                   checked={planType === "2"}
                   onChange={(e) => setPlanType(e.target.value)}
+                  className="hidden"
                 />
-                <span className="text-gray-700">Port</span>
+                <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-pink-400">
+                  {planType === "2" && (
+                    <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-lg font-semibold text-gray-800">
+                  Port Existing
+                </span>
               </label>
             </div>
-            <div className="mt-6 text-center">
+
+           
+            <div className="mt-8 text-center">
               <button
                 onClick={handleplanSubmit}
-                className="bg-blue-500 text-white px-6 py-2 rounded-full font-medium text-sm hover:scale-105 transition"
+                className="thmbtn px-8 py-3 rounded-full "
               >
-                Continue
+                Continue →
               </button>
             </div>
           </div>

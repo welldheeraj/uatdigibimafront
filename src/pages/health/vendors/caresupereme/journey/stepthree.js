@@ -408,7 +408,7 @@ export default function StepThreeForm({
       </span>
     </label>
 
-    <label className="flex gap-2 items-start">
+    {/* <label className="flex gap-2 items-start">
       <input
         type="checkbox"
         {...step3Form.register("standingInstruction")}
@@ -442,7 +442,7 @@ export default function StepThreeForm({
         I authorize the auto-debit of premiums from my bank account for
         automatic payment.
       </span>
-    </label>
+    </label> */}
   </div>
 
   <button

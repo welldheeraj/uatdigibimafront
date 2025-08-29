@@ -109,7 +109,7 @@ export  function BikeInsuranceLoader() {
 
 export function HealthLoaderOne() {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white backdrop-blur-sm">
       <div className="w-48 h-48 sm:w-60 sm:h-60 md:w-72 md:h-72">
         <Lottie animationData={HealthLoader} loop={true} />
       </div>

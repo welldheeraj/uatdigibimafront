@@ -215,16 +215,15 @@ const [newPincode, setNewPincode] = useState("");
     let firstInvalidInput = null;
     let dobErrorShown = false;
 
-    if (!agreeTnC || !standingInstruction) {
-      // Optional: Focus on the first missing field
-      if (!agreeTnC) step3Form.setFocus("agreeTnC");
-      else if (!standingInstruction) step3Form.setFocus("standingInstruction");
-
-      showError(
-        "Please agree to Terms & Conditions and Standing Instruction to continue."
-      );
-      return false;
-    }
+    if (!agreeTnC ) {
+          // Optional: Focus on the first missing field
+          if (!agreeTnC) step3Form.setFocus("agreeTnC");
+    
+          showError(
+            "Please agree to Terms & Conditions and Standing Instruction to continue."
+          );
+          return false;
+        }
 
     const sectionMap = {
       1: [
