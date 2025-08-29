@@ -111,39 +111,21 @@ export default function WelcomeBanner({
     { month: "May", active: 189, new: 480 },
   ];
 
-  const recentUsers = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      date: "2025-08-01",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      date: "2025-08-02",
-      status: "Pending",
-    },
-  ];
+ const recentUsers = (admindata?.userdata || []).map((u, index) => ({
+    id: u.userId || index,
+    name: u.name,
+    email: u.email,
+    date: u.date,
+    // status: "Active", 
+  }));
 
-  const recentTransactions = [
-    {
-      id: "#TXN123",
-      user: "John Doe",
-      amount: "$120",
-      date: "2025-08-03",
-      status: "Success",
-    },
-    {
-      id: "#TXN124",
-      user: "Jane Smith",
-      amount: "$80",
-      date: "2025-08-04",
-      status: "Pending",
-    },
-  ];
+  const recentTransactions = (admindata?.payment || []).map((p, index) => ({
+  id: p.policyno || `POL${index + 1}`, // 👈 ab id ke jagah policy number
+  user: p.proposar_name || "Unknown",
+  amount: p.price ? `₹${p.price}` : "--",
+  date: p.date || "--",
+  status:  "Success",
+}));
 
   const notifications = [
     { id: 1, text: "New policy request received", time: "2h ago" },
@@ -273,7 +255,7 @@ export default function WelcomeBanner({
           <th>Name</th>
           <th>Email</th>
           <th>Date</th>
-          <th>Status</th>
+          {/* <th>Status</th> */}
         </tr>
       </thead>
       <tbody>
@@ -282,11 +264,11 @@ export default function WelcomeBanner({
             <td className="py-2">{user.name}</td>
             <td>{user.email}</td>
             <td>{user.date}</td>
-            <td>
+            {/* <td>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.status === "Active" ? "bg-green-100 text-green-600" : "bg-yellow-100 text-yellow-600"}`}>
                 {user.status}
               </span>
-            </td>
+            </td> */}
           </tr>
         ))}
       </tbody>
@@ -306,7 +288,7 @@ export default function WelcomeBanner({
     <table className="w-full text-sm">
       <thead>
         <tr className="text-left border-b border-gray-200 text-gray-600">
-          <th>ID</th>
+          <th>Policy No.</th>
           <th>User</th>
           <th>Amount</th>
           <th>Status</th>

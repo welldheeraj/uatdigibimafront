@@ -9,6 +9,7 @@ import ManageProduct from "../pages/manage-product";
 import ManageUser from "../pages/manage-user";
 import ManageVendor from "../pages/manage-vendor";
 import ManagePolicy from "../pages/manage-policy";
+import RecycleBin from "../pages/recycle-bin";
 import { DashboardLoader } from "@/components/loader";
 import { useRouter } from "next/router";
 import { CallApi } from "@/api";
@@ -90,6 +91,8 @@ export default function DashboardPage({ usersData }) {
         return <ManageVendor token={token} />;
       case "managepolicy":
         return <ManagePolicy token={token} />;
+      case "recyclebin":
+        return <RecycleBin token={token} />;
       default:
         return <p>Page Not Found</p>;
     }

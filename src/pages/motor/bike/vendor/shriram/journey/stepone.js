@@ -76,6 +76,35 @@ export default function StepOneForm({
     },
     [step1Form] // Dependencies
   );
+   const handlePincodeInput = useCallback(
+  async (e) => {
+    const value = e.target.value;
+    const fieldId = e.target.name || e.target.id;
+
+    if (value.length === 6) {
+      try {
+        const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {
+          pincode: value,
+        });
+
+        if (res?.length > 0) {
+          const { state, district } = res[0];
+
+          if (fieldId === "pincode") {
+            step1Form.setValue("city", district);
+            step1Form.setValue("state", state);
+          } else if (fieldId === "commcurrentpincode") {
+            step1Form.setValue("commcurrentcity", district);
+            step1Form.setValue("commcurrentstate", state);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching pincode info:", error);
+      }
+    }
+  },
+  [step1Form] 
+);
 
   const hasPrefilledUsersData = React.useRef(false);
   useEffect(() => {
@@ -182,7 +211,7 @@ export default function StepOneForm({
     });
 
     step1Form.setValue("email", usersData.email || "");
-  }, [usersData, step1Form]);
+  }, [usersData, step1Form,handlePincodeInput]);
 
   const isPanAlreadyVerified = isPanVerified;
 
@@ -296,34 +325,8 @@ export default function StepOneForm({
     "DRIVING LICENSE": { maxLength: 16, inputMode: "text" },
     "FORM 60": { maxLength: 10, inputMode: "text" },
   };
-  const handlePincodeInput = async (e) => {
-    const value = e.target.value;
-    const fieldId = e.target.name || e.target.id;
 
-    if (value.length === 6) {
-      try {
-        const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {
-          pincode: value,
-        });
 
-        if (res?.length > 0) {
-          const { state, district } = res[0];
-          // console.log(res);
-
-          if (fieldId == "pincode") {
-            // console.log(fieldId, district, state);
-            step1Form.setValue("city", district);
-            step1Form.setValue("state", state);
-          } else if (fieldId === "commcurrentpincode") {
-            step1Form.setValue("commcurrentcity", district);
-            step1Form.setValue("commcurrentstate", state);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching pincode info:", error);
-      }
-    }
-  };
 
   useEffect(() => {
     if (journeydata && Object.keys(journeydata).length > 0) {
@@ -403,7 +406,6 @@ export default function StepOneForm({
                 required:
                   bikedata?.under === "individual" ? "Name is required" : false,
               })}
-               onChange={(e) => isAlpha(e, step1Form.setValue, "name")}
               placeholder="Full Name as per your ID Card"
               className={inputClass}
             />
@@ -666,11 +668,9 @@ export default function StepOneForm({
               type="text"
               className={inputClass}
               value={proofs.fatherName || ""}
-               onChange={(e) => {
-                            isAlpha(e, step1Form.setValue, "fathername");
-                            setProofs({...proofs,
-                              fatherName: e.target.value});
-                          }}
+              onChange={(e) =>
+                setProofs({ ...proofs, fatherName: e.target.value })
+              }
               placeholder="Father Name"
               required
             />
@@ -910,7 +910,6 @@ export default function StepOneForm({
 
             <input
               {...step1Form.register("proposername")}
-               onChange={(e) => isAlpha(e, step1Form.setValue, "proposername")}
               placeholder="Full Name as per your ID Card"
               className="border border-gray-300 px-3 py-2 rounded text-sm w-full md:col-span-6"
             />

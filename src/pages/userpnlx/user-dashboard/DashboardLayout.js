@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }) {
       showError("Please log in to access your account dashboard.");
       router.replace("/");
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2000);

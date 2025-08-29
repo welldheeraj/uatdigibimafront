@@ -37,7 +37,9 @@ export default function TopBar({ setActivePage, setIsMobileMenuOpen }) {
       const res = await CallApi(constant.API.USER.NOTIFICATION, "GET");
       if (res?.status) {
         const notifications = Array.isArray(res?.notification)
-          ? res.notification.map((n) => ({
+          ? res.notification
+      .filter((n) => n.message && String(n.message).trim() !== "") 
+          .map((n) => ({
               id: n.notificationId ?? n.id,
               message: n.message ?? "",
               time: n.time ?? "",
@@ -114,9 +116,9 @@ export default function TopBar({ setActivePage, setIsMobileMenuOpen }) {
     }
   };
 
-  const unreadCount = data.notifications.filter(
-    (n) => !n?.isRead && !n?.read
-  ).length;
+const unreadCount = (data?.notifications || []).filter(
+  (n) => !n?.isRead && !n?.read
+).length;
 
   return (
     <>

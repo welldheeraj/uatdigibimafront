@@ -33,6 +33,7 @@ export default function Sidebar({
         { label: "Manage Product", key: "manageproduct" },
         { label: "Manage User", key: "manageuser" },
         { label: "Manage Policy", key: "managepolicy" },
+        { label: "Recycle Bin", key: "recyclebin" },
       ] },
     {
       title: "Edit Footer",

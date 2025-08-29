@@ -8,19 +8,23 @@ import { Toaster } from "react-hot-toast";
 import { useState, useEffect, React } from "react";
 import { Poppins } from "next/font/google";
 // import HealthInsuranceLoader from "./health/loader";
-import CarInsuranceLoader, { BikeInsuranceLoader,HealthLoaderOne,DashboardLoader } from "@/components/loader";
+import CarInsuranceLoader, { BikeInsuranceLoader, HealthLoaderOne, DashboardLoader } from "@/components/loader";
 import { useRouter } from "next/router";
 import { VerifyToken } from "../api";
 import constant from "../env";
 import { CallApi, getUserinfo } from "../api";
 import { PrimeReactProvider } from "primereact/api";
 import { UserContext } from "@/context/UserContext";
+import { showError } from "@/layouts/toaster";
 
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600"], // optional
   variable: "--font-poppins",
 });
+
+// Hoisted so it’s a stable reference (fixes the missing dependency warning)
+  const PUBLIC_ROUTES = ["/","/login?type=health","/login?type=motor","/login/mainlogin","/adminpnlx"];
 
 export default function App({ Component, pageProps }) {
   const [token, setToken] = useState(null);
@@ -34,12 +38,16 @@ export default function App({ Component, pageProps }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const route = router.pathname;
-  const publicRoutes = ["/","/login?type=health","/login?type=motor","/login/mainlogin","/adminpnlx"];
-    const isDashboard = router.pathname.startsWith("/userpnlx") ||  router.pathname.startsWith("/adminpnlx")||  router.pathname.startsWith("/dashboard");
+  const isDashboard =
+    router.pathname.startsWith("/userpnlx") ||
+    router.pathname.startsWith("/adminpnlx") ||
+    router.pathname.startsWith("/dashboard");
+
   const splitRoute = route
     .trim()
     .split("/")
     .filter((segment) => segment !== "")[0];
+
   async function getSession() {
     let status = false;
 
@@ -60,6 +68,7 @@ export default function App({ Component, pageProps }) {
     // }
     // return status;
   }
+
   useEffect(() => {
     const verifyAuth = async () => {
       const storedToken = localStorage.getItem("token");
@@ -116,24 +125,26 @@ export default function App({ Component, pageProps }) {
     };
     window.addEventListener("auth-change", handleAuthChange);
     return () => window.removeEventListener("auth-change", handleAuthChange);
-  }, [router,splitRoute]);
-useEffect(() => {
-  const checkAuth = async () => {
-    const token = localStorage.getItem("token");
-    const pathWithQuery = router.asPath; // this includes query params
+  }, [router, splitRoute]);
 
-    const isPublicRoute = publicRoutes.includes(pathWithQuery);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("token");
+      const pathWithQuery = router.asPath; // this includes query params
 
-    if (!token && !isPublicRoute) {
-      router.push("/");
-      return;
-    }
+      const isPublicRoute = PUBLIC_ROUTES.includes(pathWithQuery);
 
-    setLoading(false);
-  };
+      if (!token && !isPublicRoute) {
+        showError("You must be logged in to access this page.");
+        router.push("/");
+        return;
+      }
 
-  checkAuth();
-}, [router.asPath]);
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [router, router.asPath]); // public routes are hoisted; no warning
 
   useEffect(() => {
     if (token) {
@@ -164,6 +175,7 @@ useEffect(() => {
       fetchData();
     }
   }, [token]);
+
   useEffect(() => {
     const handleStart = () => setPageLoading(true);
     const handleComplete = () => setPageLoading(false);
@@ -179,41 +191,39 @@ useEffect(() => {
       router.events.off("routeChangeError", handleError);
     };
   }, [router]);
+
   const renderLoader = () => {
     if (route.startsWith("/health")) return <HealthLoaderOne />;
-    // if (route.startsWith("/motor")) return <CarInsuranceLoader />;
-
+    if (route.startsWith("/motor")) return <CarInsuranceLoader />;
     if (route.startsWith("/motor/bike")) return <BikeInsuranceLoader />;
-
     if (route.startsWith("/motor/car")) return <CarInsuranceLoader />;
-
-     return <DashboardLoader />;
+    return <DashboardLoader />;
   };
 
   // useEffect(() => {
   //   // console.log('uuuatttu1', userData);
   // }, [userData]);
+
   return (
-  <div className={poppins.className}>
-       {!isDashboard && (
-      <Header
-        token={token}
-        username={userData?.name}
-        setUsername={setUserData}
-      />
-    )}
+    <div className={poppins.className}>
+      {!isDashboard && (
+        <Header
+          token={token}
+          username={userData?.name}
+          setUsername={setUserData}
+        />
+      )}
 
-
-      {(loading || pageLoading) ? (
-      renderLoader()
-    )   : (
+      {loading || pageLoading ? (
+        renderLoader()
+      ) : (
         <>
-          < PrimeReactProvider />
+          <PrimeReactProvider />
           <Toaster />
-         <UserContext.Provider value={{ userData, kycData, token }}>
-          <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
+          <UserContext.Provider value={{ userData, kycData, token }}>
+            <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
           </UserContext.Provider>
-            {!isDashboard && <Footer />}
+          {!isDashboard && <Footer />}
         </>
       )}
     </div>

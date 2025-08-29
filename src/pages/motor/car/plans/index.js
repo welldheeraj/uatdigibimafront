@@ -226,18 +226,7 @@ export default function Plans() {
   useEffect(() => {
     // console.log("addon update ", Addonlist);
   }, [Addonlist]);
-  useEffect(() => {
-    console.log("plane update ", selectedPlanType);
-    if (selectedPlanType == 2) {
-      console.log(compAddonlist);
-    }
-    if (selectedPlanType == 1) {
-      console.log(odAddonlist);
-    }
-    if (selectedPlanType == 3) {
-      console.log(tpAddonlist);
-    }
-  }, [selectedPlanType]);
+
 
   const handleIdvUpdate = async () => {
     try {

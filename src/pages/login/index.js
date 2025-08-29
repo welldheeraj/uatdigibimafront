@@ -119,7 +119,7 @@ export default function FormPage({ usersData }) {
     } else {
       setIsReadOnly(false);
     }
-  }, [usersData, router, type, reset]);
+  }, [usersData, router, type, reset,setValue]);
 
   useEffect(() => {
     let interval;
