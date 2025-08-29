@@ -43,6 +43,7 @@ const ManagePlan = ({ token }) => {
     setLoading(true);
     try {
       const response = await CallApi(constant.API.ADMIN.MANAGEPLAN, "GET");
+      console.log(response)
       if (response?.status && Array.isArray(response?.data?.plan)) {
         setTotalRecords(response.data.plan.length);
         setData(response.data.plan);

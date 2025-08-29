@@ -31,21 +31,18 @@ export default function ThankYou() {
     const fetchedKey = `${baseKey}_done`;
     const dataKey = `${baseKey}_data`;
 
-
     try {
       if (typeof window !== "undefined" && sessionStorage.getItem(fetchedKey)) {
         const cached = sessionStorage.getItem(dataKey);
         if (cached) {
           try {
             setPolicyData(JSON.parse(cached));
-          } catch (_) {
-          }
+          } catch (_) {}
         }
         setLoading(false);
         return;
       }
-    } catch (_) {
-    }
+    } catch (_) {}
 
     const run = async () => {
       setLoading(true);
@@ -58,22 +55,49 @@ export default function ThankYou() {
       };
 
       try {
-        const response = await CallApi(
-          "/api/motor-car-shriram/thankyou",
+        // 🔹 Get token from localStorage
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+        if (!token) {
+          showError("Token not found. Please login again.");
+          setLoading(false);
+          return;
+        }
+
+        // 🔹 First API call (token + policy number)
+        const firstPayload = {
+          policy: policynumber,
+        };
+
+        const firstResponse = await CallApi(
+          "/api/motor-car-shriram/update-status",
           "POST",
-          payload
+          firstPayload
         );
 
-        console.log("wehen this tyme run api",response);
+        console.log("First API Response:", firstResponse);
 
-        if (response?.status && response?.data) {
-          setPolicyData(response.data);
-          try {
-            sessionStorage.setItem(fetchedKey, "1");
-            sessionStorage.setItem(dataKey, JSON.stringify(response.data));
-          } catch (_) {}
+        // First API success then second API run
+        if (firstResponse?.status) {
+          const response = await CallApi(
+            "/api/motor-car-shriram/thankyou",
+            "POST",
+            payload
+          );
+
+          console.log("Second API Response:", response);
+
+          if (response?.status && response?.data) {
+            setPolicyData(response.data);
+            try {
+              sessionStorage.setItem(fetchedKey, "1");
+              sessionStorage.setItem(dataKey, JSON.stringify(response.data));
+            } catch (_) {}
+          } else {
+            showError(response?.message || "Something went wrong");
+          }
         } else {
-          showError(response?.message || "Something went wrong");
+          showError(firstResponse?.message || "Validation failed");
         }
       } catch (error) {
         console.error("Error calling API:", error);

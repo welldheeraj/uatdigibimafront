@@ -216,6 +216,8 @@ const constant = {
        MANAGEUSER: "/api/adminpnlx/manage-user",
         //  managepolicy
        MANAGEPOLICY: "/api/adminpnlx/admin-policy",
+        //  recyclebin
+       RECYCLEBIN: "/api/adminpnlx/recycle-bin",
     },
   },
   QUESTION: {
