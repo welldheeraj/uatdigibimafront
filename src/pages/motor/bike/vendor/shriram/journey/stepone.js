@@ -81,7 +81,8 @@ export default function StepOneForm({
     const value = e.target.value;
     const fieldId = e.target.name || e.target.id;
 
-    if (value.length === 6) {
+ if (value && value.length === 6) {
+      console.log("Ram",value)
       try {
         const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {
           pincode: value,

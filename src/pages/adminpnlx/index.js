@@ -54,6 +54,7 @@ const AdminLogin  = ({ usersData }) => {
 
       if (response.status === true) {
            localStorage.setItem("token", response.token);
+           localStorage.setItem("logintype", "admin");
           setToken(response.token);
           window.dispatchEvent(new Event("auth-change"));
         const data = { mobile };

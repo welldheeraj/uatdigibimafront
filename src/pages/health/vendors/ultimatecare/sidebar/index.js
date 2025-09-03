@@ -12,6 +12,7 @@ import InsureSidebarComponent from "./editmember";
 import EditIllnessComponent from "./editillness";
 import { CallApi } from "../../../../../api";
 import constant from "../../../../../env";
+import { useRouter } from "next/router";
 
 const SlidePanel = ({
   isSlideOpen,
@@ -34,6 +35,7 @@ const SlidePanel = ({
   
 
   const pincodeRef = useRef();
+   const router = useRouter();
 
   const handleCloseAll = () => {
     setShowPincodePanel(false);
@@ -97,6 +99,7 @@ const updatePincode = async () => {
 
     if (res?.status) {
       showSuccess("Pincode updated successfully!");
+      router.push(constant.ROUTES.HEALTH.PLANS);
     } else {
       showError(res?.message || "Failed to update pincode. Try again.");
     }

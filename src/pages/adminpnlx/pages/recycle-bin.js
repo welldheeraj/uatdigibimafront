@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaDownload } from "react-icons/fa";
+import { MdRestore } from "react-icons/md";
+import { AiOutlineEye } from "react-icons/ai";
 import { showSuccess, showError } from "@/layouts/toaster";
 import Link from "next/link";
 import {
@@ -62,27 +63,52 @@ const endPage = Math.min(pageCount, startPage + pageWindow - 1);
      
      
 
-      {
+{
   header: "Action",
   accessorKey: "action",
-  cell: ({ row }) =>
-    row.original?.policy_pdf ? (
-      <Link
-        href={row.original.policy_pdf}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 hover:text-blue-800"
-        title="Download Policy"
-      >
-        <FaDownload />
-      </Link>
-    ) : (
-      <FaDownload
-        onClick={() => showError("Policy PDF not available")}
-        className="text-gray-400 cursor-pointer"
-        title="No Policy Available"
-      />
-    ),
+  cell: ({ row }) => (
+    <div className="flex gap-3 items-center">
+      {/* View Policy */}
+      {row.original?.policy_pdf ? (
+        <Link
+          href={row.original.policy_pdf}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-green-600 hover:text-green-800"
+          title="View Policy"
+        >
+          <AiOutlineEye size={22} />
+        </Link>
+      ) : (
+        <AiOutlineEye
+          onClick={() => showError("Policy PDF not available")}
+          className="text-gray-400 cursor-pointer"
+          title="No Plans Available"
+          size={22}
+        />
+      )}
+
+      {/* Restore Policy */}
+      {row.original?.policy_pdf ? (
+        <Link
+          href={row.original.policy_pdf}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800"
+          title="Restore Policy"
+        >
+          <MdRestore size={22} />
+        </Link>
+      ) : (
+        <MdRestore
+          onClick={() => showError("Policy not available")}
+          className="text-gray-400 cursor-pointer"
+          title="No Plans Available"
+          size={22}
+        />
+      )}
+    </div>
+  ),
 }
 
     ],

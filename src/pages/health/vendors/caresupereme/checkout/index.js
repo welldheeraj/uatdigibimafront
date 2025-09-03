@@ -20,6 +20,7 @@ export default function ProposalUI() {
 
   const [loading, setLoading] = useState(true);
   const [addons, setAddons] = useState({});
+    const [addonsDes, setAddonsDes] = useState({});
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [fullAddonsName, setFullAddonsName] = useState({});
   const [compulsoryAddons, setCompulsoryAddons] = useState([]);
@@ -55,6 +56,7 @@ export default function ProposalUI() {
         setSelectedAddons(res.selected_addon || []);
         setAddons(res["addon value"] || {});
         setFullAddonsName(res.addonname || {});
+         setAddonsDes(res.addondes || {});
         setCompulsoryAddons(res.compulsoryaddon || []);
         setCoverageOptions(res.coveragelist || []);
         setCoverAmount(res.coverage || "");
@@ -158,6 +160,7 @@ export default function ProposalUI() {
 
           <AddOnSelection
             addons={addons}
+             addonsDes={addonsDes}
             compulsoryAddons={compulsoryAddons}
             fullAddonsName={fullAddonsName}
             selectedAddons={selectedAddons}

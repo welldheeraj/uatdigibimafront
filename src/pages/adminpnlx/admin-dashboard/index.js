@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import { CallApi } from "@/api";
 import constant from "@/env";
  const publicRoutes = ["/adminpnlx"];
+ import { showSuccess, showError } from "@/layouts/toaster";
 
 export default function DashboardPage({ usersData }) {
   const router = useRouter();
@@ -99,13 +100,16 @@ export default function DashboardPage({ usersData }) {
   };
 
 useEffect(() => {
-  const checkAuth = async () => {
+  const checkAuth = () => {
     const token = localStorage.getItem("token");
-    const path = router.pathname; // base path without query
+    const loginType = localStorage.getItem("logintype");
+    const path = router.pathname; 
     const isPublic = publicRoutes.some(publicRoute => path.startsWith(publicRoute));
 
-    if (!token && !isPublic) {
+    // Redirect if not logged in OR not admin
+    if (!token || loginType !== "admin") {
       router.push("/adminpnlx");
+      showError("Access denied. Admin login required.");
       return;
     }
 
@@ -113,7 +117,8 @@ useEffect(() => {
   };
 
   checkAuth();
-},[pathname, router]); 
+}, [pathname, router]);
+
 
 
   return (

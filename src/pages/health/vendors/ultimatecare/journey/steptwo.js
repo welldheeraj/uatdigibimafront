@@ -19,6 +19,8 @@ export default function StepTwoForm({
   const [isMembersInitialized, setIsMembersInitialized] = useState(false);
   const [dates, setDates] = useState({});
   const [apiMembers, setApiMembers] = useState([]);
+    const [isMinor, setIsMinor] = useState(false);
+  const nomineeDobStr = step2Form.watch("nomineedob");
   let childCounter = 1;
 
   useEffect(() => {
@@ -271,6 +273,43 @@ const handleDateChange = useCallback(
   }, [steponedata, usersData,step2Form]);
 
   childCounter = 1;
+    /* -------------------- Appointee: minor detection -------------------- */
+
+
+  const getAge = (dateObj) => {
+    const today = new Date();
+    let age = today.getFullYear() - dateObj.getFullYear();
+    const m = today.getMonth() - dateObj.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dateObj.getDate())) age--;
+    return age;
+  };
+
+  useEffect(() => {
+    if (!nomineeDobStr) {
+      setIsMinor(false);
+      return;
+    }
+    const d = parse(nomineeDobStr, "dd-MM-yyyy", new Date());
+    if (isNaN(d)) {
+      setIsMinor(false);
+      return;
+    }
+    setIsMinor(getAge(d) < 18);
+  }, [nomineeDobStr]);
+  /* -------------------------------------------------------------------- */
+   useEffect(() => {
+    if (isMinor) {
+      step2Form.register("appointeename", {
+        required: "Appointee Name is required",
+      });
+      step2Form.register("appointeerelation", {
+        required: "Please select the appointee relation",
+      });
+    } else {
+      step2Form.unregister("appointeename");
+      step2Form.unregister("appointeerelation");
+    }
+  }, [isMinor, step2Form]);
 
   return (
     <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
@@ -582,6 +621,33 @@ const handleDateChange = useCallback(
           <option value="Son">Son</option>
           <option value="Daughter">Daughter</option>
         </select>
+                {/* Show Appointee fields if nominee is a minor */}
+        {isMinor && (
+          <>
+            <input
+              {...step2Form.register("appointeename", {
+                required: "Appointee Name is required",
+              })}
+              placeholder="Enter Appointee Full Name"
+              className={inputClass}
+            />
+            <select
+              {...step2Form.register("appointeerelation", {
+                required: "Please select the appointee relation",
+              })}
+              className={inputClass}
+            >
+              <option value="">Relation</option>
+              <option value="Spouse">Spouse</option>
+              <option value="Father">Father</option>
+              <option value="Mother">Mother</option>
+              <option value="Brother">Brother</option>
+              <option value="Sister">Sister</option>
+              <option value="Son">Son</option>
+              <option value="Daughter">Daughter</option>
+            </select>
+          </>
+        )}
       </div>
 
       <button

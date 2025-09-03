@@ -7,6 +7,7 @@ import { showSuccess, showError } from "@/layouts/toaster";
 
 export default function AddOnSelection({
   addons = {},
+  addonsDes = {},
   compulsoryAddons = [],
   selectedAddons = [],
   fullAddonsName = {},
@@ -14,7 +15,7 @@ export default function AddOnSelection({
   setApplyClicked,
   setIsAddOnsModified,
 }) {
-  console.log("selected addon", selectedAddons);
+  console.log("addon description", addonsDes);
 
   // VALUE CODES
   const OPD_VALUES = { base: "opd", plus: "opdp" };
@@ -435,9 +436,8 @@ const defaultAddons = useMemo(() => {
                 <p className="font-semibold text-sm text-black mb-1">
                   {fullAddonsName[key] || key}
                 </p>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  Covers specific health events with added protection and faster
-                  claims.
+                 <p className="text-sm text-gray-600 leading-relaxed">
+                  {addonsDes[key] || "No description available."}
                 </p>
               </div>
 

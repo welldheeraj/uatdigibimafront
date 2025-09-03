@@ -224,6 +224,7 @@ useEffect(() => {
   };
 
 const onSubmit = async (data) => {
+    if (!data.gender) return showError("Please select your gender");
   if (!data.name) return showError("Please enter your name");
   if (!isOtpVerified && !stoken) return showError("Please verify mobile number");
   if (!data.pincode) return showError("Please enter pincode");

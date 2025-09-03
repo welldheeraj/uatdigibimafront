@@ -73,6 +73,7 @@ export default function EditIllnessComponent({ onClose }) {
       if (response?.status) {
         showSuccess("Illness details saved.");
         onClose?.();
+        router.push(constant.ROUTES.HEALTH.PLANS);
       } else {
         showError("Failed to save illness data.");
       }

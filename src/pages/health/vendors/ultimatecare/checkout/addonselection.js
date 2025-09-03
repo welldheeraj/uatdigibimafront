@@ -7,6 +7,7 @@ import { showSuccess, showError } from "@/layouts/toaster";
 
 export default function AddOnSelection({
   addons = {},
+  addonsDes = {},
   compulsoryAddons = [],
   selectedAddons = [],
   fullAddonsName = {},
@@ -14,6 +15,7 @@ export default function AddOnSelection({
   setApplyClicked,
   setIsAddOnsModified,
 }) {
+   console.log("addon description", addonsDes);
   const normalizedAddons = Array.isArray(selectedAddons)
     ? selectedAddons
     : typeof selectedAddons === "string" && selectedAddons.startsWith("[")
@@ -94,6 +96,8 @@ export default function AddOnSelection({
     }
   };
 
+
+
   const optionalAddOns = Object.entries(addons).filter(
     ([key]) => !compulsoryAddons.includes(key)
   );
@@ -129,6 +133,13 @@ export default function AddOnSelection({
       </div>
     );
   }
+      const safeDesObj =
+    addonsDes && typeof addonsDes === "object" ? addonsDes : {};
+  const firstKey = optionalAddOns[0]?.[0];
+  const headerDesc =
+    (firstKey &&
+      (safeDesObj[String(firstKey).toLowerCase()] ?? safeDesObj[firstKey])) ||
+    "No description available.";
 
   return (
     <div className="bg-white rounded-xl p-4 px-6 mb-6">
@@ -136,9 +147,8 @@ export default function AddOnSelection({
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-semibold text-base mb-2">Add-On</h2>
-            <p className="text-sm text-gray-600">
-              You should get these additional benefits to enhance your current
-              plan.
+             <p className="text-sm text-gray-600 leading-relaxed">
+              {headerDesc}
             </p>
           </div>
           <button
@@ -160,6 +170,10 @@ export default function AddOnSelection({
         {optionalAddOns.map(([key, price]) => {
           const isChecked = normalizedAddons.includes(key);
           const isPED = key.toLowerCase() === "ped";
+           const rowDesc =
+            safeDesObj[key.toLowerCase()] ??
+            safeDesObj[key] ??
+            "No description available.";
 
           return (
             <div
@@ -170,9 +184,8 @@ export default function AddOnSelection({
                 <p className="font-semibold text-sm text-black mb-1">
                   {fullAddonsName[key] || key}
                 </p>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  Covers specific health events with added protection and faster
-                  claims.
+                 <p className="text-sm text-gray-600 leading-relaxed">
+                  {rowDesc}
                 </p>
               </div>
 
