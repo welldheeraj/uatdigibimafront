@@ -221,7 +221,7 @@ export default function StepTwoForm({
     };
 
     fetchData();
-  }, [isAutoFilled, step2Form]);
+  }, [isAutoFilled, step2Form,isMinor]);
 
 /** Prefill members from API into form fields (ONLY for members present in Step One) */
 useEffect(() => {

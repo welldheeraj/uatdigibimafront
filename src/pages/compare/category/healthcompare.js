@@ -4,6 +4,7 @@ import Link from "next/link";
 import Modal from "@/components/modal";
 import { FaCheckCircle, FaBolt, FaCrown, FaShieldAlt, FaStar } from "react-icons/fa";
 import { FiCheck, FiChevronDown, FiEye } from "react-icons/fi";
+import Image from "next/image";
 
 /* ---------- tiny helpers local to this file ---------- */
 const toNum = (val) => {
@@ -55,7 +56,7 @@ function Logo({ src, alt = "logo", className = "h-8 w-auto" }) {
     ? src
     : `/images/health/vendorimage/${src || ""}`;
   return (
-    <img
+    <Image
       src={finalSrc}
       alt={alt}
       className={className}
