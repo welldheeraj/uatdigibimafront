@@ -1,16 +1,25 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/router";
-import constant from "@/env";
 import Modal from "@/components/modal";
 import { FiTag } from "react-icons/fi";
 import Image from "next/image";
 import { shriramimage } from "@/images/Image";
 
-export default function VendorCard({ data, onAddonsClick ,handlePlanSubmit}) {
+export default function VendorCard({
+  data,
+  onAddonsClick,
+  handlePlanSubmit,
+  compared = false,
+  disableCompare = false,
+  onCompareChange = () => {},
+   showCompare = true,
+}) {
+  console.log(data);
   const [showModal, setShowModal] = useState(false);
   const [selectedPremiumData, setSelectedPremiumData] = useState([]);
   const router = useRouter();
+
   const handlePremium = () => {
     const premium = data.premiumBackup || {};
     const premiumArray = Object.entries(premium).map(([key, value]) => ({
@@ -20,7 +29,10 @@ export default function VendorCard({ data, onAddonsClick ,handlePlanSubmit}) {
     setSelectedPremiumData(premiumArray);
     setShowModal(true);
   };
-  console.log(data);
+
+  const compareId = `compare-${String(data?.vendorId ?? data?.title ?? "plan")
+    .toLowerCase()
+    .replace(/\s+/g, "-")}`;
 
   return (
     <>
@@ -28,7 +40,6 @@ export default function VendorCard({ data, onAddonsClick ,handlePlanSubmit}) {
       <div className="w-full h-full min-h-[310px] bg-white rounded-3xl shadow-xl p-5 relative overflow-hidden hover:transition-transform duration-300 group">
         {/* Logo and Title */}
         <div className="flex flex-col items-center text-center gap-3 mt-2">
-         
           <div className="w-28 h-25 rounded-xl bg-gradient-to-br from-white via-blue-50 to-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden hover:shadow-lg transition-all duration-300">
             <Image
               src={shriramimage}
@@ -52,7 +63,7 @@ export default function VendorCard({ data, onAddonsClick ,handlePlanSubmit}) {
         {/* CTA Button */}
         <div className="mt-6 flex flex-col items-center gap-3">
           <button
-             onClick={() => handlePlanSubmit(data.route)}
+            onClick={() => handlePlanSubmit(data.route)}
             className="p-6 bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] text-white font-semibold py-2 rounded-xl shadow-lg hover:from-[#2563EB] hover:to-[#0891B2] transition-all duration-300"
           >
             Buy Now – ₹ {data.price?.toLocaleString() || "-"}
@@ -72,13 +83,33 @@ export default function VendorCard({ data, onAddonsClick ,handlePlanSubmit}) {
               Premium Break-up
             </button>
           </div>
+
+           {showCompare && (
+        <div className="flex items-center gap-2 mt-2">
+          <input
+            id={compareId}
+            type="checkbox"
+            className="h-4 w-4 accent-indigo-600"
+            checked={!!compared}
+            disabled={disableCompare && !compared}
+            onChange={(e) => onCompareChange(e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <label
+            htmlFor={compareId}
+            className={`text-sm ${
+              disableCompare && !compared ? "text-gray-400" : "text-gray-700"
+            } select-none cursor-pointer`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            Compare
+          </label>
+        </div>
+      )}
         </div>
 
-        {/* Glass bottom layer for depth */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-blue-50 via-white to-transparent rounded-b-3xl blur-[1px] opacity-60 pointer-events-none" />
       </div>
 
-      {/* Modal for Premium Backup */}
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
@@ -87,10 +118,10 @@ export default function VendorCard({ data, onAddonsClick ,handlePlanSubmit}) {
         cancelText="Close"
         width="max-w-5xl"
       >
-        {selectedPremiumData?.filter((item) => item.amount !== 0).length > 0 ? ( // ✅ check after filter
+        {selectedPremiumData?.filter((item) => item.amount !== 0).length > 0 ? (
           <ul className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-h-64 overflow-y-auto pr-1">
             {selectedPremiumData
-              .filter((item) => item.amount !== 0) // ✅ filter out items with amount = 0
+              .filter((item) => item.amount !== 0)
               .map((item, index) => (
                 <li
                   key={index}

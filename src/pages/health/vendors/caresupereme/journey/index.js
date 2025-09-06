@@ -157,7 +157,7 @@ const [newPincode, setNewPincode] = useState("");
 
   const validateFormStepTwo = async () => {
     const values = step2Form.getValues();
-    // console.log("All form values", values);
+    console.log("All form values", values);
     // console.log("Nominee DOB:", values.nomineedob);
 
     const fieldsValid = await validateFields(step2Form);
@@ -165,9 +165,6 @@ const [newPincode, setNewPincode] = useState("");
 
     const rawValues = step2Form.getValues();
 
-    // const values = step2Form.getValues();
-    // console.log("All form values", values);
-    // console.log("Nominee DOB:", values.nomineedob);
     const nomineeDob = values.nomineedob;
 
     // if (!nomineeDob || nomineeDob === "") {
@@ -410,21 +407,22 @@ const [newPincode, setNewPincode] = useState("");
   };
 
 const GoToPayment = async () => {
+  console.log("hello")
   setLoading(true);
   try {
     const res = await CallApi(
       constant.API.HEALTH.CARESUPEREME.CREATEPOLICY,
       "POST"
     );
-    console.log(res);
-
+    console.log("hello",res);
+const status = res?.status
     // Updated condition to check for string "1" or boolean true
-    if (res === 1 || res?.status === "1" || res?.status === true) {
+   if (status === "1" || status === 1 || status === true) {
       const response = await CallApi(
         constant.API.HEALTH.CARESUPEREME.GETPROPOSAL,
         "POST"
       );
-
+      console.log("proposal",response)
       if (response?.proposalNumber) {
         router.push(
           `/health/vendors/caresupereme/payment?proposalNumber=${response.proposalNumber}`

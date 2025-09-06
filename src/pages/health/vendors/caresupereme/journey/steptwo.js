@@ -1,11 +1,40 @@
 "use client";
-import React, { useState, useEffect ,useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import UniversalDatePicker from "../../../../datepicker/index";
 import { format, parse } from "date-fns";
 import { isNumber } from "@/styles/js/validation";
 import { CallApi } from "@/api";
 import constant from "@/env";
 import { Controller } from "react-hook-form";
+
+// --- helpers ---
+const normalizeRelation = (rel = "") => rel?.toLowerCase().trim();
+
+
+const getPrefixByRelation = (relation) => {
+  const r = normalizeRelation(relation);
+  if (r === "son" || r === "daughter") return "child";
+  if (r === "husband" || r === "wife") return "spouse"; // <-- important: unify
+  return r || "";
+};
+
+const isChildRel = (relation) => {
+  const r = normalizeRelation(relation);
+  return r === "son" || r === "daughter";
+};
+const isSpouseRel = (relation) => {
+  const r = normalizeRelation(relation);
+  return r === "husband" || r === "wife";
+};
+
+
+const titleByRelation = (relation) => {
+  const r = normalizeRelation(relation);
+  if (!r) return "";
+  if (r === "husband") return "Husband";
+  if (r === "wife") return "Spouse"; 
+  return r.charAt(0).toUpperCase() + r.slice(1);
+};
 
 export default function StepTwoForm({
   step2Form,
@@ -18,16 +47,20 @@ export default function StepTwoForm({
   const [dates, setDates] = useState({});
   const [apiMembers, setApiMembers] = useState([]);
 
-const handleDateChange = useCallback(
-  (key, fieldNameInForm) => (date) => {
-    if (!date || isNaN(date)) return;
-
-    const formatted = format(date, "dd-MM-yyyy");
-    setDates((prev) => ({ ...prev, [key]: { ...prev[key], dob: date } }));
-    step2Form.setValue(fieldNameInForm, formatted, { shouldValidate: true });
-  },
-  [step2Form]
-);
+  const handleDateChange = useCallback(
+    (key, fieldNameInForm) => (date) => {
+      if (!date || isNaN(date)) return;
+      const formatted = format(date, "dd-MM-yyyy");
+      setDates((prev) => ({ ...prev, [key]: { ...prev[key], dob: date } }));
+      step2Form.clearErrors(fieldNameInForm);
+      step2Form.setValue(fieldNameInForm, formatted, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+    },
+    [step2Form]
+  );
 
   useEffect(() => {
     if (isAutoFilled) return;
@@ -73,29 +106,29 @@ const handleDateChange = useCallback(
     setIsAutoFilled(true);
   }, [isAutoFilled, step2Form, steponedata, usersData]);
 
-  // Generate members (excluding self & nominee)
+
   const allMembers = steponedata?.members || [];
-  const spouseMember = allMembers.find((m) => m.name?.toLowerCase() === "wife");
+
+
+  const spouseMembers = allMembers.filter((m) =>
+    ["wife", "husband"].includes(m.name?.toLowerCase())
+  );
   const childrenMembers = allMembers.filter((m) =>
     ["son", "daughter"].includes(m.name?.toLowerCase())
   );
   const otherMembers = allMembers.filter(
     (m) =>
-      m.name?.toLowerCase() !== "self" &&
-      m.name?.toLowerCase() !== "wife" &&
+      !["self", "wife", "husband"].includes(m.name?.toLowerCase()) &&
       !["son", "daughter"].includes(m.name?.toLowerCase()) &&
       !m.name?.toLowerCase().includes("nominee")
   );
 
-  // Final members order 
-  const orderedMembers = [
-    ...(spouseMember ? [spouseMember] : []),
-    ...childrenMembers,
-    ...otherMembers,
-  ];
+  // Final members order
+  const orderedMembers = [...spouseMembers, ...childrenMembers, ...otherMembers];
 
   let childCount = 1;
-  // 1. Fetch API data (Self & Nominee)
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -109,7 +142,7 @@ const handleDateChange = useCallback(
 
         const savedData = res.data || [];
 
-        // -------- BANK DATA --------
+        // BANK
         const raw = res.bank_details;
         if (raw) {
           const bankData =
@@ -126,7 +159,7 @@ const handleDateChange = useCallback(
           }
         }
 
-        // -------- SELF DATA --------
+        // SELF
         const selfData = savedData.find(
           (item) => item.relation?.toLowerCase() === "self"
         );
@@ -146,7 +179,7 @@ const handleDateChange = useCallback(
           );
         }
 
-        // -------- NOMINEE DATA --------
+        // NOMINEE
         const nomineeData = savedData.find((item) =>
           (item.relation || "").toLowerCase().includes("nominee")
         );
@@ -175,55 +208,81 @@ const handleDateChange = useCallback(
     };
 
     fetchData();
-  },  [isAutoFilled, step2Form]);
+  }, [isAutoFilled, step2Form]);
 
-  // 2. Prefill Members (Spouse, Child, Others)
+/** Prefill members from API into form fields (ONLY for members present in Step One) */
 useEffect(() => {
-  if (!apiMembers || apiMembers.length === 0) return;
+  if (!apiMembers || !apiMembers.length) return;
 
-  let childCount = 1; 
+  // 1) Build allow-lists from Step One rendered members
+  const namesFromStepOne = (steponedata?.members || []).map((m) =>
+    normalizeRelation(m?.name)
+  );
 
+  const allowedNames = new Set(namesFromStepOne); // e.g., 'wife', 'son', 'father', etc.
+  const allowSpouse =
+    allowedNames.has("husband") || allowedNames.has("wife"); // spouse fields only if rendered
+
+  const allowedChildSlots = namesFromStepOne.filter(
+    (n) => n === "son" || n === "daughter"
+  ).length; // how many child blocks rendered
+
+  let childCountUsed = 0; // do not exceed rendered child slots
+
+  // 2) Fill ONLY allowed members
   apiMembers.forEach((apiMember) => {
-    const relation = apiMember.relation?.toLowerCase();
-    if (relation === "self" || relation.includes("nominee")) return;
-    console.log("Generate member data", apiMember);
-    
-    let prefix = "";
-    let suffix = "";
+    const relation = normalizeRelation(apiMember?.relation);
+    if (!relation || relation === "self" || relation.includes("nominee")) return;
 
-    if (relation === "son" || relation === "daughter") {
-      prefix = "child";
-      suffix = childCount++;
+    // Skip if this relation is NOT rendered in Step One UI
+    if (isSpouseRel(relation) && !allowSpouse) return;
 
-      // Set relation (son/daughter) for child
-      step2Form.setValue(`${prefix}relation${suffix}`, relation);
-    } else if (relation === "wife") {
-      prefix = "spouse";
+    if (isChildRel(relation)) {
+      // respect the number of child blocks created by Step One
+      if (childCountUsed >= allowedChildSlots) return;
+      childCountUsed += 1;
     } else {
-      prefix = relation; 
+      // e.g. father/mother/brother must exist in Step One list to be filled
+      if (!allowedNames.has(relation)) return;
     }
 
-    const dobFieldName = suffix ? `${prefix}dob${suffix}` : `${prefix}dob`;
+    const prefix = getPrefixByRelation(relation); // 'spouse' | 'child' | 'father' ...
+    const suffix = isChildRel(relation) ? String(childCountUsed) : "";
+    const dobField = suffix ? `${prefix}dob${suffix}` : `${prefix}dob`;
 
-    step2Form.setValue(`${prefix}name${suffix}`, apiMember.name || "");
-    step2Form.setValue(`${prefix}height${suffix}`, apiMember.height || "");
-    step2Form.setValue(`${prefix}inches${suffix}`, apiMember.inch || "");
-    step2Form.setValue(`${prefix}weight${suffix}`, apiMember.weight || "");
+    step2Form.setValue(`${prefix}name${suffix}`, apiMember?.name || "");
+    step2Form.setValue(`${prefix}height${suffix}`, apiMember?.height || "");
+    step2Form.setValue(`${prefix}inches${suffix}`, apiMember?.inch || "");
+    step2Form.setValue(`${prefix}weight${suffix}`, apiMember?.weight || "");
 
-    // Occupation set only for non-child
-    if (relation !== "son" && relation !== "daughter") {
+    if (!isChildRel(relation)) {
       step2Form.setValue(
-        `${prefix}occupation`,
-        apiMember.gender === "MALE" ? "Salaried" : "Unemployed"
+        `${prefix}occupation${suffix}`,
+        apiMember?.gender === "MALE" ? "Salaried" : "Unemployed"
       );
     }
 
-    if (apiMember.dob) {
-      step2Form.setValue(dobFieldName, apiMember.dob);
+    if (apiMember?.dob) {
+      step2Form.setValue(dobField, apiMember.dob, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      step2Form.clearErrors(dobField);
     }
   });
-}, [apiMembers, step2Form]);
+}, [apiMembers, steponedata?.members, step2Form]);
 
+
+  // Stale field errors clear
+  useEffect(() => {
+    const sub = step2Form.watch((vals, { name }) => {
+      if (name && vals?.[name]) step2Form.clearErrors(name);
+    });
+    return () => sub?.unsubscribe?.();
+  }, [step2Form]);
+
+  let childCounterForRender = 1;
 
   return (
     <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
@@ -251,14 +310,13 @@ useEffect(() => {
                   ? parse(field.value, "dd-MM-yyyy", new Date())
                   : null
               }
-               onChange={(date) => {
+              onChange={(date) => {
                 if (date instanceof Date && !isNaN(date)) {
                   const formatted = format(date, "dd-MM-yyyy");
                   field.onChange(formatted);
-                   handleDateChange("self", "proposerdob2")(date);
+                  handleDateChange("self", "proposerdob2")(date);
                 }
-              }}  
-             
+              }}
               error={!!fieldState.error}
               errorText={fieldState.error?.message}
               placeholder="Pick a date"
@@ -326,34 +384,51 @@ useEffect(() => {
 
       {/* MEMBERS SECTION */}
       {orderedMembers.map((member, index) => {
-        const name = member.name?.toLowerCase();
-        const isChild = name === "son" || name === "daughter";
-        const isWife = name === "wife";
+        const relation = normalizeRelation(member?.name);
+        const isChild = isChildRel(relation);
+        const isSpouse = isSpouseRel(relation);
 
-        let prefix = isChild ? "child" : isWife ? "spouse" : name;
-        let suffix = isChild ? childCount++ : "";
-
+        const prefix = getPrefixByRelation(relation);
+        const suffix = isChild ? childCounterForRender++ : "";
         const dobFieldName = isChild ? `${prefix}dob${suffix}` : `${prefix}dob`;
+
+        // UI-only dynamic labels
+        const spouseLabel = isSpouse ? (relation === "husband" ? "Husband" : "Spouse") : "";
+        const spouseKeyLabel = isSpouse ? (relation === "husband" ? "husband" : "spouse") : "";
 
         return (
           <div key={index} className="mt-6">
             <h2 className="font-semibold text-lg capitalize mb-4">
-              {isWife ? "Spouse" : member.name} Details:
+              {titleByRelation(relation)} Details:
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 {...step2Form.register(
                   isChild ? `${prefix}name${suffix}` : `${prefix}name`,
-                  { required: "Name is required" }
+                  {
+                    
+                    required: isSpouse
+                      ? `${spouseKeyLabel}name is required`
+                      : "Name is required",
+                  }
                 )}
-                placeholder={`Enter ${member.name}'s Full Name`}
+                placeholder={
+                  isSpouse
+                    ? `Enter ${spouseLabel}'s Full Name`
+                    : `Enter ${member.name}'s Full Name`
+                }
                 className={inputClass}
               />
 
               <Controller
                 control={step2Form.control}
                 name={dobFieldName}
-                rules={{ required: "Please select a valid date" }}
+                rules={{
+              
+                  required: isSpouse
+                    ? `${spouseKeyLabel}dob is required`
+                    : "Please select a valid date",
+                }}
                 render={({ field, fieldState }) => (
                   <UniversalDatePicker
                     id={dobFieldName}
@@ -368,13 +443,14 @@ useEffect(() => {
                       if (date instanceof Date && !isNaN(date)) {
                         const formatted = format(date, "dd-MM-yyyy");
                         field.onChange(formatted);
-                        handleDateChange(
-                          `${prefix}${suffix}`,
-                          dobFieldName
-                        )(date);
+                        handleDateChange(`${prefix}${suffix}`, dobFieldName)(
+                          date
+                        );
                       }
                     }}
-                    placeholder="Pick a date"
+                    placeholder={
+                      isSpouse ? `${spouseLabel} DOB` : "Pick a date"
+                    }
                     error={!!fieldState.error}
                     errorText={fieldState.error?.message}
                   />
@@ -382,7 +458,6 @@ useEffect(() => {
               />
 
               {isChild ? (
-                // Child Relation select
                 <select
                   {...step2Form.register(`${prefix}relation${suffix}`, {
                     required: "Please select an occupation",
@@ -393,11 +468,11 @@ useEffect(() => {
                   <option value="son">Son</option>
                   <option value="daughter">Daughter</option>
                 </select>
-              ) : isWife ? (
-                // Occupation select only for wife
+              ) : isSpouse ? (
                 <select
                   {...step2Form.register(`${prefix}occupation`, {
-                    required: "Please select an occupation",
+                    
+                    required: `${spouseKeyLabel}occupation is required`,
                   })}
                   className={inputClass}
                 >
@@ -412,7 +487,12 @@ useEffect(() => {
                 <input
                   {...step2Form.register(
                     isChild ? `${prefix}height${suffix}` : `${prefix}height`,
-                    { required: "Height (Feet) is required" }
+                    {
+                     
+                      required: isSpouse
+                        ? `${spouseKeyLabel}height is required`
+                        : "Height (Feet) is required",
+                    }
                   )}
                   onChange={(e) =>
                     isNumber(
@@ -422,13 +502,20 @@ useEffect(() => {
                     )
                   }
                   maxLength={1}
-                  placeholder="Height (Feet)"
+                  placeholder={
+                    isSpouse ? `${spouseLabel} Height (Feet)` : "Height (Feet)"
+                  }
                   className={`${inputClass} w-1/2`}
                 />
                 <input
                   {...step2Form.register(
                     isChild ? `${prefix}inches${suffix}` : `${prefix}inches`,
-                    { required: "Height (Inches) is required" }
+                    {
+                     
+                      required: isSpouse
+                        ? `${spouseKeyLabel}inches is required`
+                        : "Height (Inches) is required",
+                    }
                   )}
                   onChange={(e) =>
                     isNumber(
@@ -438,7 +525,11 @@ useEffect(() => {
                     )
                   }
                   maxLength={2}
-                  placeholder="Height (Inches)"
+                  placeholder={
+                    isSpouse
+                      ? `${spouseLabel} Height (Inches)`
+                      : "Height (Inches)"
+                  }
                   className={`${inputClass} w-1/2`}
                 />
               </div>
@@ -446,7 +537,12 @@ useEffect(() => {
               <input
                 {...step2Form.register(
                   isChild ? `${prefix}weight${suffix}` : `${prefix}weight`,
-                  { required: "Weight is required" }
+                  {
+                   
+                    required: isSpouse
+                      ? `${spouseKeyLabel}weight is required`
+                      : "Weight is required",
+                  }
                 )}
                 onChange={(e) =>
                   isNumber(
@@ -456,7 +552,9 @@ useEffect(() => {
                   )
                 }
                 maxLength={3}
-                placeholder="Weight (KG)"
+                placeholder={
+                  isSpouse ? `${spouseLabel} Weight (KG)` : "Weight (KG)"
+                }
                 className={inputClass}
               />
             </div>
@@ -487,13 +585,13 @@ useEffect(() => {
                   ? parse(field.value, "dd-MM-yyyy", new Date())
                   : null
               }
-                onChange={(date) => {
+              onChange={(date) => {
                 if (date instanceof Date && !isNaN(date)) {
                   const formatted = format(date, "dd-MM-yyyy");
                   field.onChange(formatted);
                   handleDateChange("nominee", "nomineedob")(date);
                 }
-              }} 
+              }}
               error={!!fieldState.error}
               errorText={fieldState.error?.message}
               placeholder="Pick a date"

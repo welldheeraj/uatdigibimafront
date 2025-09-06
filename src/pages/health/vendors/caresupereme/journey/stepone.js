@@ -109,7 +109,7 @@ export default function StepOneForm({
                   "POST",
                   { newpincode: value }
                 );
-                console.log("CHANGEPINCODE Response:", quoteResponse);
+                // console.log("CHANGEPINCODE Response:", quoteResponse);
                 if (quoteResponse?.status) {
                   setQuoteData({
                     totalpremium: quoteResponse.totalpremium,

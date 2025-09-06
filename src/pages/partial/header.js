@@ -23,6 +23,7 @@ export default function Header({ token, username, setUsername }) {
   const [localToken, setLocalToken] = useState(token || null);
   console.log();
   const [data, setData] = useState({ notifications: [], userName: null });
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showNotificationModal, setShowNotificationModal] = useState(false);
@@ -35,6 +36,7 @@ export default function Header({ token, username, setUsername }) {
     setError("");
     try {
       const res = await CallApi(constant.API.USER.NOTIFICATION, "GET");
+      console.log(res)
       if (res?.status) {
         const notifications = Array.isArray(res?.notification)
           ? res.notification.map((n) => ({
@@ -254,20 +256,24 @@ export default function Header({ token, username, setUsername }) {
 
         <div className="relative flex items-center gap-2">
           {/* 🔔 Bell */}
-          <button
-            onClick={() => setShowNotificationModal(true)}
-            className="w-10 h-10 rounded-full bg-[#C2EBFE] flex items-center justify-center shadow relative"
-          >
-            <FaBell className="text-purple-600 text-lg" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center">
-                  {unreadCount}
-                </span>
-              </span>
-            )}
-          </button>
+        {notifications.length > 0 && (
+  <button
+    onClick={() => setShowNotificationModal(true)}
+    className="w-10 h-10 rounded-full bg-[#C2EBFE] flex items-center justify-center shadow relative"
+  >
+    <FaBell className="text-purple-600 text-lg" />
+
+    {unreadCount > 0 && (
+      <span className="absolute -top-1 -right-1 flex h-4 w-4">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center">
+          {unreadCount}
+        </span>
+      </span>
+    )}
+  </button>
+)}
+
 
           {/* 👤 Dropdown */}
           <div className="relative">

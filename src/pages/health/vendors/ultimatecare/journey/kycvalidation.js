@@ -8,6 +8,7 @@ export default async function validateKycStep(
 step1Form,
   kycType,
   values,
+  totalPremium ,
   proofs,
   setKycVerified,
   kycVerified,
@@ -17,8 +18,17 @@ step1Form,
   setIsAadharKycHidden, 
   setIsOtherKycHidden 
 ) {
-  if (kycVerified) return true;
-  if (!kycType) return showError("Please select a KYC type."), false;
+
+  const tp = Number(
+    totalPremium ?? values?.totalPremium ?? 0
+  );
+  // PAN mandatory when tp > 50k
+  if (tp > 50000 && kycType !== "PAN Card") {
+    showError("For policies above ₹50,000, PAN verification is mandatory.");
+    return false;
+  }
+
+  if (!kycType) { showError("Please select a KYC type."); return false; }
 
   try {
     let payload, res;

@@ -103,17 +103,16 @@ export default function StepperForm({ usersData, kycData }) {
   const validateFormStepOne = async () => {
     const rawValues = step1Form.getValues();
 
-    // const result = await validateKycStep(
-    //   step1Form,
-    //   kycType,
-    //   rawValues,
-    //   proofs,
-    //   setKycVerified,
-    //   kycVerified,
-    //   setIsPanVerified,
-    //   setVerifiedData
-    // );
-    // if (!result) return false;
+ const tp = typeof totalPremium === "number"
+  ? totalPremium
+  : Number(String(totalPremium).replace(/[^\d.]/g, "")); // removes ₹ , spaces
+
+if (tp > 50000 && kycType !== "PAN Card") {
+  showError("For policies above ₹50,000, PAN verification is mandatory.");
+  return false;
+}
+    console.log("kyc ka type",kycType)
+    console.log("amount",tp)
     if (!kycVerified) {
       showError("Please complete KYC verification before proceeding.");
       return false;
@@ -460,6 +459,7 @@ export default function StepperForm({ usersData, kycData }) {
       step1Form,
       "PAN Card",
       values,
+      totalPremium ,
       proofs,
       setKycVerified,
       kycVerified,
@@ -477,6 +477,7 @@ export default function StepperForm({ usersData, kycData }) {
       step1Form,
       "Aadhar ( Last 4 Digits )",
       values,
+      totalPremium ,
       proofs,
       setKycVerified,
       kycVerified,
@@ -494,6 +495,7 @@ export default function StepperForm({ usersData, kycData }) {
       step1Form,
       "Others",
       values,
+      totalPremium ,
       proofs,
       setKycVerified,
       kycVerified,

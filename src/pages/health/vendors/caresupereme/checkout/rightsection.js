@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { BsArrowRight } from "react-icons/bs";
 import { useState, useEffect, useRef } from "react";
 import { showSuccess, showError } from "@/layouts/toaster";
-import { FiInfo } from "react-icons/fi";
+import { FiInfo,FiDownload  } from "react-icons/fi";
 import { CallApi } from "@/api";
 import constant from "@/env.js";
 export default function SummaryCard({
@@ -25,7 +25,7 @@ export default function SummaryCard({
   oldPincode,
   newPincode,
 }) {
-  console.log(fullAddonsName)
+  // console.log(fullAddonsName)
   const [priceChangeMsg, setPriceChangeMsg] = useState("");
   const router = useRouter();
   const pathname = usePathname();
@@ -79,6 +79,7 @@ export default function SummaryCard({
     const newPrice = formatPrice(totalPremium);
 
     const isPincodeChanged = oldPincode?.trim() && newPincode?.trim();
+    // console.log(oldPrice,newPrice)
 
     if (isPincodeChanged) {
       setPriceChangeMsg(
@@ -109,7 +110,7 @@ const hasPlusVariant = {
       );
       return;
     }
-    console.log("hello total", totalPremium);
+    // console.log("hello total", totalPremium);
     const params = new URLSearchParams();
     params.append("tenure", tenure);
     params.append("coverAmount", coverAmount);
@@ -123,6 +124,14 @@ const hasPlusVariant = {
     router.push(`/health/vendors/caresupereme/journey?${params.toString()}`);
   };
   const priceChangeReason = `The PIN code in your address is different from the PIN code you chose while taking quote. Hence, the total premium is revised.`;
+    useEffect(() => {
+//  console.log("pincode change msg", priceChangeMsg)
+  }, [priceChangeMsg]);
+
+   const handleBrowse = () => {
+    window.open("https://stage.digibima.com/public/broucher/caresupreme.pdf", "_blank");
+  };
+
   return (
     <div className="w-full lg:w-[415px] bg-white rounded-[32px] shadow-sm p-6 text-sm self-start">
       <h2 className="text-base font-semibold text-[#003366] mb-1">Summary</h2>
@@ -289,7 +298,12 @@ const hasPlusVariant = {
             Proceed to Proposal <BsArrowRight />
           </button>
         )}
-
+           <button
+             onClick={handleBrowse}
+            className="w-full mt-4 py-2 flex items-center justify-center gap-2 thmbtn"
+          >
+            Plan Brochure <FiDownload  />
+          </button>
         {isJourneyPage && isStepFour && (
           <button
             onClick={onGoToPayment}

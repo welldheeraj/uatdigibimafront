@@ -194,7 +194,9 @@ export default function App({ Component, pageProps }) {
 
   const renderLoader = () => {
     if (route.startsWith("/health")) return <HealthLoaderOne />;
+      if (route.startsWith("/compare?type=health")) return <HealthLoaderOne />;
     if (route.startsWith("/motor")) return <CarInsuranceLoader />;
+    if (route.startsWith("/compare?type=motor")) return <CarInsuranceLoader />;
     if (route.startsWith("/motor/bike")) return <BikeInsuranceLoader />;
     if (route.startsWith("/motor/car")) return <CarInsuranceLoader />;
     return <DashboardLoader />;

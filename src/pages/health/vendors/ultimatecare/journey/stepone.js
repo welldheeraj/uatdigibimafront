@@ -139,7 +139,7 @@ export default function StepOneForm({
     const fetchDataONE = async () => {
       try {
         const res = await CallApi(
-          constant.API.HEALTH.CARESUPEREME.SAVESTEPONE,
+          constant.API.HEALTH.ULTIMATECARE.SAVESTEPONE,
           "GET"
         );
         console.log(res);
@@ -179,11 +179,11 @@ export default function StepOneForm({
         setIsPanKycHidden(true);
       }
       if (kycCode === "a") {
-        setIsPanVerified(true);
+        // setIsPanVerified(true);
         setIsAadharKycHidden(true);
       }
       if (kycCode === "o") {
-        setIsPanVerified(true);
+        // setIsPanVerified(true);
         setIsOtherKycHidden(true);
       }
     }
