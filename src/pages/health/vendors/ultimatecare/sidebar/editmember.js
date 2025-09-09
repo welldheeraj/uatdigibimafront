@@ -12,7 +12,7 @@ export default function InsureSidebarComponent({ onClose }) {
   const router = useRouter();
   const { reset } = useForm();
 
-  const [gender, setGender] = useState("male");
+  const [gender, setGender] = useState("");
   const [members, setMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [children, setChildren] = useState([]);

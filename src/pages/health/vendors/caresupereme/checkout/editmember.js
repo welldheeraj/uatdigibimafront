@@ -13,7 +13,7 @@ export default function MemberDetails({ memberName = "Akash", count = 1, onEdit 
         onClick={onEdit}
         className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-1.5 rounded-full transition"
       >
-        Edit Members
+        Edit Members 
       </button>
     </div>
   );
