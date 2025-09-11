@@ -17,7 +17,7 @@ const PlanCard = ({
   const [showModal, setShowModal] = useState(false);
 
   const { logo, productname, coverage, premium } = plan;
-  console.log("plans", allPlans);
+  // console.log("plans", allPlans);
 
   //  robust premium parsing (handles string or number)
   const yearlyPremiumNumber = Number(
@@ -31,7 +31,7 @@ const PlanCard = ({
     coverage === 100 || coverage === "100" ? "1 Cr" : `${coverage} Lakh`;
 
   const handleConfirm = async () => {
-    console.log("api call ho gyi hai");
+    // console.log("api call ho gyi hai");
   };
 
   //  unique id for the checkbox

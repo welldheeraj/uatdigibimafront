@@ -38,17 +38,20 @@ const FilterForm = ({
               }`}
             >
               {item.options.map((opt, idx) => {
-                let optionValue;
+                const isObj = typeof opt === "object" && opt !== null;
+                const displayText = isObj ? opt.label : opt;
 
-                if (item.name === "plantype") {
+                let optionValue;
+                if (isObj) {
+                  optionValue = opt.value;
+                } else if (item.name === "plantype") {
                   if (opt === "Base") optionValue = "1";
                   else if (opt === "Port") optionValue = "2";
                   else optionValue = "";
+                } else if (item.name === "tenure") {
+                  optionValue = opt.replace(/\s*Years?$/, "");
                 } else {
-                  optionValue =
-                    opt === "1 Cr"
-                      ? "100"
-                      : opt.replace(" Lac", "").replace(" Year", "");
+                  optionValue = opt === "1 Cr" ? "100" : opt.replace(" Lac", "");
                 }
 
                 return (
@@ -56,11 +59,11 @@ const FilterForm = ({
                     key={idx}
                     value={optionValue}
                     disabled={
-                      opt === "Select" &&
+                      displayText === "Select" &&
                       !(item.name === "insurers" || item.name === "coverage")
                     }
                   >
-                    {opt}
+                    {displayText}
                   </option>
                 );
               })}

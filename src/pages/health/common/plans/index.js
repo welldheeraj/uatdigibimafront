@@ -22,6 +22,7 @@ export default function HealthPlan() {
     plantype: "",
     coverage: "",
     tenure: "",
+    covertype: "",
   });
 
   const [loadingPlans, setLoadingPlans] = useState(true);
@@ -37,8 +38,63 @@ export default function HealthPlan() {
   const router = useRouter();
   const { register, handleSubmit, reset } = useForm();
 
-  const filterData = useMemo(
-    () => [
+
+  const normalizeCoverageToLower = (val, list = []) => {
+
+    if (!val || !Array.isArray(list) || list.length < 2) return "";
+    const n = Number(val);
+    const arr = [...list].sort((a, b) => a - b);
+    const idx = arr.indexOf(n);
+    if (idx === -1) return "";
+    if (idx === arr.length - 1) return String(arr[arr.length - 2]);
+    return String(arr[idx]);
+  };
+
+  const handleFilterChange = ({ target: { name, value } }) =>
+    setFilters((prev) => ({ ...prev, [name]: value }));
+
+  useEffect(() => {
+    CallApi(constant.API.HEALTH.PLANDATA)
+      .then((res) => {
+        setVendorData(res.vendor || []);
+        setCoveragelist(res.coveragelist || []);
+        setTenurelist(res.tenurelist || []);
+        setPincode(res.pincode || "");
+
+        const normalizedCoverage = normalizeCoverageToLower(
+          res.coverage,
+          res.coveragelist
+        );
+
+        setFilters({
+          plantype: res.plantype?.toString() || "",
+          coverage: normalizedCoverage, 
+          tenure: res.tenure?.toString() || "",
+          covertype: res.covertype?.toString() || "",
+        });
+
+        const allMembers = res.aInsureData || [];
+        setMemberName(`Self(${allMembers.length})`);
+        setShouldRefetch(false);
+      })
+      .catch(console.error);
+  }, [shouldRefetch]);
+
+
+  const filterData = useMemo(() => {
+    const arr = [...(coveragelist || [])].sort((a, b) => a - b);
+    const coverageOptions = ["Select"];
+    for (let i = 0; i < arr.length - 1; i++) {
+      const curr = arr[i]; // lower
+      const next = arr[i + 1]; // upper
+      const nextLabel = next === 100 ? "1 Cr" : `${next} Lac`;
+      coverageOptions.push({
+        label: `${curr}–${nextLabel}`,
+        value: String(curr), 
+      });
+    }
+
+    return [
       {
         label: "Plan Type",
         name: "plantype",
@@ -48,11 +104,14 @@ export default function HealthPlan() {
       {
         label: "Coverage",
         name: "coverage",
-        options: [
-          "Select",
-          ...coveragelist.map((v) => (v === 100 ? "1 Cr" : `${v} Lac`)),
-        ],
+        options: coverageOptions,
         value: filters.coverage || "",
+      },
+      {
+        label: "Cover",
+        name: "covertype",
+        options: ["Select", "Individual", "Floater"],
+        value: filters.covertype || "",
       },
       {
         label: "Insurers",
@@ -71,37 +130,12 @@ export default function HealthPlan() {
         name: "tenure",
         options: [
           "Select",
-          ...tenurelist.map((v) => `${v} Year${v > 1 ? "s" : ""}`),
+          ...(tenurelist || []).map((v) => `${v} Year${v > 1 ? "s" : ""}`),
         ],
         value: filters.tenure || "",
       },
-    ],
-    [coveragelist, tenurelist, filters]
-  );
-
-  const handleFilterChange = ({ target: { name, value } }) =>
-    setFilters((prev) => ({ ...prev, [name]: value }));
-
-  useEffect(() => {
-    CallApi(constant.API.HEALTH.PLANDATA)
-    
-      .then((res) => {
-        console.log(res)
-        setVendorData(res.vendor || []);
-        setCoveragelist(res.coveragelist || []);
-        setTenurelist(res.tenurelist || []);
-        setPincode(res.pincode || "");
-        setFilters({
-          plantype: res.plantype?.toString() || "",
-          coverage: res.coverage?.toString() || "",
-          tenure: res.tenure?.toString() || "",
-        });
-        const allMembers = res.aInsureData || [];
-        setMemberName(`Self(${allMembers.length})`);
-        setShouldRefetch(false);
-      })
-      .catch(console.error);
-  }, [shouldRefetch]);
+    ];
+  }, [coveragelist, tenurelist, filters]);
 
   useEffect(() => {
     reset(
@@ -118,8 +152,8 @@ export default function HealthPlan() {
     (async () => {
       const responses = await Promise.all(
         vendorData.map(async (vendor) => {
-          console.log(vendor)
-          const route = constant.ROUTES.HEALTH.VENDOR[String(vendor.vid)] || "";
+          const route =
+            constant.ROUTES.HEALTH.VENDOR[String(vendor.vid)] || "";
           const vendorWithRoute = { ...vendor, route };
           try {
             const res = await CallApi(
@@ -140,12 +174,13 @@ export default function HealthPlan() {
 
   const onSubmit = async (data) => {
     const formatted = {
-      coverage: data.coverage?.includes("Cr")
-        ? "100"
-        : data.coverage?.replace(" Lac", ""),
-      tenure: data.tenure?.replace(" Year", ""),
+      coverage: data.coverage ?? "",
+      covertype: data?.covertype,
+      tenure: data.tenure?.replace(/\s*Years?$/, ""),
       plantype: data?.plantype,
     };
+    console.log(formatted)
+    // return false;
     try {
       setLoadingPlans(true);
       const res = await CallApi(
@@ -195,18 +230,21 @@ export default function HealthPlan() {
 
   const compareDisabledForOthers = compared.length >= 3;
 
-  //  Save selected plans & go to compare page
-const handleCompareCTA = () => {
-  console.log(compared);
-  // return false;
-  if (typeof window !== "undefined") {
-    sessionStorage.setItem("compareType", "health");
-    sessionStorage.setItem("comparePlans:health", JSON.stringify(compared));
-    sessionStorage.setItem("compareBack", window.location.pathname + window.location.search);
-  }
-  router.push("/compare?type=health"); 
-};
-
+  // Save selected plans & go to compare page
+  const handleCompareCTA = () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("compareType", "health");
+      sessionStorage.setItem(
+        "comparePlans:health",
+        JSON.stringify(compared)
+      );
+      sessionStorage.setItem(
+        "compareBack",
+        window.location.pathname + window.location.search
+      );
+    }
+    router.push("/compare?type=health");
+  };
 
   return (
     <div className="bgcolor min-h-screen px-4 sm:px-10 lg:px-20 py-6">
@@ -266,94 +304,89 @@ const handleCompareCTA = () => {
         />
       </div>
 
-
-    <AnimatePresence>
-  {compared.length > 0 && (
-    <motion.div
-      key="compare-drawer"
-      initial={{ y: "-120vh", opacity: 0, scale: 0.95, filter: "blur(2px)" }}
-      animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
-      exit={{ y: "-20%", opacity: 0 }}
-      transition={{ type: "spring", stiffness: 260, damping: 24, bounce: 1 }}
-      className="fixed right-4 bottom-4 z-50 w-80 max-w-[88vw] rounded-xl shadow-2xl bg-white border border-gray-200"
-      role="region"
-      aria-label="Compare plans drawer"
-      style={{ willChange: "transform" }}
-    >
-      <div className="px-4 py-3 border-b">
-        <h3 className="text-sm font-semibold text-gray-800">Compare Plans</h3>
-      </div>
-
-      <div className="max-h-72 overflow-y-auto px-3 py-2 space-y-2">
-        {compared.map((p) => (
+      <AnimatePresence>
+        {compared.length > 0 && (
           <motion.div
-            key={getPlanKey(p)}
-            layout="position"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.15 }}
-            className="flex items-center gap-3 rounded-lg border border-gray-100 px-2 py-2"
+            key="compare-drawer"
+            initial={{ y: "-120vh", opacity: 0, scale: 0.95, filter: "blur(2px)" }}
+            animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
+            exit={{ y: "-20%", opacity: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 24, bounce: 1 }}
+            className="fixed right-4 bottom-4 z-50 w-80 max-w-[88vw] rounded-xl shadow-2xl bg-white border border-gray-200"
+            role="region"
+            aria-label="Compare plans drawer"
+            style={{ willChange: "transform" }}
           >
-            {/* Logo */}
-            <div className="h-10 w-10 bg-gray-50 rounded overflow-hidden flex items-center justify-center">
-              {p?.logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={`/images/health/vendorimage/${p.logo}`}
-                  alt={p.productname || "logo"}
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <span className="text-[10px] text-gray-500">No Logo</span>
+            <div className="px-4 py-3 border-b">
+              <h3 className="text-sm font-semibold text-gray-800">Compare Plans</h3>
+            </div>
+
+            <div className="max-h-72 overflow-y-auto px-3 py-2 space-y-2">
+              {compared.map((p) => (
+                <motion.div
+                  key={getPlanKey(p)}
+                  layout="position"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center gap-3 rounded-lg border border-gray-100 px-2 py-2"
+                >
+                  <div className="h-10 w-10 bg-gray-50 rounded overflow-hidden flex items-center justify-center">
+                    {p?.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`/images/health/vendorimage/${p.logo}`}
+                        alt={p.productname || "logo"}
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-gray-500">No Logo</span>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-900 truncate">
+                      {p?.productname || "—"}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeCompared(p)}
+                    className="p-1 rounded hover:bg-gray-100"
+                    aria-label="Remove from compare"
+                    title="Remove"
+                  >
+                    <MdClose className="h-4 w-4 text-gray-500" />
+                  </button>
+                </motion.div>
+              ))}
+
+              {compared.length < 3 && (
+                <div className="text-center text-[11px] font-semibold text-gray-400 mt-2">
+                  SELECT UPTO {3 - compared.length} MORE PLAN
+                  {3 - compared.length > 1 ? "S" : ""} TO COMPARE
+                </div>
               )}
             </div>
 
-            {/* Name */}
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-gray-900 truncate">
-                {p?.productname || "—"}
-              </div>
+            <div className="p-3">
+              <button
+                type="button"
+                onClick={handleCompareCTA}
+                disabled={compared.length < 2}
+                className={`w-full px-4 py-2 thmbtn ${
+                  compared.length >= 2 ? "" : "cursor-not-allowed opacity-70"
+                }`}
+                aria-disabled={compared.length < 2}
+              >
+                Compare Plans
+              </button>
             </div>
-
-            {/* Remove */}
-            <button
-              type="button"
-              onClick={() => removeCompared(p)}
-              className="p-1 rounded hover:bg-gray-100"
-              aria-label="Remove from compare"
-              title="Remove"
-            >
-              <MdClose className="h-4 w-4 text-gray-500" />
-            </button>
           </motion.div>
-        ))}
-
-        {/* Helper line */}
-        {compared.length < 3 && (
-          <div className="text-center text-[11px] font-semibold text-gray-400 mt-2">
-            SELECT UPTO {3 - compared.length} MORE PLAN
-            {3 - compared.length > 1 ? "S" : ""} TO COMPARE
-          </div>
         )}
-      </div>
-
-      <div className="p-3">
-        <button
-          type="button"
-          onClick={handleCompareCTA}
-          disabled={compared.length < 2}
-          className={`w-full px-4 py-2 thmbtn ${
-            compared.length >= 2 ? "" : "cursor-not-allowed opacity-70"
-          }`}
-          aria-disabled={compared.length < 2}
-        >
-          Compare Plans
-        </button>
-      </div>
-    </motion.div>
-  )}
-</AnimatePresence>
+      </AnimatePresence>
     </div>
   );
 }
