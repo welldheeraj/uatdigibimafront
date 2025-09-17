@@ -23,6 +23,7 @@ export default function HealthPlan() {
     coverage: "",
     tenure: "",
     covertype: "",
+    porttenure: "",
   });
 
   const [loadingPlans, setLoadingPlans] = useState(true);
@@ -38,9 +39,7 @@ export default function HealthPlan() {
   const router = useRouter();
   const { register, handleSubmit, reset } = useForm();
 
-
   const normalizeCoverageToLower = (val, list = []) => {
-
     if (!val || !Array.isArray(list) || list.length < 2) return "";
     const n = Number(val);
     const arr = [...list].sort((a, b) => a - b);
@@ -56,6 +55,7 @@ export default function HealthPlan() {
   useEffect(() => {
     CallApi(constant.API.HEALTH.PLANDATA)
       .then((res) => {
+        console.log(res);
         setVendorData(res.vendor || []);
         setCoveragelist(res.coveragelist || []);
         setTenurelist(res.tenurelist || []);
@@ -66,11 +66,20 @@ export default function HealthPlan() {
           res.coveragelist
         );
 
+        const mapPortTenureLabel = (v) => {
+          const s = String(v || "").trim();
+          if (!s) return "";
+          if (s === "1") return "1 Year";
+          if (s === "2") return "2 Years";
+          return "3 Years & Above";
+        };
+
         setFilters({
           plantype: res.plantype?.toString() || "",
-          coverage: normalizedCoverage, 
+          coverage: normalizedCoverage,
           tenure: res.tenure?.toString() || "",
           covertype: res.covertype?.toString() || "",
+          porttenure: mapPortTenureLabel(res.porttenure), 
         });
 
         const allMembers = res.aInsureData || [];
@@ -79,7 +88,6 @@ export default function HealthPlan() {
       })
       .catch(console.error);
   }, [shouldRefetch]);
-
 
   const filterData = useMemo(() => {
     const arr = [...(coveragelist || [])].sort((a, b) => a - b);
@@ -90,11 +98,11 @@ export default function HealthPlan() {
       const nextLabel = next === 100 ? "1 Cr" : `${next} Lac`;
       coverageOptions.push({
         label: `${curr}–${nextLabel}`,
-        value: String(curr), 
+        value: String(curr),
       });
     }
 
-    return [
+    const baseFilters = [
       {
         label: "Plan Type",
         name: "plantype",
@@ -135,6 +143,21 @@ export default function HealthPlan() {
         value: filters.tenure || "",
       },
     ];
+
+    const isPort =
+      filters.plantype === "2" ||
+      (typeof filters.plantype === "string" &&
+        filters.plantype.toLowerCase() === "port");
+
+    if (isPort) {
+      baseFilters.push({
+        label: "Port Tenure",
+        name: "porttenure",
+        options: ["Select", "1 Year", "2 Years", "3 Years & Above"],
+        value: filters.porttenure || "",
+      });
+    }
+    return baseFilters;
   }, [coveragelist, tenurelist, filters]);
 
   useEffect(() => {
@@ -179,8 +202,13 @@ export default function HealthPlan() {
       tenure: data.tenure?.replace(/\s*Years?$/, ""),
       plantype: data?.plantype,
     };
-    console.log(formatted)
-    // return false;
+
+    if (data?.plantype === "2" || data?.plantype?.toLowerCase() === "port") {
+      formatted.porttenure =
+        data?.porttenure?.replace(/\s*Years?$/, "") || "";
+    }
+
+    console.log(formatted);
     try {
       setLoadingPlans(true);
       const res = await CallApi(
@@ -202,7 +230,6 @@ export default function HealthPlan() {
     router.push(plan.route);
   };
 
-  // stable key (no backend id in snippet)
   const getPlanKey = (plan) =>
     `${String(plan?.productname || "")}|${String(
       plan?.coverage || ""
@@ -230,14 +257,10 @@ export default function HealthPlan() {
 
   const compareDisabledForOthers = compared.length >= 3;
 
-  // Save selected plans & go to compare page
   const handleCompareCTA = () => {
     if (typeof window !== "undefined") {
       sessionStorage.setItem("compareType", "health");
-      sessionStorage.setItem(
-        "comparePlans:health",
-        JSON.stringify(compared)
-      );
+      sessionStorage.setItem("comparePlans:health", JSON.stringify(compared));
       sessionStorage.setItem(
         "compareBack",
         window.location.pathname + window.location.search

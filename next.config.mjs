@@ -3,6 +3,18 @@ const nextConfig = {
  
   reactStrictMode: false,
   productionBrowserSourceMaps: false,
+
+
+    images: {
+    domains: ["stage.digibima.com", "digibima.com", "cdn.digibima.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "stage.digibima.com",
+        pathname: "/**",
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

@@ -4,6 +4,7 @@ const constant = {
   COOKIE: {
     HEADER: "@#$%^AZ##",
   },
+  BASE_URL: "https://stage.digibima.com/public",
   ROUTES: {
     INDEX: "/",
     LOGIN: {

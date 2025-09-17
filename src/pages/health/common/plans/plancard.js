@@ -5,6 +5,7 @@ import { FiArrowRight } from "react-icons/fi";
 import { FaRupeeSign } from "react-icons/fa";
 import { HiCheckCircle } from "react-icons/hi";
 import Modal from "@/components/modal";
+import constant from "../../../../env";
 
 const PlanCard = ({
   plan,
@@ -14,10 +15,11 @@ const PlanCard = ({
   onCompareChange = () => {},
   compared = false,
 }) => {
+  // console.log(`${constant.BASE_URL}/front/logo/Care_logo.png`)
   const [showModal, setShowModal] = useState(false);
 
   const { logo, productname, coverage, premium } = plan;
-  // console.log("plans", allPlans);
+  console.log("plans", allPlans);
 
   //  robust premium parsing (handles string or number)
   const yearlyPremiumNumber = Number(
@@ -86,7 +88,7 @@ const PlanCard = ({
           <div className="w-20 h-14 relative rounded-md bg-blue-50 flex items-center justify-center shadow-inner shrink-0">
             {logo ? (
               <Image
-                src={`/images/health/vendorimage/${logo}`}
+                src={`${constant.BASE_URL}/front/logo/${logo}`}
                 alt={productname}
                 width={80}
                 height={40}

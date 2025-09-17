@@ -51,7 +51,6 @@ export default function Plans() {
   const [odselectedAddon, setOdSelectedAddon] = useState([]);
   const [tpselectedAddon, setTpSelectedAddon] = useState([]);
 
-  // ✅ NEW: compare state
   const [compared, setCompared] = useState([]);
 
   const router = useRouter();
@@ -195,6 +194,7 @@ const handleCompareChange = (plan, checked) => {
       let data;
 
       for (let i = 0; i < vendorList.length; i++) {
+      
         const vendorPayload = vendorList[i];
         const route =
           constant.ROUTES.MOTOR.VENDOR.CAR[String(vendorPayload.vid)] || "";
@@ -207,7 +207,7 @@ const handleCompareChange = (plan, checked) => {
         );
 
         data = response?.data;
-
+          console.log(data)
         if (response?.status == "1" && data) {
           if (allPlans.length === 0) {
             setIdvMin(data.minrange);

@@ -1,6 +1,6 @@
 "use client";
 import { useForm, useWatch } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CallApi } from "../../../../../api";
 import constant from "../../../../../env";
 import { showSuccess, showError } from "@/layouts/toaster";
@@ -15,33 +15,111 @@ export default function AddOnSelection({
   setApplyClicked,
   setIsAddOnsModified,
 }) {
-   console.log("addon description", addonsDes);
+  console.log("addon description", selectedAddons);
+
   const normalizedAddons = Array.isArray(selectedAddons)
     ? selectedAddons
     : typeof selectedAddons === "string" && selectedAddons.startsWith("[")
     ? JSON.parse(selectedAddons)
     : Object.values(selectedAddons || {});
 
+  // ---- PED defaults (as-is) ----
   const pedDefaultValue = normalizedAddons.includes("1")
     ? "1"
     : normalizedAddons.includes("2")
     ? "2"
     : "";
 
-  const { register, handleSubmit, control, setValue } = useForm({
+  // ---- OPD defaults (supports combined tokens: opd500/opd5000) ----
+  const opdToken = (normalizedAddons || []).find((a) =>
+    /^opd(500|5000)$/i.test(String(a))
+  );
+
+  const opdDefaultValue = opdToken
+    ? String(opdToken).replace(/opd/i, "")
+    : normalizedAddons.includes("500")
+    ? "500"
+    : normalizedAddons.includes("5000")
+    ? "5000"
+    : "";
+
+
+  const initialAddons = {};
+  Object.keys(addons || {}).forEach((k) => {
+    initialAddons[k] = normalizedAddons.includes(k);
+  });
+
+  initialAddons.ped = normalizedAddons.includes("ped");
+  initialAddons.opd = Boolean(opdToken) || normalizedAddons.includes("opd");
+
+  const { register, handleSubmit, control, setValue, reset } = useForm({
     defaultValues: {
-      addons: {
-        ped: normalizedAddons.includes("ped"),
-      },
+      addons: initialAddons,
       pedaddonvalue: pedDefaultValue,
+      opdaddonvalue: opdDefaultValue,
     },
   });
 
   const [hasUserChanged, setHasUserChanged] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const pedChecked = useWatch({ control, name: "addons.ped" });
+
+  const pedChecked = useWatch({
+    control,
+    name: "addons.ped",
+    defaultValue: initialAddons.ped,
+  });
+  const opdChecked = useWatch({
+    control,
+    name: "addons.opd",
+    defaultValue: initialAddons.opd,
+  });
   const isPedSelected = !!pedChecked;
+
+  useEffect(() => {
+    const nextAddons = {};
+    Object.keys(addons || {}).forEach((k) => {
+      nextAddons[k] = normalizedAddons.includes(k);
+    });
+    nextAddons.ped = normalizedAddons.includes("ped");
+    const nextOpdToken = (normalizedAddons || []).find((a) =>
+      /^opd(500|5000)$/i.test(String(a))
+    );
+    nextAddons.opd = Boolean(nextOpdToken) || normalizedAddons.includes("opd");
+
+    const nextPedVal = normalizedAddons.includes("1")
+      ? "1"
+      : normalizedAddons.includes("2")
+      ? "2"
+      : "";
+
+    const nextOpdVal = nextOpdToken
+      ? String(nextOpdToken).replace(/opd/i, "")
+      : normalizedAddons.includes("500")
+      ? "500"
+      : normalizedAddons.includes("5000")
+      ? "5000"
+      : "";
+
+    reset({
+      addons: nextAddons,
+      pedaddonvalue: nextPedVal,
+      opdaddonvalue: nextOpdVal,
+    });
+  }, [reset, addons, selectedAddons]); 
+
+  useEffect(() => {
+    if (opdToken) {
+      setValue("addons.opd", true, { shouldDirty: false });
+      setValue("opdaddonvalue", String(opdToken).replace(/opd/i, ""), {
+        shouldDirty: false,
+      });
+    }
+    if (normalizedAddons.includes("ped")) {
+      setValue("addons.ped", true, { shouldDirty: false });
+      setValue("pedaddonvalue", pedDefaultValue, { shouldDirty: false });
+    }
+  }, [opdToken, normalizedAddons, pedDefaultValue, setValue]);
 
   const onSubmit = async (data) => {
     let selectedKeys = [];
@@ -49,8 +127,12 @@ export default function AddOnSelection({
     const isPedChecked = addonsData.ped;
     const pedValue = data.pedaddonvalue;
 
+
+    const isOpdChecked = addonsData.opd;
+    const opdValue = data.opdaddonvalue;
+
     Object.entries(addonsData).forEach(([key, checked]) => {
-      if (checked && key !== "ped") {
+      if (checked && key !== "ped" && key !== "opd") {
         selectedKeys.push(key);
       }
     });
@@ -70,6 +152,27 @@ export default function AddOnSelection({
       }
     } else {
       selectedKeys = selectedKeys.filter((val) => val !== "1" && val !== "2");
+    }
+
+
+    if (isOpdChecked) {
+      if (!opdValue) {
+        showError("Please select a value for OPD.");
+        return;
+      }
+      if (["500", "5000"].includes(opdValue)) {
+        selectedKeys.push(`opd${opdValue}`);
+        selectedKeys = selectedKeys.filter(
+          (val) => val !== "opd" && val !== "500" && val !== "5000"
+        );
+      }
+    } else {
+      selectedKeys = selectedKeys.filter(
+        (val) =>
+          !/^opd(500|5000)$/i.test(String(val)) &&
+          val !== "500" &&
+          val !== "5000"
+      );
     }
 
     try {
@@ -95,8 +198,6 @@ export default function AddOnSelection({
       setLoading(false);
     }
   };
-
-
 
   const optionalAddOns = Object.entries(addons).filter(
     ([key]) => !compulsoryAddons.includes(key)
@@ -133,7 +234,8 @@ export default function AddOnSelection({
       </div>
     );
   }
-      const safeDesObj =
+
+  const safeDesObj =
     addonsDes && typeof addonsDes === "object" ? addonsDes : {};
   const firstKey = optionalAddOns[0]?.[0];
   const headerDesc =
@@ -147,7 +249,7 @@ export default function AddOnSelection({
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-semibold text-base mb-2">Add-On</h2>
-             <p className="text-sm text-gray-600 leading-relaxed">
+            <p className="text-sm text-gray-600 leading-relaxed">
               {headerDesc}
             </p>
           </div>
@@ -168,10 +270,12 @@ export default function AddOnSelection({
         </div>
 
         {optionalAddOns.map(([key, price]) => {
-          const isChecked = normalizedAddons.includes(key);
-          const isPED = key.toLowerCase() === "ped";
-           const rowDesc =
-            safeDesObj[key.toLowerCase()] ??
+          const lowerKey = String(key).toLowerCase();
+          const isPED = lowerKey === "ped";
+          const isOPD = lowerKey === "opd";
+
+          const rowDesc =
+            safeDesObj[lowerKey] ??
             safeDesObj[key] ??
             "No description available.";
 
@@ -184,14 +288,15 @@ export default function AddOnSelection({
                 <p className="font-semibold text-sm text-black mb-1">
                   {fullAddonsName[key] || key}
                 </p>
-                 <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-sm text-gray-600 leading-relaxed">
                   {rowDesc}
                 </p>
               </div>
 
               <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-4 md:mt-0">
                 <label className="flex items-center gap-2 px-4 py-3 border border-gray-400 rounded-xl min-w-[120px] cursor-pointer">
-                  {!isPED && (
+                  {/* Premium box hide for PED & OPD */}
+                  {!isPED && !isOPD && (
                     <div className="text-center leading-tight text-sm text-gray-800">
                       <p className="font-medium">Premium</p>
                       <p className="font-bold">
@@ -203,7 +308,6 @@ export default function AddOnSelection({
                   <input
                     type="checkbox"
                     {...register(`addons.${key}`)}
-                    defaultChecked={isPED ? pedChecked : isChecked}
                     onChange={(e) => {
                       setValue(`addons.${key}`, e.target.checked);
                       setHasUserChanged(true);
@@ -233,6 +337,28 @@ export default function AddOnSelection({
                       </option>
                       <option value="1">1 Year</option>
                       <option value="2">2 Years</option>
+                    </select>
+                  )}
+
+
+                  {isOPD && (
+                    <select
+                      {...register("opdaddonvalue")}
+                      className="border rounded-md text-sm"
+                      disabled={!opdChecked}
+                      onChange={() => {
+                        setHasUserChanged(true);
+                        if (typeof setIsAddOnsModified === "function")
+                          setIsAddOnsModified(true);
+                        if (typeof setApplyClicked === "function")
+                          setApplyClicked(false);
+                      }}
+                    >
+                      <option value="" disabled>
+                        Select
+                      </option>
+                      <option value="500">₹500</option>
+                      <option value="5000">₹5000</option>
                     </select>
                   )}
                 </label>

@@ -366,6 +366,11 @@ useEffect(() => {
           placeholder="Weight (KG)"
           className={inputClass}
         />
+       
+       
+      </div>
+      <h2 className="text-xl font-bold text-gray-800">Bank Details:</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <input
           {...step2Form.register("proposarbankaccount", {
             required: "Bank Account is required",

@@ -30,9 +30,13 @@ export default function SummaryCard({
   const router = useRouter();
   const pathname = usePathname();
   const isStepFour = currentStep === 4;
+  const isCheckoutPage = pathname.includes(
+    "/health/vendors/caresupereme/checkout"
+  );
   const isJourneyPage = pathname.includes(
     "/health/vendors/caresupereme/journey"
   );
+ 
 
   const [priceLoading, setPriceLoading] = useState(false);
   const [addonLoading, setAddonLoading] = useState(false);
@@ -298,12 +302,15 @@ const hasPlusVariant = {
             Proceed to Proposal <BsArrowRight />
           </button>
         )}
-           <button
+           {isCheckoutPage && (
+            <button
              onClick={handleBrowse}
             className="w-full mt-4 py-2 flex items-center justify-center gap-2 thmbtn"
           >
             Plan Brochure <FiDownload  />
           </button>
+           )
+           }
         {isJourneyPage && isStepFour && (
           <button
             onClick={onGoToPayment}

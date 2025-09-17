@@ -21,6 +21,7 @@ export default function InsurePage() {
 
   const [showModal, setShowModal] = useState(true);
   const [planType, setPlanType] = useState("");
+   const [tenure, setTenure] = useState("");
 
   useEffect(() => {
     const getInsureData = async () => {
@@ -276,10 +277,15 @@ export default function InsurePage() {
       showError("Please select a plan type.");
       return;
     }
+     if (planType === "2" && !tenure) {
+    showError("Please select a Tenure.");
+    return;
+  }
 
     try {
       const response = await CallApi(constant.API.HEALTH.PLANTYPE, "POST", {
         plantype: planType,
+        tenure: planType === "2" ? tenure : null,
       });
 
       console.log(
@@ -315,11 +321,11 @@ export default function InsurePage() {
             <div className="flex flex-col gap-5">
               <label
                 className={`flex items-center gap-3 cursor-pointer p-4 rounded-2xl transition-all border-2 
-      ${
-        planType === "1"
-          ? "bg-pink-50"
-          : "border-gray-200 hover:border-pink-300"
-      }`}
+                ${
+                  planType === "1"
+                    ? "bg-pink-50"
+                    : "border-gray-200 hover:border-pink-300"
+                }`}
               >
                 <input
                   type="radio"
@@ -341,11 +347,11 @@ export default function InsurePage() {
               {/* Port Existing */}
               <label
                 className={`flex items-center gap-3 cursor-pointer p-4 rounded-2xl transition-all border-2 
-      ${
-        planType === "2"
-          ? "bg-pink-50"
-          : "border-gray-200 hover:border-pink-300"
-      }`}
+                ${
+                  planType === "2"
+                    ? "bg-pink-50"
+                    : "border-gray-200 hover:border-pink-300"
+                }`}
               >
                 <input
                   type="radio"
@@ -363,6 +369,22 @@ export default function InsurePage() {
                   Port Existing
                 </span>
               </label>
+           {planType === "2" && (
+              <select
+                name="tenure"
+                value={tenure}
+                onChange={(e) => setTenure(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-3 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
+              >
+                <option value="" disabled>
+                  Select Tenure
+                </option>
+                <option value="1">1 Year</option>
+                <option value="2">2 Years</option>
+                <option value="3">3 Years & Above</option>
+              </select>
+            )}
+
             </div>
 
            

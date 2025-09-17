@@ -5,6 +5,7 @@ import Modal from "@/components/modal";
 import { FaCheckCircle, FaBolt, FaCrown, FaShieldAlt, FaStar } from "react-icons/fa";
 import { FiCheck, FiChevronDown, FiEye } from "react-icons/fi";
 import Image from "next/image";
+import constant from "@/env"
 
 /* ---------- tiny helpers local to this file ---------- */
 const toNum = (val) => {
@@ -52,13 +53,17 @@ const normalize = (p) => ({
 
 /* ---------- UI bits ---------- */
 function Logo({ src, alt = "logo", className = "h-8 w-auto" }) {
-  const finalSrc = typeof src === "string" && src.startsWith("http")
+  // console.log(src)
+  const finalSrc =
+  typeof src === "string" && src.startsWith("http")
     ? src
-    : `/images/health/vendorimage/${src || ""}`;
+    : `${constant.BASE_URL}/front/logo/${src || ""}`;
   return (
     <Image
       src={finalSrc}
       alt={alt}
+        width={80}
+  height={40}
       className={className}
       onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/images/health/placeholder-logo.svg"; }}
     />

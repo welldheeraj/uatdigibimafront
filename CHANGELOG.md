@@ -4,7 +4,7 @@
 
     - Mail for resolve the issue
 
-### ✅ Completed
+### Completed
 
     -Testing (getting issue on premium)
     -Testing and premium missmatch(pending)
@@ -38,7 +38,11 @@
     -Multiindividual(pending)
     -Multiindividual(care-supereme)-pending
     -Kyc api imp.(pending - no main reply from ultimate)
-    -Port Create policy api added 
+    -Port Create policy api added
     -Addon based on pincode not updated in kit
     -Cover type added(individual/floater)
     -coverage filter modified (5-7/7-10 ...)
+## [2025-09-15] -ultimatecare
+    -Ultimate price mismatch fix
+    -Meeting on 16sep with bajaj
+    -Updating new update 

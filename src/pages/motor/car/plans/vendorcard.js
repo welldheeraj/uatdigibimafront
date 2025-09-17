@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import Modal from "@/components/modal";
 import { FiTag } from "react-icons/fi";
 import Image from "next/image";
-import { shriramimage } from "@/images/Image";
+import constant from "@/env";
 
 export default function VendorCard({
   data,
@@ -42,8 +42,10 @@ export default function VendorCard({
         <div className="flex flex-col items-center text-center gap-3 mt-2">
           <div className="w-28 h-25 rounded-xl bg-gradient-to-br from-white via-blue-50 to-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden hover:shadow-lg transition-all duration-300">
             <Image
-              src={shriramimage}
+              src={`${constant.BASE_URL}/front/logo/${data.logo}` || ""}
               alt={data.title}
+              width={80}
+                height={40}
               className="h-auto w-[100%] object-contain"
             />
           </div>
