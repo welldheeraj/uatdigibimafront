@@ -7,7 +7,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CloseIcon from "@mui/icons-material/Close";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
-import { showSuccess, showError } from  "@/layouts/toaster";
+import { showSuccess, showError } from "@/layouts/toaster";
 import InsureSidebarComponent from "./editmember";
 import EditIllnessComponent from "./editillness";
 import { CallApi } from "@/api";
@@ -21,7 +21,6 @@ const SlidePanel = ({
   setPincode,
   setMemberName,
 }) => {
- // console.log("pincode aa gya",pincode)
   const [showPincodePanel, setShowPincodePanel] = useState(false);
   const [showMemberPanel, setShowMemberPanel] = useState(false);
   const [showIllnessPanel, setShowIllnessPanel] = useState(false);
@@ -41,11 +40,11 @@ const SlidePanel = ({
     setCities({});
     setError("");
   };
-    useEffect(() => {
-   setDisplayedPincode(pincode)
+  useEffect(() => {
+    setDisplayedPincode(pincode);
   }, [pincode]);
 
-   useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (pincodeRef.current && !pincodeRef.current.contains(e.target)) {
         setCities({});
@@ -74,38 +73,32 @@ const SlidePanel = ({
   };
 
   const handleCityClick = (pin) => {
-    console.log("Selected Pincode:", pin);
     setDisplayedPincode(pin);
     setPincode(pin);
     setCities({});
     setIsButtonEnabled(true);
   };
-const updatePincode = async () => {
-  if (!isButtonEnabled) return;
+  const updatePincode = async () => {
+    if (!isButtonEnabled) return;
 
-  setLoading(true);
-  try {
-    const res = await CallApi(
-      constant.API.HEALTH.UPDATEPINCODE,
-      "POST",
-      { findpincode: displayedPincode }
-    );
-
-    console.log("UPDATEPINCODE Response:", res);
-
-    if (res?.status) {
-      showSuccess("Pincode updated successfully!");
-    } else {
-      showError(res?.message || "Failed to update pincode. Try again.");
+    setLoading(true);
+    try {
+      const res = await CallApi(constant.API.HEALTH.UPDATEPINCODE, "POST", {
+        findpincode: displayedPincode,
+      });
+      if (res?.status) {
+        showSuccess("Pincode updated successfully!");
+      } else {
+        showError(res?.message || "Failed to update pincode. Try again.");
+      }
+    } catch (error) {
+      console.error("UPDATEPINCODE Error:", error);
+      showError("Something went wrong while updating pincode.");
+    } finally {
+      setLoading(false);
+      handleCloseAll();
     }
-  } catch (error) {
-    console.error("UPDATEPINCODE Error:", error);
-    showError("Something went wrong while updating pincode.");
-  } finally {
-    setLoading(false);
-    handleCloseAll();
-  }
-};
+  };
   return (
     <div className="md:col-span-3">
       <div className="bg-white border rounded-[30px] shadow-md p-4">
@@ -125,7 +118,7 @@ const updatePincode = async () => {
           <div className="bg-white w-full max-w-sm h-full shadow-2xl px-3 py-6 relative rounded-l-xl transition-transform duration-300 flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-              {(showPincodePanel || showMemberPanel || showIllnessPanel) ? (
+              {showPincodePanel || showMemberPanel || showIllnessPanel ? (
                 <button
                   onClick={() => {
                     setShowPincodePanel(false);
@@ -215,7 +208,7 @@ const updatePincode = async () => {
             )}
 
             {/* Pincode Form */}
-          {showPincodePanel && (
+            {showPincodePanel && (
               <div ref={pincodeRef} className="relative">
                 <div className="mb-3">
                   <label className="text-sm font-medium text-gray-700 block mb-2">
@@ -223,7 +216,7 @@ const updatePincode = async () => {
                   </label>
                   <input
                     type="text"
-                    value={displayedPincode} 
+                    value={displayedPincode}
                     maxLength={6}
                     onChange={(e) => {
                       const cleaned = e.target.value.replace(/\D/g, "");
@@ -254,19 +247,19 @@ const updatePincode = async () => {
                   </div>
                 )}
 
-               <div className="mt-8">
+                <div className="mt-8">
                   <button
                     onClick={updatePincode}
                     disabled={!isButtonEnabled || loading}
                     className={`w-full px-6 py-2 thmbtn ${
-                      !isButtonEnabled || loading ? "opacity-50 cursor-not-allowed" : ""
+                      !isButtonEnabled || loading
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
                     }`}
                   >
                     {loading ? "Processing..." : "Continue"}
                   </button>
                 </div>
-
-
               </div>
             )}
 

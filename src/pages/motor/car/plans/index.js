@@ -14,7 +14,6 @@ import VehicleCard from "../../vehicledetails/index";
 import { MotorCardSkeleton } from "@/components/loader";
 import { showError } from "@/layouts/toaster";
 
-
 export default function Plans() {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [IsAddonModalOpen, setIsAddonModalOpen] = useState(false);
@@ -56,33 +55,31 @@ export default function Plans() {
   const router = useRouter();
 
   // ---------- helpers for compare ----------
-// motor + health dono ko cover karne ke liye safe key
-const getPlanKey = (plan) =>
-  `${String(plan?.vendorId || plan?.vid || "")}|${String(plan?.title || plan?.productname || plan?.planname || "")}|${String(plan?.price || plan?.premium || "")}`;
-
+  // motor + health dono ko cover karne ke liye safe key
+  const getPlanKey = (plan) =>
+    `${String(plan?.vendorId || plan?.vid || "")}|${String(
+      plan?.title || plan?.productname || plan?.planname || ""
+    )}|${String(plan?.price || plan?.premium || "")}`;
 
   const isCompared = (plan) =>
     compared.some((p) => getPlanKey(p) === getPlanKey(plan));
 
-const handleCompareChange = (plan, checked) => {
-  setCompared((prev) => {
-    // already in list?
-    const key = getPlanKey(plan);
-    const exists = prev.some((p) => getPlanKey(p) === key);
+  const handleCompareChange = (plan, checked) => {
+    setCompared((prev) => {
+      // already in list?
+      const key = getPlanKey(plan);
+      const exists = prev.some((p) => getPlanKey(p) === key);
 
-    if (checked) {
-      if (exists || prev.length >= 3) return prev;
-      const next = [...prev, plan];
-      console.log("COMPARE ADD:", next);
-      return next;
-    } else {
-      const next = prev.filter((p) => getPlanKey(p) !== key);
-      console.log("COMPARE REMOVE:", next);
-      return next;
-    }
-  });
-};
-
+      if (checked) {
+        if (exists || prev.length >= 3) return prev;
+        const next = [...prev, plan];
+        return next;
+      } else {
+        const next = prev.filter((p) => getPlanKey(p) !== key);
+        return next;
+      }
+    });
+  };
 
   const removeCompared = (plan) =>
     setCompared((prev) =>
@@ -114,8 +111,6 @@ const handleCompareChange = (plan, checked) => {
       try {
         setLoading(true);
         const res = await CallApi(constant.API.MOTOR.CAR.PLANS, "GET");
-        console.log(res);
-
         if (res.data?.under === "company") {
           setIsCompany(true);
         }
@@ -139,10 +134,12 @@ const handleCompareChange = (plan, checked) => {
         );
 
         const plantypeObj = res.data?.plantype || {};
-        const plantypeList = Object.entries(plantypeObj).map(([key, label]) => ({
-          id: key,
-          label,
-        }));
+        const plantypeList = Object.entries(plantypeObj).map(
+          ([key, label]) => ({
+            id: key,
+            label,
+          })
+        );
         setPlanTypes(plantypeList);
 
         const vendorArr = res.data?.vendor || [];
@@ -194,7 +191,6 @@ const handleCompareChange = (plan, checked) => {
       let data;
 
       for (let i = 0; i < vendorList.length; i++) {
-      
         const vendorPayload = vendorList[i];
         const route =
           constant.ROUTES.MOTOR.VENDOR.CAR[String(vendorPayload.vid)] || "";
@@ -207,7 +203,6 @@ const handleCompareChange = (plan, checked) => {
         );
 
         data = response?.data;
-          console.log(data)
         if (response?.status == "1" && data) {
           if (allPlans.length === 0) {
             setIdvMin(data.minrange);
@@ -244,9 +239,7 @@ const handleCompareChange = (plan, checked) => {
     getQuote();
   }, [getQuote]);
 
-  useEffect(() => {
-    // console.log("addon update ", Addonlist);
-  }, [Addonlist]);
+  useEffect(() => {}, [Addonlist]);
 
   const handleIdvUpdate = async () => {
     try {
@@ -473,7 +466,7 @@ const handleCompareChange = (plan, checked) => {
         "POST",
         accessoriesPayload
       );
-    if (res.status === "1" || res.status === true) {
+      if (res.status === "1" || res.status === true) {
         await getQuote();
       } else {
         console.error("Accessories update failed:", res);
@@ -489,7 +482,6 @@ const handleCompareChange = (plan, checked) => {
       console.warn("No route found for the selected plan.");
       return;
     }
-    console.log("Redirecting to:", route);
     router.push(route);
   };
 
@@ -641,31 +633,33 @@ const handleCompareChange = (plan, checked) => {
         {/* Left: VendorCard Section (9 columns) */}
         <div className="lg:col-span-9">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-       {loading ? (
-  Array.from({ length: 3 }).map((_, idx) => <MotorCardSkeleton key={idx} />)
-) : quoteError || vendorPlans.length === 0 ? (
-  <div className="col-span-full text-center text-gray-500 py-10">
-    No Plans Available
-  </div>
-) : (
-  vendorPlans.map((plan) => (
-    <VendorCard
-      key={plan.vendorId || plan.vid || plan.title || Math.random()}
-      data={plan}
-      onAddonsClick={(vendorData) => {
-        setSelectedPlan(vendorData);
-        setAddAddonModal(true);
-        
-      }}
-      handlePlanSubmit={handlePlanSubmit}
-       showCompare={vendorPlans.length > 1}
-      compared={isCompared(plan)}
-      disableCompare={compareDisabledForOthers && !isCompared(plan)}
-      onCompareChange={(checked) => handleCompareChange(plan, checked)}
-    />
-  ))
-)}
-
+            {loading ? (
+              Array.from({ length: 3 }).map((_, idx) => (
+                <MotorCardSkeleton key={idx} />
+              ))
+            ) : quoteError || vendorPlans.length === 0 ? (
+              <div className="col-span-full text-center text-gray-500 py-10">
+                No Plans Available
+              </div>
+            ) : (
+              vendorPlans.map((plan) => (
+                <VendorCard
+                  key={plan.vendorId || plan.vid || plan.title || Math.random()}
+                  data={plan}
+                  onAddonsClick={(vendorData) => {
+                    setSelectedPlan(vendorData);
+                    setAddAddonModal(true);
+                  }}
+                  handlePlanSubmit={handlePlanSubmit}
+                  showCompare={vendorPlans.length > 1}
+                  compared={isCompared(plan)}
+                  disableCompare={compareDisabledForOthers && !isCompared(plan)}
+                  onCompareChange={(checked) =>
+                    handleCompareChange(plan, checked)
+                  }
+                />
+              ))
+            )}
           </div>
         </div>
 
@@ -693,20 +687,22 @@ const handleCompareChange = (plan, checked) => {
         selectedPlan={selectedPlan}
       />
 
-     {compared.length > 0 && (
-  <div className="fixed right-4 bottom-4 z-50 w-80 max-w-[88vw] rounded-xl shadow-2xl bg-white border border-gray-200">
-    <div className="px-4 py-3 border-b">
-      <h3 className="text-sm font-semibold text-gray-800">Compare Plans</h3>
-    </div>
+      {compared.length > 0 && (
+        <div className="fixed right-4 bottom-4 z-50 w-80 max-w-[88vw] rounded-xl shadow-2xl bg-white border border-gray-200">
+          <div className="px-4 py-3 border-b">
+            <h3 className="text-sm font-semibold text-gray-800">
+              Compare Plans
+            </h3>
+          </div>
 
-    <div className="max-h-72 overflow-y-auto px-3 py-2 space-y-2">
-      {compared.map((p) => (
-        <div
-          key={getPlanKey(p)}
-          className="flex items-center gap-3 rounded-lg border border-gray-100 px-2 py-2"
-        >
-          <div className="h-10 w-10 bg-gray-50 rounded overflow-hidden flex items-center justify-center">
-           {p?.logo ? (
+          <div className="max-h-72 overflow-y-auto px-3 py-2 space-y-2">
+            {compared.map((p) => (
+              <div
+                key={getPlanKey(p)}
+                className="flex items-center gap-3 rounded-lg border border-gray-100 px-2 py-2"
+              >
+                <div className="h-10 w-10 bg-gray-50 rounded overflow-hidden flex items-center justify-center">
+                  {p?.logo ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={`/images/health/vendorimage/${p.logo}`}
@@ -716,56 +712,55 @@ const handleCompareChange = (plan, checked) => {
                   ) : (
                     <span className="text-[10px] text-gray-500">No Logo</span>
                   )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {p?.title || p?.productname || p?.planname || "—"}
+                  </div>
+                  {/* optional: show premium/price */}
+                  <div className="text-xs text-gray-600">
+                    ₹
+                    {(p?.price || p?.premium || "").toLocaleString
+                      ? (p.price || p.premium).toLocaleString()
+                      : p?.price || p?.premium || "-"}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => removeCompared(p)}
+                  className="p-1 rounded hover:bg-gray-100"
+                  aria-label="Remove"
+                  title="Remove"
+                >
+                  {/* MdClose import na ho to X use kar lo */}×
+                </button>
+              </div>
+            ))}
+
+            {compared.length < 3 && (
+              <div className="text-center text-[11px] font-semibold text-gray-400 mt-2">
+                SELECT UPTO {3 - compared.length} MORE PLAN
+                {3 - compared.length > 1 ? "S" : ""} TO COMPARE
+              </div>
+            )}
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-gray-900 truncate">
-              {p?.title || p?.productname || p?.planname || "—"}
-            </div>
-            {/* optional: show premium/price */}
-            <div className="text-xs text-gray-600">
-              ₹{(p?.price || p?.premium || "").toLocaleString
-                ? (p.price || p.premium).toLocaleString()
-                : (p?.price || p?.premium || "-")}
-            </div>
+          <div className="p-3">
+            <button
+              type="button"
+              onClick={handleCompareCTA}
+              disabled={compared.length < 2}
+              className={`w-full px-4 py-2 thmbtn ${
+                compared.length >= 2 ? "" : "opacity-60 cursor-not-allowed"
+              }`}
+            >
+              Compare Plans
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => removeCompared(p)}
-            className="p-1 rounded hover:bg-gray-100"
-            aria-label="Remove"
-            title="Remove"
-          >
-            {/* MdClose import na ho to X use kar lo */}
-            ×
-          </button>
-        </div>
-      ))}
-
-      {compared.length < 3 && (
-        <div className="text-center text-[11px] font-semibold text-gray-400 mt-2">
-          SELECT UPTO {3 - compared.length} MORE PLAN
-          {3 - compared.length > 1 ? "S" : ""} TO COMPARE
         </div>
       )}
-    </div>
-
-    <div className="p-3">
-      <button
-        type="button"
-        onClick={handleCompareCTA}
-        disabled={compared.length < 2}
-        className={`w-full px-4 py-2 thmbtn ${
-          compared.length >= 2 ? "" : "opacity-60 cursor-not-allowed"
-        }`}
-      >
-        Compare Plans
-      </button>
-    </div>
-  </div>
-)}
-
     </div>
   );
 }

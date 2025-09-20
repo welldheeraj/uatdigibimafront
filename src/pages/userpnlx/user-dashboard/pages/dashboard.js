@@ -118,8 +118,6 @@ export default function WelcomeBanner({
     const fetchdata = async () => {
       try {
         const res = await CallApi(constant.API.USER.USERDASHBOARD, "GET");
-        console.log("data", res);
-
         if (res?.status) {
           setStats({
             totalpolicies: res.totalpolicies ?? 0,
@@ -218,15 +216,6 @@ export default function WelcomeBanner({
   ]);
   const handleCloseAndCallApi = async () => {
   try {
-    console.log("hello api call")
-    // Call your API here
-    // await fetch("/api/close-note", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ id: openNote?.id }),
-    // });
-
-    // // Then close the modal
     closeNoteModal();
   } catch (err) {
     console.error("Failed to call API on close:", err);
@@ -237,7 +226,6 @@ export default function WelcomeBanner({
   return (
     <>
       <div className="w-full space-y-6">
-        {/* Notification Summary Modal (using global Modal) */}
         {openNote && (
           <Modal
             isOpen={!!openNote}

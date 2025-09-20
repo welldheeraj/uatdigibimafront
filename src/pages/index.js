@@ -6,11 +6,6 @@ import Link from "next/link";
 
 
  const routesMap = {
-    // Car: "/motor",
-    // Bike: "/motor",
-    // Commercial: "/motor",
-    // Health: "/health",
-
   Car: "/login?type=motor",
   Bike: "/login?type=motor",
   Commercial: "/login?type=motor",

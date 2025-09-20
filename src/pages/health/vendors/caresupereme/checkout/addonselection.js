@@ -15,15 +15,10 @@ export default function AddOnSelection({
   setApplyClicked,
   setIsAddOnsModified,
 }) {
-  console.log("addon description", addonsDes);
-
-  // VALUE CODES
   const OPD_VALUES = { base: "opd", plus: "opdp" };
   const IC_VALUES = { base: "ic", plus: "icp" };
   const CS_VALUES = { base: "cs", plus: "csp" };
   const NCB_VALUES = { base: "ncb", plus: "cbb" };
-
-  // Normalize selectedAddons -> array of strings
   const normalizedAddons = useMemo(() => {
     let arr;
     if (Array.isArray(selectedAddons)) arr = selectedAddons;
@@ -41,140 +36,128 @@ export default function AddOnSelection({
     }
     return arr.map(String).filter(Boolean);
   }, [selectedAddons]);
-
-  // Defaults for PED (year codes "1"/"2")
   const pedDefaultValue = useMemo(() => {
     if (normalizedAddons.includes("1")) return "1";
     if (normalizedAddons.includes("2")) return "2";
     return "";
   }, [normalizedAddons]);
+  const icDefaultValue = useMemo(() => {
+    if (normalizedAddons.includes(IC_VALUES.plus)) return IC_VALUES.plus;
+    if (
+      normalizedAddons.includes(IC_VALUES.base) ||
+      normalizedAddons.includes("ic")
+    )
+      return IC_VALUES.base;
+    return "";
+  }, [normalizedAddons, IC_VALUES.base, IC_VALUES.plus]);
 
-  // Defaults for IC/CS/OPD/NCB (variant codes)
-const icDefaultValue = useMemo(() => {
-  if (normalizedAddons.includes(IC_VALUES.plus)) return IC_VALUES.plus;
-  if (
-    normalizedAddons.includes(IC_VALUES.base) ||
-    normalizedAddons.includes("ic")
-  )
-    return IC_VALUES.base;
-  return "";
-}, [normalizedAddons, IC_VALUES.base, IC_VALUES.plus]);
+  const csDefaultValue = useMemo(() => {
+    if (normalizedAddons.includes(CS_VALUES.plus)) return CS_VALUES.plus;
+    if (
+      normalizedAddons.includes(CS_VALUES.base) ||
+      normalizedAddons.includes("cs")
+    )
+      return CS_VALUES.base;
+    return "";
+  }, [normalizedAddons, CS_VALUES.base, CS_VALUES.plus]);
 
+  const opdDefaultValue = useMemo(() => {
+    if (normalizedAddons.includes(OPD_VALUES.plus)) return OPD_VALUES.plus;
+    if (
+      normalizedAddons.includes(OPD_VALUES.base) ||
+      normalizedAddons.includes("opd")
+    )
+      return OPD_VALUES.base;
+    return "";
+  }, [normalizedAddons, OPD_VALUES.base, OPD_VALUES.plus]);
 
-const csDefaultValue = useMemo(() => {
-  if (normalizedAddons.includes(CS_VALUES.plus)) return CS_VALUES.plus;
-  if (
-    normalizedAddons.includes(CS_VALUES.base) ||
-    normalizedAddons.includes("cs")
-  )
-    return CS_VALUES.base;
-  return "";
-}, [normalizedAddons, CS_VALUES.base, CS_VALUES.plus]);
+  const ncbDefaultValue = useMemo(() => {
+    if (normalizedAddons.includes(NCB_VALUES.plus)) return NCB_VALUES.plus;
+    if (
+      normalizedAddons.includes(NCB_VALUES.base) ||
+      normalizedAddons.includes("ncb") ||
+      compulsoryAddons.includes("ncb")
+    )
+      return NCB_VALUES.base;
+    return "";
+  }, [normalizedAddons, compulsoryAddons, NCB_VALUES.base, NCB_VALUES.plus]);
 
+  const defaultAddons = useMemo(() => {
+    const map = Object.keys(addons).reduce((acc, key) => {
+      const lower = key.toLowerCase();
+      if (lower === "ped") {
+        acc.ped =
+          normalizedAddons.includes("ped") ||
+          normalizedAddons.includes("1") ||
+          normalizedAddons.includes("2");
+      } else if (lower === "ic") {
+        acc.ic =
+          normalizedAddons.includes("ic") ||
+          normalizedAddons.includes(IC_VALUES.base) ||
+          normalizedAddons.includes(IC_VALUES.plus);
+      } else if (lower === "cs") {
+        acc.cs =
+          normalizedAddons.includes("cs") ||
+          normalizedAddons.includes(CS_VALUES.base) ||
+          normalizedAddons.includes(CS_VALUES.plus);
+      } else if (lower === "opd") {
+        acc.opd =
+          normalizedAddons.includes("opd") ||
+          normalizedAddons.includes(OPD_VALUES.base) ||
+          normalizedAddons.includes(OPD_VALUES.plus);
+      } else if (lower === "ncb") {
+        acc.ncb =
+          compulsoryAddons.includes("ncb") ||
+          normalizedAddons.includes("ncb") ||
+          normalizedAddons.includes(NCB_VALUES.base) ||
+          normalizedAddons.includes(NCB_VALUES.plus);
+      } else {
+        acc[key] = normalizedAddons.includes(String(key));
+      }
+      return acc;
+    }, {});
 
-const opdDefaultValue = useMemo(() => {
-  if (normalizedAddons.includes(OPD_VALUES.plus)) return OPD_VALUES.plus;
-  if (
-    normalizedAddons.includes(OPD_VALUES.base) ||
-    normalizedAddons.includes("opd")
-  )
-    return OPD_VALUES.base;
-  return "";
-}, [normalizedAddons, OPD_VALUES.base, OPD_VALUES.plus]);
-
-
-const ncbDefaultValue = useMemo(() => {
-  if (normalizedAddons.includes(NCB_VALUES.plus)) return NCB_VALUES.plus;
-  if (
-    normalizedAddons.includes(NCB_VALUES.base) ||
-    normalizedAddons.includes("ncb") ||
-    compulsoryAddons.includes("ncb")
-  )
-    return NCB_VALUES.base;
-  return "";
-}, [normalizedAddons, compulsoryAddons, NCB_VALUES.base, NCB_VALUES.plus]);
-
-
-
-  //  (auto-check when variant present)
-const defaultAddons = useMemo(() => {
-  const map = Object.keys(addons).reduce((acc, key) => {
-    const lower = key.toLowerCase();
-    if (lower === "ped") {
-      acc.ped =
+    if (!("ped" in map))
+      map.ped =
         normalizedAddons.includes("ped") ||
         normalizedAddons.includes("1") ||
         normalizedAddons.includes("2");
-    } else if (lower === "ic") {
-      acc.ic =
+    if (!("ic" in map))
+      map.ic =
         normalizedAddons.includes("ic") ||
         normalizedAddons.includes(IC_VALUES.base) ||
         normalizedAddons.includes(IC_VALUES.plus);
-    } else if (lower === "cs") {
-      acc.cs =
+    if (!("cs" in map))
+      map.cs =
         normalizedAddons.includes("cs") ||
         normalizedAddons.includes(CS_VALUES.base) ||
         normalizedAddons.includes(CS_VALUES.plus);
-    } else if (lower === "opd") {
-      acc.opd =
+    if (!("opd" in map))
+      map.opd =
         normalizedAddons.includes("opd") ||
         normalizedAddons.includes(OPD_VALUES.base) ||
         normalizedAddons.includes(OPD_VALUES.plus);
-    } else if (lower === "ncb") {
-      acc.ncb =
+    if (!("ncb" in map))
+      map.ncb =
         compulsoryAddons.includes("ncb") ||
         normalizedAddons.includes("ncb") ||
         normalizedAddons.includes(NCB_VALUES.base) ||
         normalizedAddons.includes(NCB_VALUES.plus);
-    } else {
-      acc[key] = normalizedAddons.includes(String(key));
-    }
-    return acc;
-  }, {});
 
-  if (!("ped" in map))
-    map.ped =
-      normalizedAddons.includes("ped") ||
-      normalizedAddons.includes("1") ||
-      normalizedAddons.includes("2");
-  if (!("ic" in map))
-    map.ic =
-      normalizedAddons.includes("ic") ||
-      normalizedAddons.includes(IC_VALUES.base) ||
-      normalizedAddons.includes(IC_VALUES.plus);
-  if (!("cs" in map))
-    map.cs =
-      normalizedAddons.includes("cs") ||
-      normalizedAddons.includes(CS_VALUES.base) ||
-      normalizedAddons.includes(CS_VALUES.plus);
-  if (!("opd" in map))
-    map.opd =
-      normalizedAddons.includes("opd") ||
-      normalizedAddons.includes(OPD_VALUES.base) ||
-      normalizedAddons.includes(OPD_VALUES.plus);
-  if (!("ncb" in map))
-    map.ncb =
-      compulsoryAddons.includes("ncb") ||
-      normalizedAddons.includes("ncb") ||
-      normalizedAddons.includes(NCB_VALUES.base) ||
-      normalizedAddons.includes(NCB_VALUES.plus);
-
-  return map;
-}, [
-  addons,
-  normalizedAddons,
-  compulsoryAddons,
-  IC_VALUES.base,
-  IC_VALUES.plus,
-  CS_VALUES.base,
-  CS_VALUES.plus,
-  OPD_VALUES.base,
-  OPD_VALUES.plus,
-  NCB_VALUES.base,
-  NCB_VALUES.plus,
-]);
-
-
+    return map;
+  }, [
+    addons,
+    normalizedAddons,
+    compulsoryAddons,
+    IC_VALUES.base,
+    IC_VALUES.plus,
+    CS_VALUES.base,
+    CS_VALUES.plus,
+    OPD_VALUES.base,
+    OPD_VALUES.plus,
+    NCB_VALUES.base,
+    NCB_VALUES.plus,
+  ]);
 
   const { register, handleSubmit, control, setValue, reset, getValues } =
     useForm({
@@ -188,7 +171,6 @@ const defaultAddons = useMemo(() => {
       },
     });
 
-  // Reset only when computed defaults actually change (prevents loops)
   useEffect(() => {
     const nextDefaults = {
       addons: defaultAddons,
@@ -222,14 +204,11 @@ const defaultAddons = useMemo(() => {
 
   const [hasUserChanged, setHasUserChanged] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Watch checkboxes
   const pedChecked = useWatch({ control, name: "addons.ped" });
   const icChecked = useWatch({ control, name: "addons.ic" });
   const csChecked = useWatch({ control, name: "addons.cs" });
   const opdChecked = useWatch({ control, name: "addons.opd" });
   const ncbChecked = useWatch({ control, name: "addons.ncb" });
-
   const isPedSelected = !!pedChecked;
   const isIcSelected = !!icChecked;
   const isCsSelected = !!csChecked;
@@ -239,38 +218,31 @@ const defaultAddons = useMemo(() => {
   const onSubmit = async (data) => {
     let selectedKeys = [];
     const addonsData = data.addons || {};
-
     const isPed = addonsData.ped;
     const isIc = addonsData.ic;
     const isCs = addonsData.cs;
     const isOpd = addonsData.opd;
     const isNcb = addonsData.ncb;
-
     const pedValue = data.pedaddonvalue;
     const icValue = data.icaddonvalue;
     const csValue = data.csaddonvalue;
     const opdValue = data.opdaddonvalue;
     const ncbValue = data.ncbaddonvalue;
 
-    // Keep your rule: PED vs IC can't be both
     if (isPed && isIc) {
       showError("Please select only one option between PED and IC.");
       return;
     }
 
-    // Collect checked addons excluding those with dropdowns handled below
     Object.entries(addonsData).forEach(([key, checked]) => {
       if (checked && !["ped", "ic", "cs", "opd", "ncb"].includes(key)) {
         selectedKeys.push(key);
       }
     });
-
     if (!hasUserChanged) {
       showError("Please modify at least one add-on before applying.");
       return;
     }
-
-    // PED (year values)
     if (isPed) {
       if (!pedValue)
         return showError(
@@ -278,11 +250,9 @@ const defaultAddons = useMemo(() => {
         );
       if (["1", "2"].includes(pedValue)) selectedKeys.push("ped", pedValue);
     } else {
-      // remove stray ped years if any
       selectedKeys = selectedKeys.filter((v) => v !== "1" && v !== "2");
     }
 
-    // IC (variant codes)
     if (isIc) {
       if (!icValue)
         return showError("Please select a value for Instant Cover.");
@@ -290,21 +260,18 @@ const defaultAddons = useMemo(() => {
         selectedKeys.push("ic", icValue);
     }
 
-    // CS (variant codes)
     if (isCs) {
       if (!csValue) return showError("Please select a value for Claim Shield.");
       if ([CS_VALUES.base, CS_VALUES.plus].includes(csValue))
         selectedKeys.push("cs", csValue);
     }
 
-    // OPD (variant codes)
     if (isOpd) {
       if (!opdValue) return showError("Please select a value for OPD.");
       if ([OPD_VALUES.base, OPD_VALUES.plus].includes(opdValue))
         selectedKeys.push("opd", opdValue);
     }
 
-    // NCB (variant codes)
     if (isNcb) {
       if (!ncbValue)
         return showError("Please select a value for No Claim Bonus.");
@@ -312,7 +279,6 @@ const defaultAddons = useMemo(() => {
         selectedKeys.push("ncb", ncbValue);
     }
 
-    // filter data send function start
     const removeIfPlusPresent = (arr, base, plus) => {
       return arr.includes(plus) ? arr.filter((item) => item !== base) : arr;
     };
@@ -322,26 +288,15 @@ const defaultAddons = useMemo(() => {
     filteredKeys = removeIfPlusPresent(filteredKeys, "ic", "icp");
     filteredKeys = removeIfPlusPresent(filteredKeys, "cs", "csp");
     filteredKeys = removeIfPlusPresent(filteredKeys, "opd", "opdp");
-
-    // Step 2: Remove duplicates
     filteredKeys = [...new Set(filteredKeys)];
-
     const payload = { addon: filteredKeys };
-    console.log("final data send", payload);
-
-    // filter data send function end
     try {
       setLoading(true);
-      // const payload = { addon: selectedKeys };
-      console.log("final data send", payload);
-      // return false;
       const response = await CallApi(
         constant.API.HEALTH.CARESUPEREME.ADDADDONS,
         "POST",
         payload
       );
-      console.log("AddOns Applied:", response);
-
       setApplyClicked?.(true);
       setIsAddOnsModified?.(false);
       getCheckoutData?.();
@@ -355,11 +310,9 @@ const defaultAddons = useMemo(() => {
     }
   };
 
-  // Show all non-compulsory addons, BUT always include NCB even if compulsory
   const displayAddOns = Object.entries(addons).filter(([key]) => {
     return !compulsoryAddons.includes(key) || key.toLowerCase() === "ncb";
   });
-
   if (displayAddOns.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 px-6 mb-6">
@@ -370,7 +323,6 @@ const defaultAddons = useMemo(() => {
           </div>
           <div className="h-8 w-20 bg-purple-200 rounded-full animate-pulse" />
         </div>
-
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
@@ -426,7 +378,6 @@ const defaultAddons = useMemo(() => {
           const isCS = lower === "cs";
           const isOPD = lower === "opd";
           const isNCB = lower === "ncb";
-
           return (
             <div
               key={key}
@@ -436,14 +387,13 @@ const defaultAddons = useMemo(() => {
                 <p className="font-semibold text-sm text-black mb-1">
                   {fullAddonsName[key] || key}
                 </p>
-                 <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-sm text-gray-600 leading-relaxed">
                   {addonsDes[key] || "No description available."}
                 </p>
               </div>
 
               <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-4 md:mt-0">
                 <label className="flex items-center gap-2 px-4 py-3 border border-gray-400 rounded-xl min-w-[120px] cursor-pointer">
-                  {/* Hide price block for those with dropdowns */}
                   {!(isPED || isIC || isCS || isOPD || isNCB) && (
                     <div className="text-center leading-tight text-sm text-gray-800">
                       <p className="font-medium">Premium</p>
@@ -456,30 +406,27 @@ const defaultAddons = useMemo(() => {
                   <input
                     type="checkbox"
                     {...register(`addons.${key}`)}
-                   onChange={(e) => {
-                    const checked = e.target.checked;
-                    setValue(`addons.${key}`, checked);
-                    setHasUserChanged(true);
-                    setIsAddOnsModified?.(true);
-                    setApplyClicked?.(false);
-
-                    // Auto-select first dropdown value on manual check
-                    if (checked) {
-                      if (key === "ped") setValue("pedaddonvalue", "1");
-                      else if (key === "ic") setValue("icaddonvalue", "ic");
-                      else if (key === "cs") setValue("csaddonvalue", "cs");
-                      else if (key === "opd") setValue("opdaddonvalue", "opd");
-                      else if (key === "ncb") setValue("ncbaddonvalue", "ncb");
-                    }
-                  }}
-
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setValue(`addons.${key}`, checked);
+                      setHasUserChanged(true);
+                      setIsAddOnsModified?.(true);
+                      setApplyClicked?.(false);
+                      if (checked) {
+                        if (key === "ped") setValue("pedaddonvalue", "1");
+                        else if (key === "ic") setValue("icaddonvalue", "ic");
+                        else if (key === "cs") setValue("csaddonvalue", "cs");
+                        else if (key === "opd")
+                          setValue("opdaddonvalue", "opd");
+                        else if (key === "ncb")
+                          setValue("ncbaddonvalue", "ncb");
+                      }
+                    }}
                     className="accent-purple-500 w-4 h-4"
                     disabled={
                       (isPED && isIcSelected) || (isIC && isPedSelected)
                     }
                   />
-
-                  {/* PED dropdown */}
                   {isPED && (
                     <select
                       {...register("pedaddonvalue")}
@@ -500,7 +447,6 @@ const defaultAddons = useMemo(() => {
                     </select>
                   )}
 
-                  {/* IC dropdown */}
                   {isIC && (
                     <select
                       {...register("icaddonvalue")}
@@ -521,7 +467,6 @@ const defaultAddons = useMemo(() => {
                     </select>
                   )}
 
-                  {/* CS dropdown */}
                   {isCS && (
                     <select
                       {...register("csaddonvalue")}
@@ -541,8 +486,6 @@ const defaultAddons = useMemo(() => {
                       <option value={CS_VALUES.plus}>Claim Shield Plus</option>
                     </select>
                   )}
-
-                  {/* OPD dropdown */}
                   {isOPD && (
                     <select
                       {...register("opdaddonvalue")}
@@ -562,8 +505,6 @@ const defaultAddons = useMemo(() => {
                       <option value={OPD_VALUES.plus}>OPD Plus</option>
                     </select>
                   )}
-
-                  {/* NCB dropdown (always shown even if compulsory) */}
                   {isNCB && (
                     <select
                       {...register("ncbaddonvalue")}
@@ -588,7 +529,6 @@ const defaultAddons = useMemo(() => {
             </div>
           );
         })}
-
         <div className="flex justify-end">
           <button
             type="submit"

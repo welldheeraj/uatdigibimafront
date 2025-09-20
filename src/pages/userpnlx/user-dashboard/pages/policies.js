@@ -27,11 +27,6 @@ export default function Policy() {
   const [fromIndex, setFromIndex] = useState(1);
 
   const skeletonWidths = ["w-8", "w-24", "w-20", "w-28", "w-10","w-10","w-10","w-10","w-10"];
-  // const [pagination, setPagination] = useState({
-  //   // pageIndex: 0,
-  //   // pageSize: 20,
-  // });
-
   const columns = useMemo(
     () => [
       {
@@ -67,19 +62,6 @@ export default function Policy() {
         header: "Status",
         accessorKey: "status",
       },
-      // {
-      //   header: "Action",
-      //   accessorKey: "action",
-      //    cell: ({ row }) => (
-      //   <button
-      //      onClick={() => handleDownload(row.original)}
-      //     className="text-blue-600 hover:text-blue-800"
-      //     title="Download Policy"
-      //   >
-      //     <FaDownload />
-      //   </button>
-      // ),
-      // },
       {
   header: "Action",
   accessorKey: "action",
@@ -117,9 +99,6 @@ export default function Policy() {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    // onPaginationChange: setPagination,
-    // manualPagination: true,
-    // pageCount: pageCount,
   });
 
  async function getPolicyPage(pageNum) {
@@ -129,9 +108,6 @@ export default function Policy() {
       `${constant.API.USER.POLICY}?page=${pageNum}`,
       "GET"
     );
-
-    console.log("policy ka res", response);
-
     const tableData =
       response?.data?.policies?.data?.map((item) => ({
         proposerName: item.proposar_name,
@@ -161,13 +137,10 @@ export default function Policy() {
   }, []);
 
 const handleDownload = async (policy) => {
-    console.log("Download clicked row data:", policy);
-    // return false;
   try {
     setLoading(true);
 
-    const res = await CallApi(constant.API.USER.DOWNLOADPOLICY, "POST",policy.policy_pdf_path)
- console.log(res)
+    const res = await CallApi(constant.API.USER.DOWNLOADPOLICY, "POST",policy.policy_pdf_path);
 
   } catch (error) {
     console.error("Download failed:", error);

@@ -41,7 +41,6 @@ export default function FormPage({ usersData }) {
 useEffect(() => {
   const handleAuthChange = (event) => {
     const detail = event?.detail ?? null;
-    console.log("auth-change fired (login page):", detail);
     setToken(detail?.token ?? null);
 
     if (!detail?.token) {
@@ -66,13 +65,8 @@ useEffect(() => {
   window.addEventListener("auth-change", handleAuthChange);
   return () => window.removeEventListener("auth-change", handleAuthChange);
 }, [reset]);
-
-
-  /** Prefill data if token exists */
   useEffect(() => {
     const localToken = localStorage.getItem("token");
-    console.log("Local token:", localToken);
-
     if (localToken) {
       setToken(localToken);
       setIsOtpVerified(true);
@@ -83,10 +77,6 @@ useEffect(() => {
             typeof usersData?.json === "function"
               ? await usersData.json()
               : usersData;
-
-        //   console.log("usersData inside fetchData:", usersData);
-        //   console.log("Resolved data (pincode):", data.pincode);
-
           if (data) {
             reset({
               name: data.name || "",
@@ -232,8 +222,6 @@ const onSubmit = async (data) => {
 
   try {
     const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
-
-    // robust extraction of token/username from possible response shapes
     const tokenVal = res?.token || res?.data?.token || res?.accessToken || null;
     const usernameVal =
       res?.name ||
@@ -241,8 +229,6 @@ const onSubmit = async (data) => {
       res?.user?.username ||
       data.name ||
       "";
-
-  // before redirect, after saving token to localStorage:
 if (!stoken) {
   if (tokenVal) localStorage.setItem("token", tokenVal);
   localStorage.setItem("logintype", "user");
@@ -250,11 +236,8 @@ if (!stoken) {
   if (usernameVal) {
     localStorage.setItem("username", usernameVal);
   } else {
-    // fallback: save submitted name
     localStorage.setItem("username", data.name || "");
   }
-
-  // dispatch custom event with detail
   window.dispatchEvent(
     new CustomEvent("auth-change", { detail: { username: usernameVal || data.name, token: tokenVal } })
   );
@@ -307,8 +290,6 @@ if (!stoken) {
               </label>
             ))}
           </div>
-
-          {/* Name + Email + Mobile + OTP + Pincode */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Name */}
             <div>

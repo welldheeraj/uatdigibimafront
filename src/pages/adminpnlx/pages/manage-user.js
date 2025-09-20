@@ -33,8 +33,6 @@ const ManageUser = ({ token }) => {
         `${constant.API.ADMIN.MANAGEUSER}?page=${page}`,
         "GET"
       );
-      console.log("API Response:", response);
-
       if (response?.status) {
         const userData = response?.data?.user;
         setData(userData?.data || []);

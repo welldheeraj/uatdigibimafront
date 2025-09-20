@@ -36,10 +36,6 @@ export default function Dashboard({ usersData }) {
       icon: "👥",
     },
   ];
-
-  console.log("uuuu Nmae",usersData)
-  console.log("Naaam", usersData.name)
-
   return (
     
    

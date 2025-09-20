@@ -26,9 +26,6 @@ export default function AddonModal({
   comselectedAddon,
   savingAddons,
 }) {
-  console.log("hello", selectedPlanType, selectedAddon);
-  //console.log("hello", selectedPlanType,odAddonlist,tpAddonlist,odselectedAddon,tpselectedAddon,selectedAddon,addons,);
-
   const [accessoryData, setAccessoryData] = React.useState([
     { type: "electrical", checked: false, amount: "" },
     { type: "non-electrical", checked: false, amount: "" },
@@ -51,10 +48,8 @@ export default function AddonModal({
     );
   };
 
-  // onConfirm logic (optional if not needed)
   const handleConfirm = () => {
     if (activeTab === "Tab1") {
-      // console.log(selectedPlanType, data);
       handleSaveAddons(addon115Amount);
     } else if (activeTab === "Tab2") {
       const accessoriesPayload = accessoryData
@@ -137,7 +132,7 @@ export default function AddonModal({
                     >
                       <input
                         type="checkbox"
-                        checked={selectedArray && (addon.id in selectedArray)}
+                        checked={selectedArray && addon.id in selectedArray}
                         onChange={() => {}}
                         className="mr-2 form-checkbox accent-pink-500 h-4 w-4 cursor-pointer"
                       />
@@ -146,15 +141,17 @@ export default function AddonModal({
                       </label>
                     </div>
 
-                    {addon.id == 115 && selectedArray && (addon.id in selectedArray) && (
-                      <input
-                        type="number"
-                        className="mt-2 p-1 inputcls"
-                        placeholder="Enter amount"
-                        value={addon115Amount}
-                        onChange={(e) => setAddon115Amount(e.target.value)}
-                      />
-                    )}
+                    {addon.id == 115 &&
+                      selectedArray &&
+                      addon.id in selectedArray && (
+                        <input
+                          type="number"
+                          className="mt-2 p-1 inputcls"
+                          placeholder="Enter amount"
+                          value={addon115Amount}
+                          onChange={(e) => setAddon115Amount(e.target.value)}
+                        />
+                      )}
                   </div>
                 );
               })}

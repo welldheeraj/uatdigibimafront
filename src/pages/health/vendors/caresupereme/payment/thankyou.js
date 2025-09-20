@@ -28,9 +28,6 @@ export default function ThankYou() {
         "POST",
         payload
       );
-
-      console.log(response);
-
       if (response?.status && response?.data) {
         setPolicyData(response.data);
       }

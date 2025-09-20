@@ -51,14 +51,6 @@ useEffect(() => {
           "GET"
         );
         setCarnumber(response.data.carregnumber);
-        console.log("Saved responseee", response);
-        // if (response.data.carregnumber) {
-        //   // setValue("carRegNumber", response.data.carregnumber);
-
-        //   reset({
-        //     carRegNumber: response.data.carregnumber,
-        //   });
-        // }
       } catch (error) {
         console.error(error);
       }
@@ -76,9 +68,6 @@ useEffect(() => {
       const response = await CallApi(constant.API.MOTOR.GETCITY, "POST", {
         city: value,
       });
-
-      console.log("Cities ka response", response);
-
       setCities(response);
     } catch (error) {
       console.error(error);
@@ -86,14 +75,10 @@ useEffect(() => {
   };
 
   const onSubmit = async (data) => {
-    console.log("abc data", data);
     const selected = data.vehicle;
-    console.log("Vaahan", selected);
     var payload = {
       carregnumber: data.carRegNumber,
     };
-    // console.log('im pay',payload);
-    // return ;
     if (selected === "car") {
       payload.carOption = data.carOption;
       if (data.carOption === "knowcar") {
@@ -119,16 +104,11 @@ useEffect(() => {
       }
     }
 
-    //console.log("Filtered Submit Payload:", payload);
-    // router.push(constant.ROUTES.MOTOR.KnowCarSlide2); /
-
     try {
       const response = await CallApi(constant.API.MOTOR.VERIFYRTO, "POST", {
         carregnumber: data.carRegNumber,
         carCity : data.carCity
       });
-
-      console.log("res of verifying" , response)
       var saveresponse;
       if (response) {
         saveresponse = await CallApi(
@@ -139,7 +119,6 @@ useEffect(() => {
              carCity : data.carCity
           }
         );
-        console.log("saving after verifying",saveresponse);
       }
       if (saveresponse) {
         router.push(constant.ROUTES.MOTOR.KNOWCARSTEPTWO);

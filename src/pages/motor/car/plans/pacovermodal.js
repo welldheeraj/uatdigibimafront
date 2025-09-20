@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import Modal from "@/components/modal"; // ✅ Global modal
+import Modal from "@/components/modal"; 
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 
 export default function PaCoverModal({
@@ -23,7 +23,6 @@ export default function PaCoverModal({
     .filter(([_, value]) => value)
     .map(([k]) => k);
 
-  // If the same key is the only one selected, uncheck it
   if (selectedKeys.length === 1 && selectedKeys[0] === key) {
     setOptOut({
       companyCar: false,
@@ -33,7 +32,6 @@ export default function PaCoverModal({
     return;
   }
 
-  // Otherwise, check only the clicked key
   setOptOut({
     companyCar: false,
     noDl: false,
@@ -73,7 +71,6 @@ export default function PaCoverModal({
       showCancelButton={false}
       width="max-w-2xl"
     >
-      {/* IRDAI Notice Accordion */}
       <button
         onClick={() => setShowIrdai(!showIrdai)}
         className="text-blue-600 font-medium flex items-center mb-2 mt-4"
@@ -93,8 +90,6 @@ export default function PaCoverModal({
           Please opt for &apos;Personal Accident (PA) Cover&apos;.
         </p>
       )}
-
-      {/* Opt Out Reasons */}
       <div className="mb-4">
         <h5 className="font-semibold text-sm mb-2">You can opt out if...</h5>
 <ul className="text-sm space-y-2">
@@ -135,8 +130,6 @@ export default function PaCoverModal({
 
 
       </div>
-
-      {/* What is PA Cover? Accordion */}
       <button
         onClick={() => setShowPaCover(!showPaCover)}
         className="text-blue-600 font-medium flex items-center mt-2"

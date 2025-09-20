@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect,useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { isAlpha, isNumber } from "@/styles/js/validation";
 import { FiLoader } from "react-icons/fi";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -20,8 +20,6 @@ export default function StepOneForm({
   handleVerifyAadhar,
   handleVerifyOther,
   loading,
-  // sameAddress,
-  // setSameAddress,
   fileNames,
   setFileNames,
   proofs,
@@ -41,8 +39,6 @@ export default function StepOneForm({
   setSameAddress,
   journeydata,
   userinfodata,
-  // fileNames,
-  // setFileNames,
   isPanKycHidden,
   setIsPanKycHidden,
   isAadharKycHidden,
@@ -50,135 +46,127 @@ export default function StepOneForm({
   isOtherKycHidden,
   setIsOtherKycHidden,
 }) {
-  console.log("data",cardata);
-  // console.log("car data aa gya", cardata);
-  // const [proofs, setProofs] = useState({});
   const [mediaPreview, setMediaPreview] = useState(null);
-
-  // const isPanKyc = kycData?.kyctype?.toLowerCase() === "p";
-  // const isOtherKyc = kycData?.kyctype?.toLowerCase() === "o";
-
-  // const isPanKycHidden = kycVerified && isPanKyc;
-  // const isOtherKycHidden = kycVerified && isOtherKyc;
-  // // console.log(isOtherKycHidden);
-
   const [dates, setDates] = useState({
     pancardno: "",
     aadhar: "",
     proposal: "",
   });
 
-const handleDateChange = useCallback((key, field) => (date) => {
-  const formatted = format(date, "dd-MM-yyyy");
-  setDates((prev) => ({ ...prev, [key]: date }));
-  step1Form.setValue(field, formatted, { shouldValidate: true });
-}, [step1Form]);
+  const handleDateChange = useCallback(
+    (key, field) => (date) => {
+      const formatted = format(date, "dd-MM-yyyy");
+      setDates((prev) => ({ ...prev, [key]: date }));
+      step1Form.setValue(field, formatted, { shouldValidate: true });
+    },
+    [step1Form]
+  );
   const handlePincodeInput = useCallback(
-  async (e) => {
-    const value = e.target.value;
-    const fieldId = e.target.name || e.target.id;
-if (value && value.length === 6) {
-      console.log("Ram",value)
-      try {
-        const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {
-          pincode: value,
-        });
+    async (e) => {
+      const value = e.target.value;
+      const fieldId = e.target.name || e.target.id;
+      if (value && value.length === 6) {
+        try {
+          const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {
+            pincode: value,
+          });
 
-        if (res?.length > 0) {
-          const { state, district } = res[0];
+          if (res?.length > 0) {
+            const { state, district } = res[0];
 
-          if (fieldId === "pincode") {
-            step1Form.setValue("city", district);
-            step1Form.setValue("state", state);
-          } else if (fieldId === "commcurrentpincode") {
-            step1Form.setValue("commcurrentcity", district);
-            step1Form.setValue("commcurrentstate", state);
+            if (fieldId === "pincode") {
+              step1Form.setValue("city", district);
+              step1Form.setValue("state", state);
+            } else if (fieldId === "commcurrentpincode") {
+              step1Form.setValue("commcurrentcity", district);
+              step1Form.setValue("commcurrentstate", state);
+            }
           }
+        } catch (error) {
+          console.error("Error fetching pincode info:", error);
         }
-      } catch (error) {
-        console.error("Error fetching pincode info:", error);
       }
-    }
-  },
-  [step1Form] 
-);
+    },
+    [step1Form]
+  );
   //------------------------- verifiy already ----------------------------
   const hasPrefilledUsersData = React.useRef(false);
-useEffect(() => {
-  if (!kycData) return;
+  useEffect(() => {
+    if (!kycData) return;
 
-  const typeMap = {
-    p: "PAN Card",
-    a: "Aadhar ( Last 4 Digits )",
-    o: "Others",
-  };
+    const typeMap = {
+      p: "PAN Card",
+      a: "Aadhar ( Last 4 Digits )",
+      o: "Others",
+    };
 
-  const kycCode = kycData.kyctype?.toLowerCase();
-  const kycLabel = typeMap[kycCode];
+    const kycCode = kycData.kyctype?.toLowerCase();
+    const kycLabel = typeMap[kycCode];
 
-  if (kycLabel) {
-    setKycType(kycLabel);
-    step1Form.setValue("kycType", kycLabel, { shouldValidate: true });
-    setKycVerified(true);
+    if (kycLabel) {
+      setKycType(kycLabel);
+      step1Form.setValue("kycType", kycLabel, { shouldValidate: true });
+      setKycVerified(true);
 
-    if (kycCode === "p") {
-      setIsPanVerified(true);
-      setIsPanKycHidden(true);
+      if (kycCode === "p") {
+        setIsPanVerified(true);
+        setIsPanKycHidden(true);
+      }
+      if (kycCode === "a") {
+        setIsPanVerified(true);
+        setIsAadharKycHidden(true);
+      }
+      if (kycCode === "o") {
+        setIsPanVerified(true);
+        setIsOtherKycHidden(true);
+      }
     }
-    if (kycCode === "a") {
-      setIsPanVerified(true);
-      setIsAadharKycHidden(true);
-    }
-    if (kycCode === "o") {
-      setIsPanVerified(true);
-      setIsOtherKycHidden(true);
-    }
-  }
 
-  const formatted = typeMap[kycData?.kyctype?.toLowerCase()];
-  if (formatted) {
-    setKycType(formatted);
-    step1Form.setValue("kycType", formatted, { shouldValidate: true });
-    setKycVerified(true);
-  }
-}, [
-  kycData,
-  setKycType,
-  setIsPanVerified,
-  setIsPanKycHidden,
-  setIsAadharKycHidden,
-  setIsOtherKycHidden,
-  setKycVerified,
-  step1Form,
-]);
-
-  
-    useEffect(() => {
-  if (!userinfodata) return;
-  if (cardata?.under === "individual") {
-    step1Form.setValue("proposaldob", userinfodata.userdob || "");
-    step1Form.setValue("name", userinfodata.username || "");
-  }
-}, [userinfodata, cardata?.under, step1Form]);
+    const formatted = typeMap[kycData?.kyctype?.toLowerCase()];
+    if (formatted) {
+      setKycType(formatted);
+      step1Form.setValue("kycType", formatted, { shouldValidate: true });
+      setKycVerified(true);
+    }
+  }, [
+    kycData,
+    setKycType,
+    setIsPanVerified,
+    setIsPanKycHidden,
+    setIsAadharKycHidden,
+    setIsOtherKycHidden,
+    setKycVerified,
+    step1Form,
+  ]);
 
   useEffect(() => {
-  if (!journeydata) return;
-  if (cardata?.under === "company") {
-    const safeParse = (val) => { try { return val ? JSON.parse(val) : {}; } catch {
-          return {};}};
-    const company = safeParse(journeydata.company_details);
-        step1Form.setValue("ms", company.ms || "");
-        step1Form.setValue("companyname", company.companyname || "");
-        step1Form.setValue("dobincorporation", company.dobincorporation || "");
-        step1Form.setValue("gstnumber", company.gstnumber || "");
-  }
-}, [journeydata, cardata?.under, step1Form]);
-
-
+    if (!userinfodata) return;
+    if (cardata?.under === "individual") {
+      step1Form.setValue("proposaldob", userinfodata.userdob || "");
+      step1Form.setValue("name", userinfodata.username || "");
+    }
+  }, [userinfodata, cardata?.under, step1Form]);
 
   useEffect(() => {
-     if (!usersData || hasPrefilledUsersData.current) return;
+    if (!journeydata) return;
+    if (cardata?.under === "company") {
+      const safeParse = (val) => {
+        try {
+          return val ? JSON.parse(val) : {};
+        } catch {
+          return {};
+        }
+      };
+      const company = safeParse(journeydata.company_details);
+      step1Form.setValue("ms", company.ms || "");
+      step1Form.setValue("companyname", company.companyname || "");
+      step1Form.setValue("dobincorporation", company.dobincorporation || "");
+      step1Form.setValue("gstnumber", company.gstnumber || "");
+    }
+  }, [journeydata, cardata?.under, step1Form]);
 
+  useEffect(() => {
+    if (!usersData || hasPrefilledUsersData.current) return;
 
     const set = step1Form.setValue;
 
@@ -207,106 +195,102 @@ useEffect(() => {
       }
     });
 
-   
     // step1Form.setValue("email", usersData.email || "");
     // step1Form.setValue("contactmobile", usersData.mobile || "");
     // step1Form.setValue("pincode", usersData.pincode || "");
-
-
-  }, [usersData,step1Form,handlePincodeInput]);
+  }, [usersData, step1Form, handlePincodeInput]);
 
   const isPanAlreadyVerified = isPanVerified;
 
-useEffect(() => {
-  if (!verifieddata || Object.keys(verifieddata).length === 0) return;
-  const set = step1Form.setValue;
+  useEffect(() => {
+    if (!verifieddata || Object.keys(verifieddata).length === 0) return;
+    const set = step1Form.setValue;
 
-  const map = {
-    pan: "pancardno",
-    dob: "pancardDob",
-    gender: "mr_ms_gender",
-    proposalname: "proposername",
-    proposaldob: "proposerdob1",
-    permLine1: "address",
-    permLine2: "colony",
-    permLine3: "landmark",
-    permCity: "city",
-    permState: "state",
-    permPin: "pincode",
-    email: "email",
-  };
+    const map = {
+      pan: "pancardno",
+      dob: "pancardDob",
+      gender: "mr_ms_gender",
+      proposalname: "proposername",
+      proposaldob: "proposerdob1",
+      permLine1: "address",
+      permLine2: "colony",
+      permLine3: "landmark",
+      permCity: "city",
+      permState: "state",
+      permPin: "pincode",
+      email: "email",
+    };
 
-  Object.entries(map).forEach(([apiKey, formKey]) => {
-    if (verifieddata[apiKey]) {
-      if (apiKey === "dob") {
-        const [dd, mm, yyyy] = verifieddata.dob.split("-");
-        handleDateChange("proposal", "proposerdob1")(
-          new Date(`${yyyy}-${mm}-${dd}`)
-        );
-      } else if (apiKey === "gender") {
-        const g = verifieddata.gender?.toUpperCase();
-        set(formKey, g === "M" ? "Mr" : g === "F" ? "Ms" : "");
-      } else {
-        set(formKey, verifieddata[apiKey]);
+    Object.entries(map).forEach(([apiKey, formKey]) => {
+      if (verifieddata[apiKey]) {
+        if (apiKey === "dob") {
+          const [dd, mm, yyyy] = verifieddata.dob.split("-");
+          handleDateChange(
+            "proposal",
+            "proposerdob1"
+          )(new Date(`${yyyy}-${mm}-${dd}`));
+        } else if (apiKey === "gender") {
+          const g = verifieddata.gender?.toUpperCase();
+          set(formKey, g === "M" ? "Mr" : g === "F" ? "Ms" : "");
+        } else {
+          set(formKey, verifieddata[apiKey]);
+        }
       }
-    }
-  });
-
-  const fullName = `${verifieddata.firstName || ""} ${
-    verifieddata.lastName || ""
-  }`.trim();
-  if (fullName) {
-    set("proposername", fullName);
-    set("customerAadharName", fullName);
-  }
-
-  if (verifieddata.permCorresSameflag === "Y") {
-    setSameAddress(true);
-    ["address", "colony", "landmark", "city", "state", "pincode"].forEach(
-      (key) => {
-        set(`commcurrent${key}`, step1Form.getValues(key));
-      }
-    );
-  }
-}, [verifieddata, step1Form, handleDateChange, setSameAddress]);
-
-
-useEffect(() => {
-  if (!sameAddress) return;
-
-  const get = step1Form.getValues;
-  const set = step1Form.setValue;
-
-  const syncFields = () => {
-    [
-      ["address", "commcurrenthouse"],
-      ["colony", "commcurrentcolony"],
-      ["landmark", "commcurrentlandmark"],
-      ["city", "commcurrentcity"],
-      ["state", "commcurrentstate"],
-      ["pincode", "commcurrentpincode"],
-    ].forEach(([permanent, communication]) => {
-      set(communication, get(permanent));
     });
-  };
 
-  const subscription = step1Form.watch((values, { name }) => {
-    const permKeys = [
-      "address",
-      "colony",
-      "landmark",
-      "city",
-      "state",
-      "pincode",
-    ];
-    if (permKeys.includes(name)) {
-      syncFields();
+    const fullName = `${verifieddata.firstName || ""} ${
+      verifieddata.lastName || ""
+    }`.trim();
+    if (fullName) {
+      set("proposername", fullName);
+      set("customerAadharName", fullName);
     }
-  });
 
-  return () => subscription.unsubscribe();
-}, [sameAddress, step1Form, handleDateChange, setSameAddress]);
+    if (verifieddata.permCorresSameflag === "Y") {
+      setSameAddress(true);
+      ["address", "colony", "landmark", "city", "state", "pincode"].forEach(
+        (key) => {
+          set(`commcurrent${key}`, step1Form.getValues(key));
+        }
+      );
+    }
+  }, [verifieddata, step1Form, handleDateChange, setSameAddress]);
 
+  useEffect(() => {
+    if (!sameAddress) return;
+
+    const get = step1Form.getValues;
+    const set = step1Form.setValue;
+
+    const syncFields = () => {
+      [
+        ["address", "commcurrenthouse"],
+        ["colony", "commcurrentcolony"],
+        ["landmark", "commcurrentlandmark"],
+        ["city", "commcurrentcity"],
+        ["state", "commcurrentstate"],
+        ["pincode", "commcurrentpincode"],
+      ].forEach(([permanent, communication]) => {
+        set(communication, get(permanent));
+      });
+    };
+
+    const subscription = step1Form.watch((values, { name }) => {
+      const permKeys = [
+        "address",
+        "colony",
+        "landmark",
+        "city",
+        "state",
+        "pincode",
+      ];
+      if (permKeys.includes(name)) {
+        syncFields();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [sameAddress, step1Form, handleDateChange, setSameAddress]);
 
   const fields = {
     identity: [
@@ -328,10 +312,8 @@ useEffect(() => {
     "DRIVING LICENSE": { maxLength: 16, inputMode: "text" },
     "FORM 60": { maxLength: 10, inputMode: "text" },
   };
- 
 
   useEffect(() => {
-    console.log("journey data resive",journeydata)
     if (journeydata && Object.keys(journeydata).length > 0) {
       const safeParse = (val) => {
         try {
@@ -340,9 +322,9 @@ useEffect(() => {
           return {};
         }
       };
-       step1Form.setValue("mr_ms_gender", journeydata.gender || "");
-    step1Form.setValue("proposername",journeydata.name || "" || "");
-  
+      step1Form.setValue("mr_ms_gender", journeydata.gender || "");
+      step1Form.setValue("proposername", journeydata.name || "" || "");
+
       step1Form.setValue("proposerdob1", journeydata.dob || "");
 
       const contact = safeParse(journeydata.contact_details);
@@ -364,11 +346,9 @@ useEffect(() => {
       step1Form.setValue("commcurrentcity", comm.commcurrentcity || "");
       step1Form.setValue("commcurrentstate", comm.commcurrentstate || "");
       step1Form.setValue("commcurrentpincode", comm.commcurrentpincode || "");
-
-      
     }
-  }, [journeydata,step1Form]);
-    useEffect(() => {
+  }, [journeydata, step1Form]);
+  useEffect(() => {
     const unregister = step1Form.unregister;
     if (kycType !== "PAN Card") {
       unregister("pancardno");
@@ -421,12 +401,11 @@ useEffect(() => {
                       : null
                   }
                   onChange={(date) => {
-                if (date instanceof Date && !isNaN(date)) {
-                  const formatted = format(date, "dd-MM-yyyy");
-                  field.onChange(formatted);
-                }
-              }}
-                 
+                    if (date instanceof Date && !isNaN(date)) {
+                      const formatted = format(date, "dd-MM-yyyy");
+                      field.onChange(formatted);
+                    }
+                  }}
                   placeholder="Pick a date"
                   error={!!fieldState.error}
                   errorText={fieldState.error?.message}
@@ -477,12 +456,12 @@ useEffect(() => {
                         ? parse(field.value, "dd-MM-yyyy", new Date())
                         : null
                     }
-                     onChange={(date) => {
-                if (date instanceof Date && !isNaN(date)) {
-                  const formatted = format(date, "dd-MM-yyyy");
-                  field.onChange(formatted);
-                }
-              }}
+                    onChange={(date) => {
+                      if (date instanceof Date && !isNaN(date)) {
+                        const formatted = format(date, "dd-MM-yyyy");
+                        field.onChange(formatted);
+                      }
+                    }}
                     placeholder="Pick a date"
                     error={!!fieldState.error}
                     errorText={fieldState.error?.message}
@@ -549,10 +528,10 @@ useEffect(() => {
               id="pancardDob"
               name="pancardDob"
               value={dates.pancardno}
-                onChange={(date) => {
+              onChange={(date) => {
                 if (date instanceof Date && !isNaN(date)) {
                   const formatted = format(date, "dd-MM-yyyy");
-                  handleDateChange("pancardno", "pancardDob")
+                  handleDateChange("pancardno", "pancardDob");
                 }
               }}
               placeholder="Pick a start date"
@@ -620,12 +599,12 @@ useEffect(() => {
                 id="aadharDob"
                 name="aadharDob"
                 value={dates.aadhar}
-                  onChange={(date) => {
-                if (date instanceof Date && !isNaN(date)) {
-                  const formatted = format(date, "dd-MM-yyyy");
-                  handleDateChange("aadhar", "aadharDob");
-                }
-              }}
+                onChange={(date) => {
+                  if (date instanceof Date && !isNaN(date)) {
+                    const formatted = format(date, "dd-MM-yyyy");
+                    handleDateChange("aadhar", "aadharDob");
+                  }
+                }}
                 placeholder="Pick a start date"
                 error={!dates.aadhar}
                 errorText="Please select a valid date"
@@ -788,7 +767,7 @@ useEffect(() => {
             <div>
               <label className="labelcls">Upload Media</label>
               <div className="flex flex-col gap-2 items-start">
-               <input
+                <input
                   type="file"
                   id="media-upload"
                   className="hidden"
@@ -809,7 +788,7 @@ useEffect(() => {
                   Choose Photo
                 </label>
                 {mediaPreview && (
-                 <div className="relative w-24 h-24">
+                  <div className="relative w-24 h-24">
                     <Image
                       name="insurephoto"
                       src={mediaPreview}
@@ -860,7 +839,6 @@ useEffect(() => {
               });
 
               if (!mediaPreview) {
-                console.log("ram")
                 missingFields.push("Upload Media");
               }
 
@@ -909,15 +887,6 @@ useEffect(() => {
             />
 
             <div className="md:col-span-4">
-              {/* <UniversalDatePicker
-                id="proposerdob1"
-                name="proposerdob1"
-                value={dates.proposal}
-                onChange={handleDateChange("proposal", "proposerdob1")}
-                placeholder="Pick a start date"
-                error={!dates.proposal}
-                errorText="Please select a valid date"
-              /> */}
               <Controller
                 control={step1Form.control}
                 name="proposerdob1"
@@ -932,12 +901,12 @@ useEffect(() => {
                         ? parse(field.value, "dd-MM-yyyy", new Date())
                         : null
                     }
-                     onChange={(date) => {
-                        if (date instanceof Date && !isNaN(date)) {
-                          const formatted = format(date, "dd-MM-yyyy");
-                          field.onChange(formatted);
-                        }
-                      }}
+                    onChange={(date) => {
+                      if (date instanceof Date && !isNaN(date)) {
+                        const formatted = format(date, "dd-MM-yyyy");
+                        field.onChange(formatted);
+                      }
+                    }}
                     placeholder="Pick a date"
                     error={!!fieldState.error}
                     errorText={fieldState.error?.message}

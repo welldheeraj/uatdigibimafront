@@ -14,8 +14,7 @@ const AdminLogin  = ({ usersData }) => {
   const [showOtp, setShowOtp] = useState(false);
   const [timer, setTimer] = useState(20);
   const [canResend, setCanResend] = useState(false);
-   const [stoken, setToken] = useState();
-  console.log(usersData)
+  const [stoken, setToken] = useState();
   const router = useRouter();
 
   useEffect(() => {
@@ -46,7 +45,6 @@ const AdminLogin  = ({ usersData }) => {
         "POST",
         payload
       );
-       console.log("verifiy mob",response)
       if (response.status === false) {
         showError(response.message);
         return;
@@ -90,8 +88,6 @@ const AdminLogin  = ({ usersData }) => {
         "POST",
         data
       );
-      console.log(response)
-
       if (response.status === false) {
         showError(response.message);
       }

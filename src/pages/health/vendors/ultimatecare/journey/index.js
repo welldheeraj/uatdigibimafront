@@ -11,12 +11,11 @@ import StepFourForm from "./stepfour.js";
 import SummaryCard from "../checkout/rightsection.js";
 import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "@/styles/js/validation.js";
-import  validateStepTwoData  from "./validatesteptwoagedata.js";
+import validateStepTwoData from "./validatesteptwoagedata.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
-// import HealthInsuranceLoader from "../../../loader";
-import {HealthLoaderOne} from "@/components/loader";
+import { HealthLoaderOne } from "@/components/loader";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -47,7 +46,6 @@ export default function StepperForm({ usersData, kycData }) {
   const [oldPincode, setOldPincode] = useState("");
   const [newPincode, setNewPincode] = useState("");
   const searchParams = useSearchParams();
-  // console.log("User Data:", kycData);
   const summaryData = useMemo(() => {
     const getParsed = (key) => {
       try {
@@ -56,7 +54,6 @@ export default function StepperForm({ usersData, kycData }) {
         return [];
       }
     };
-    // console.log("hello World", searchParams);
     return {
       tenure: searchParams.get("tenure") || "",
       coverAmount: searchParams.get("coverAmount") || "",
@@ -103,16 +100,15 @@ export default function StepperForm({ usersData, kycData }) {
   const validateFormStepOne = async () => {
     const rawValues = step1Form.getValues();
 
- const tp = typeof totalPremium === "number"
-  ? totalPremium
-  : Number(String(totalPremium).replace(/[^\d.]/g, "")); // removes ₹ , spaces
+    const tp =
+      typeof totalPremium === "number"
+        ? totalPremium
+        : Number(String(totalPremium).replace(/[^\d.]/g, "")); // removes ₹ , spaces
 
-if (tp > 50000 && kycType !== "PAN Card") {
-  showError("For policies above ₹50,000, PAN verification is mandatory.");
-  return false;
-}
-    console.log("kyc ka type",kycType)
-    console.log("amount",tp)
+    if (tp > 50000 && kycType !== "PAN Card") {
+      showError("For policies above ₹50,000, PAN verification is mandatory.");
+      return false;
+    }
     if (!kycVerified) {
       showError("Please complete KYC verification before proceeding.");
       return false;
@@ -127,9 +123,6 @@ if (tp > 50000 && kycType !== "PAN Card") {
       sameAddress: sameAddress ? "1" : "0",
     };
     delete values.panDob;
-
-    console.log(values);
-    console.log("pandob", values.customerpancardDob);
     try {
       setLoading(true);
       const res = await CallApi(
@@ -137,7 +130,6 @@ if (tp > 50000 && kycType !== "PAN Card") {
         "POST",
         values
       );
-      console.log(res);
       if (res === 1 || res?.status) {
         setStepOneData(res);
         return true;
@@ -194,15 +186,12 @@ if (tp > 50000 && kycType !== "PAN Card") {
     const members = steptwodata?.member || [];
     const agreeTnC = data.agreeTnC;
     const standingInstruction = data.standingInstruction;
-    console.log("ram", agreeTnC, standingInstruction);
     let hasError = false;
     let firstInvalidInput = null;
     let dobErrorShown = false;
 
-    if (!agreeTnC ) {
-      // Optional: Focus on the first missing field
+    if (!agreeTnC) {
       if (!agreeTnC) step3Form.setFocus("agreeTnC");
-
       showError(
         "Please agree to Terms & Conditions and Standing Instruction to continue."
       );
@@ -368,18 +357,12 @@ if (tp > 50000 && kycType !== "PAN Card") {
         result.push(memberData);
       }
     });
-
-    console.log(result);
-    // return false;
-
     try {
       const res = await CallApi(
         constant.API.HEALTH.ULTIMATECARE.SAVESTEPTHREE,
         "POST",
         result
       );
-      console.log("Step 3 API Response", res);
-
       if (res === 1 || res?.status) {
         setStepThreeData(res);
         return true;
@@ -395,7 +378,6 @@ if (tp > 50000 && kycType !== "PAN Card") {
   };
 
   const GoToPayment = async () => {
-    // console.log("Ram")
     setLoading(true);
     try {
       const res = await CallApi(
@@ -423,43 +405,41 @@ if (tp > 50000 && kycType !== "PAN Card") {
   const goNext = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
 
   const onSubmitStep = async () => {
-      setSubmitStepLoader(true);
-       try {
-    let isValid = false;
-    if (currentStep === 1) isValid = await validateFormStepOne();
-    else if (currentStep === 2) isValid = await validateFormStepTwo();
-    else if (currentStep === 3)
-      isValid = await validateFormStepThree(step3Form, steptwodata);
-    else if (currentStep === 4) isValid = await GoToPayment();
+    setSubmitStepLoader(true);
+    try {
+      let isValid = false;
+      if (currentStep === 1) isValid = await validateFormStepOne();
+      else if (currentStep === 2) isValid = await validateFormStepTwo();
+      else if (currentStep === 3)
+        isValid = await validateFormStepThree(step3Form, steptwodata);
+      else if (currentStep === 4) isValid = await GoToPayment();
 
-    if (!isValid) {
-      setSubmitStepLoader(false);
-      return;
-    }
-    const formToUse =
-      currentStep === 1
-        ? step1Form
-        : currentStep === 2
-        ? step2Form
-        : currentStep === 3
-        ? step3Form
-        : step4Form;
-
-    console.log(`Step ${currentStep} Data:`, formToUse.getValues());
-   goNext();
+      if (!isValid) {
+        setSubmitStepLoader(false);
+        return;
+      }
+      const formToUse =
+        currentStep === 1
+          ? step1Form
+          : currentStep === 2
+          ? step2Form
+          : currentStep === 3
+          ? step3Form
+          : step4Form;
+      goNext();
     } catch (e) {
     } finally {
       setSubmitStepLoader(false);
     }
-      };
-    
+  };
+
   const handleVerifyPan = async () => {
     const values = step1Form.getValues();
     await validateKycStep(
       step1Form,
       "PAN Card",
       values,
-      totalPremium ,
+      totalPremium,
       proofs,
       setKycVerified,
       kycVerified,
@@ -477,7 +457,7 @@ if (tp > 50000 && kycType !== "PAN Card") {
       step1Form,
       "Aadhar ( Last 4 Digits )",
       values,
-      totalPremium ,
+      totalPremium,
       proofs,
       setKycVerified,
       kycVerified,
@@ -495,7 +475,7 @@ if (tp > 50000 && kycType !== "PAN Card") {
       step1Form,
       "Others",
       values,
-      totalPremium ,
+      totalPremium,
       proofs,
       setKycVerified,
       kycVerified,
@@ -508,7 +488,6 @@ if (tp > 50000 && kycType !== "PAN Card") {
   };
   useEffect(() => {
     if (quoteData.totalpremium) {
-      console.log("Updated Quote Data:", quoteData);
     }
   }, [quoteData]);
   return (

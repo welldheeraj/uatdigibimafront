@@ -14,12 +14,10 @@ export default function StepFourForm({
 }) {
   const { apiresponse, verify_details, proposal, paymentSummery } =
     stepthreedata || {};
-  console.log("four", stepthreedata);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const handleEditStep = (stepNo) => {
-    console.log("Ram");
     const currentParams = new URLSearchParams(searchParams.toString());
     currentParams.set("step", stepNo);
     router.push(`/health/journey?${currentParams.toString()}`);

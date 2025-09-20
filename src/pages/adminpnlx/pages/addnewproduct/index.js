@@ -4,10 +4,9 @@ import { CallApi } from "@/api";
 import constant from "@/env";
 
 const NewProduct = forwardRef(({ selectedProduct, closeModal, refreshData, plans, vendors }, ref) => {
-  console.log(vendors);
   const [formValues, setFormValues] = useState({
     productName: "",
-    vendorName: null,   // will hold vendor object { value, label }
+    vendorName: null,   
     selectedPlan: null,
     selectedAddons: [],
   });
@@ -20,8 +19,6 @@ const NewProduct = forwardRef(({ selectedProduct, closeModal, refreshData, plans
 
   const [newAddonOption, setNewAddonOption] = useState(null);
   const [showNewAddon, setShowNewAddon] = useState(false);
-
-  // ✅ Vendors ko react-select ke options me convert karna
   const vendorOptions = useMemo(() => {
     return (vendors || []).map((v) => ({
       value: v.id,
@@ -75,16 +72,15 @@ const NewProduct = forwardRef(({ selectedProduct, closeModal, refreshData, plans
   const handleSave = async () => {
     const payload = {
       productname: formValues.productName,
-      vendorid: formValues.vendorName?.value || null, // ✅ vendor id
-      vendorname: formValues.vendorName?.label || "", // ✅ vendor name
-      planid: formValues.selectedPlan?.value || null, // ✅ plan id
+      vendorid: formValues.vendorName?.value || null, 
+      vendorname: formValues.vendorName?.label || "",
+      planid: formValues.selectedPlan?.value || null, 
       planname: formValues.selectedPlan?.label || "",
       addons: formValues.selectedAddons.map((addon) => addon.value),
     };
-    console.log("Saving product:", payload);
+
     try {
       const response = await CallApi(constant.API.ADMIN.ADDNEWPRODUCT, "POST", payload);
-      console.log("Add response:", response);
       if (response?.status) {
         refreshData?.();
         closeModal();

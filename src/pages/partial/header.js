@@ -21,7 +21,6 @@ import { logo } from "@/images/Image";
 
 export default function Header({ token, username, setUsername }) {
   const [localToken, setLocalToken] = useState(token || null);
-  console.log();
   const [data, setData] = useState({ notifications: [], userName: null });
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +35,6 @@ export default function Header({ token, username, setUsername }) {
     setError("");
     try {
       const res = await CallApi(constant.API.USER.NOTIFICATION, "GET");
-      console.log(res)
       if (res?.status) {
         const notifications = Array.isArray(res?.notification)
           ? res.notification.map((n) => ({
@@ -141,16 +139,9 @@ export default function Header({ token, username, setUsername }) {
   useEffect(() => {
     const updateAuth = (e) => {
       const detail = e?.detail ?? null;
-
       const tokenLocal = detail?.token ?? localStorage.getItem("token");
       const userName =
         detail?.username ?? localStorage.getItem("username") ?? null;
-
-      console.log("auth-change fired:", {
-        fromEvent: detail,
-        tokenLocal,
-        userName,
-      });
 
       if (tokenLocal) {
         setData((prev) => ({ ...prev, userName }));
@@ -162,14 +153,13 @@ export default function Header({ token, username, setUsername }) {
       }
     };
 
-    updateAuth(); // run once on mount
+    updateAuth(); 
     window.addEventListener("auth-change", updateAuth);
     return () => window.removeEventListener("auth-change", updateAuth);
   }, [fetchData, setUsername]);
 
   return (
     <header className="w-full bg-[#C8EDFE]">
-      {/* 🔔 Notifications Modal */}
       <Modal
         isOpen={showNotificationModal}
         onClose={async () => {
@@ -236,7 +226,6 @@ export default function Header({ token, username, setUsername }) {
         )}
       </Modal>
 
-      {/* 📧 Contact Bar */}
       <div className="w-full bg-gradient-to-r from-[#28A7E4] to-[#4C609A] text-white text-sm px-6 py-2 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <FaEnvelope className="text-xs" />
@@ -248,14 +237,12 @@ export default function Header({ token, username, setUsername }) {
         </div>
       </div>
 
-      {/* Logo + Profile */}
       <div className="bg-white px-6 py-4 mx-4 flex justify-between items-center rounded-bl-[40px] rounded-br-[40px] shadow-sm border-b relative">
         <Link href="/">
           <Image src={logo} alt="DigiBima Logo" className="h-[35px] w-auto" />
         </Link>
 
         <div className="relative flex items-center gap-2">
-          {/* 🔔 Bell */}
         {notifications.length > 0 && (
   <button
     onClick={() => setShowNotificationModal(true)}
@@ -273,9 +260,6 @@ export default function Header({ token, username, setUsername }) {
     )}
   </button>
 )}
-
-
-          {/* 👤 Dropdown */}
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen((prev) => !prev)}

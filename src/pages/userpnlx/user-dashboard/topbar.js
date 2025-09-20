@@ -98,9 +98,6 @@ export default function TopBar({ setActivePage, setIsMobileMenuOpen }) {
 
       const payload =
         notificationId === null ? { notificationId: false } : { notificationId };
-
-        console.log(payload);
-        // return false;
       const res = await CallApi(
         constant.API.USER.MARKNOTIFICATION,
         "POST",

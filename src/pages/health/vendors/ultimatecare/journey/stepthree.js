@@ -1,13 +1,13 @@
 "use client";
 import React from "react";
 import constant from "@/env";
-
 export default function StepThreeForm({
   step3Form,
   onSubmitStep,
   steptwodata,
   inputClass,
 }) {
+  console.log(step3Form)
   const rawMembers = (steptwodata?.members || []).filter(
     (m) => m.name?.toLowerCase() !== "self"
   );

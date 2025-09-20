@@ -48,7 +48,6 @@ export default function StepperForm({ usersData, kycData }) {
   const [motortype, setMotorType] = useState([]);
 
   const searchParams = useSearchParams();
-  // console.log("User Data:", kycData);
   const summaryData = useMemo(() => {
     const getParsed = (key) => {
       try {
@@ -57,7 +56,6 @@ export default function StepperForm({ usersData, kycData }) {
         return [];
       }
     };
-    // console.log("hello World", searchParams);
     return {
       tenure: searchParams.get("tenure") || "",
       coverAmount: searchParams.get("coverAmount") || "",
@@ -126,9 +124,6 @@ export default function StepperForm({ usersData, kycData }) {
       sameAddress: sameAddress ? "1" : "0",
     };
     delete values.panDob;
-
-    console.log(values);
-    console.log("pandob", values.customerpancardDob);
     try {
       setLoading(true);
 
@@ -137,7 +132,6 @@ export default function StepperForm({ usersData, kycData }) {
         "POST",
         values
       );
-      console.log(res);
       if (res === 1 || res?.status) {
         setStepOneData(res);
         return true;
@@ -213,8 +207,6 @@ export default function StepperForm({ usersData, kycData }) {
 
 
     const data = step3Form.getValues();
-
-    console.log(data);
     setLoading(true);
     try {
       const res = await CallApi(
@@ -222,9 +214,6 @@ export default function StepperForm({ usersData, kycData }) {
         "POST",
         data
       );
-
-      console.log("Step 3 API Response:", res);
-
       const status = res?.data?.status;
       const errorDesc = res?.data?.apiresponse?.ERROR_DESC;
 
@@ -283,25 +272,16 @@ const onSubmitStep = async () => {
     setSubmitStepLoader(true);
     try {
       let isValid = false;
-      // console.log("runs1");
       if (currentStep === 1) {
         isValid = await validateFormStepOne();
-        // console.log("isValid", isValid);
       } else if (currentStep === 2) isValid = await validateFormStepTwo();
       else if (currentStep === 3)
         isValid = await validateFormStepThree(step3Form, steptwodata);
       else if (currentStep === 4) isValid = await GoToPayment();
-
-      // console.log("runs2");
-
       if (!isValid) {
         setSubmitStepLoader(false);
-        // console.log("runs3");
         return;
       }
-
-      console.log("runs3 outside");
-
       const formToUse =
         currentStep === 1
           ? step1Form
@@ -311,11 +291,6 @@ const onSubmitStep = async () => {
           ? step3Form
           : step4Form;
 
-      // console.log("runs4");
-
-      console.log(`Step ${currentStep} Data:`, formToUse.getValues());
-
-      // console.log("runs5");
       goNext();
     } catch (e) {
     } finally {
@@ -406,8 +381,6 @@ const onSubmitStep = async () => {
           constant.API.MOTOR.BIKE.SHRIRAM.SAVEDATA,
           "GET"
         );
-
-        console.log("Full response:", res);
         if (res?.data?.details) {
           setBikeData(res.data.details);
         }

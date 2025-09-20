@@ -47,8 +47,6 @@ const ManageProduct = ({ token }) => {
         `${constant.API.ADMIN.PRODUCT}?page=${page}`,
         "GET"
       );
-      console.log("ManageProduct API:", response);
-
       if (response?.status) {
         const productPage = response?.data;   
         const vendorsPage = response?.vendors; 

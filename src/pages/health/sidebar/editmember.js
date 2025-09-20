@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -23,7 +22,6 @@ export default function InsureSidebarComponent({ onClose }) {
     const getInsureData = async () => {
       try {
         const res = await CallApi(constant.API.HEALTH.GETINSURE);
-        console.log(res)
         if (res.status && res.data) {
             if (res.gender) {
               setGender(res.gender.toLowerCase()); 

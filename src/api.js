@@ -1,11 +1,9 @@
 import { openDB } from 'idb';
-//import {constant} from './pages'
 const DB_NAME = 'AuthDB';
 const STORE_NAME = 'tokens';
 import constant from '@/env'
 
 export async function CallApi(url, method = "POST", data = null) {
-  // console.log(data);
   let token = localStorage.getItem("token");
   let options = {
     method,
@@ -17,8 +15,6 @@ export async function CallApi(url, method = "POST", data = null) {
   if (data) {
     options.body = JSON.stringify({ data: data });
   }
-  // console.log("url:",url);
-  // console.log("data:",data);
   let res = await fetch(url, options);
   if (!res.ok) throw new Error("API request failed");
   return await res.json();
@@ -27,12 +23,6 @@ export async function CallApi(url, method = "POST", data = null) {
 
 export async function UploadDocument(url, method = "POST", file = null) {
   const token = localStorage.getItem("token");
-
-  // const formData = new FormData();
-  // if (file) {
-  //   formData.append("file", file);
-  // }
-
   let options = {
     method,
     headers: {
@@ -56,7 +46,6 @@ export async function getUserinfo(token = localStorage.getItem("token")) {
   return response;
 }
 export async function VerifyToken(pretoken) {
-  //let token = localStorage.getItem('token');
   const response = await fetch("/api/verifytoken", {
     headers: {
       "Content-Type": "application/json",

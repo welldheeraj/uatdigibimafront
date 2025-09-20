@@ -28,12 +28,8 @@ const AddVendorForm = forwardRef(({ plans, closeModal, refreshData }, ref) => {
   };
 
 const handleSubmit = async () => {
-  console.log("Submitting form:", formValues);
 
   try {
-    // Optional validation
-   
-
     const res = await CallApi(constant.API.ADMIN.ADDNEWVENDOR, "POST", formValues);
 
     if (res?.status) {

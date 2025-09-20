@@ -67,8 +67,6 @@ export default function StepTwoForm({
 
     const self = steponedata?.self?.[0] || {};
     const u = usersData || {};
-    console.log("step one data:", steponedata);
-
     const getVal = (key) => self[key] || u[key] || "";
 
     const fieldMap = {
@@ -138,8 +136,6 @@ export default function StepTwoForm({
           constant.API.HEALTH.CARESUPEREME.SAVESTEPTWO,
           "GET"
         );
-        console.log("API Response:", res);
-
         const savedData = res.data || [];
 
         // BANK

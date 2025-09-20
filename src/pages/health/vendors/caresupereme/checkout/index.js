@@ -3,44 +3,36 @@
 import React, { useState, useEffect } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-
 import CoverageAmount from "./coverageamount";
 import PolicyPeriodOptions from "./policyperiodoptions";
 import AddOnSelection from "./addonselection";
 import MemberDetails from "./editmember";
 import SummaryCard from "./rightsection";
-// import HealthInsuranceLoader from "../../../loader";
 import SlidePanel from "../../../sidebar/index";
-
 import { CallApi } from "../../../../../api";
 import constant from "../../../../../env";
 
 export default function ProposalUI() {
   const router = useRouter();
-
   const [loading, setLoading] = useState(true);
   const [addons, setAddons] = useState({});
-    const [addonsDes, setAddonsDes] = useState({});
+  const [addonsDes, setAddonsDes] = useState({});
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [fullAddonsName, setFullAddonsName] = useState({});
   const [compulsoryAddons, setCompulsoryAddons] = useState([]);
-
   const [coverageOptions, setCoverageOptions] = useState([]);
   const [coverAmount, setCoverAmount] = useState("");
   const [tenureOptions, setTenureOptions] = useState([]);
   const [tenure, setTenure] = useState("");
   const [tenurePrices, setTenurePrices] = useState({});
-    const [totalPremium, setTotalPremium] = useState("");
-
+  const [totalPremium, setTotalPremium] = useState("");
   const [insurers, setInsurers] = useState([]);
   const [childList, setChildList] = useState([]);
   const [gender, setGender] = useState("");
   const [kycRequired, setKycRequired] = useState(false);
-
   const [isSlideOpen, setIsSlideOpen] = useState(false);
   const [pincode, setPincode] = useState("");
   const [memberName, setMemberName] = useState("");
-
   const [applyClicked, setApplyClicked] = useState(false);
   const [isAddOnsModified, setIsAddOnsModified] = useState(false);
 
@@ -52,11 +44,10 @@ export default function ProposalUI() {
     setLoading(true);
     CallApi(constant.API.HEALTH.CARESUPEREME.CHECKOUT)
       .then((res) => {
-        console.log(res)
         setSelectedAddons(res.selected_addon || []);
         setAddons(res["addon value"] || {});
         setFullAddonsName(res.addonname || {});
-         setAddonsDes(res.addondes || {});
+        setAddonsDes(res.addondes || {});
         setCompulsoryAddons(res.compulsoryaddon || []);
         setCoverageOptions(res.coveragelist || []);
         setCoverAmount(res.coverage || "");
@@ -68,9 +59,9 @@ export default function ProposalUI() {
         setChildList(res.child || []);
         setGender(res.gender || "");
         setKycRequired(res.kyc === "1");
-          const allMembers = res.aInsureData || [];
-      const memberCount = allMembers.length;
-      setMemberName(`Self(${memberCount})`);
+        const allMembers = res.aInsureData || [];
+        const memberCount = allMembers.length;
+        setMemberName(`Self(${memberCount})`);
       })
       .catch((err) => console.error("Checkout error:", err))
       .finally(() => setLoading(false));
@@ -102,10 +93,10 @@ export default function ProposalUI() {
   const basePremium = tenurePrices[tenure] || 0;
   // const totalPremium =
   //   basePremium
-    //  +
-    // Object.entries(addons)
-    //   .filter(([key]) => compulsoryAddons.includes(key))
-      // .reduce((sum, [, price]) => sum + (Number(price) || 0), 0);
+  //  +
+  // Object.entries(addons)
+  //   .filter(([key]) => compulsoryAddons.includes(key))
+  // .reduce((sum, [, price]) => sum + (Number(price) || 0), 0);
 
   const handleCoverageOrTenureChange = (type, value) => {
     const updatedPayload =
@@ -123,14 +114,6 @@ export default function ProposalUI() {
       .finally(() => setLoading(false));
   };
 
-  // if (loading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bgcolor">
-  //       <HealthInsuranceLoader />
-  //     </div>
-  //   );
-  // }
-
   return (
     <div className="bgcolor min-h-screen px-3 sm:px-10 lg:px-20 py-6">
       <button
@@ -147,7 +130,9 @@ export default function ProposalUI() {
         <div className="flex-1">
           <CoverageAmount
             coverAmount={coverAmount}
-            setCoverAmount={(val) => handleCoverageOrTenureChange("coverage", val)}
+            setCoverAmount={(val) =>
+              handleCoverageOrTenureChange("coverage", val)
+            }
             coverageOptions={coverageOptions}
           />
 
@@ -160,7 +145,7 @@ export default function ProposalUI() {
 
           <AddOnSelection
             addons={addons}
-             addonsDes={addonsDes}
+            addonsDes={addonsDes}
             compulsoryAddons={compulsoryAddons}
             fullAddonsName={fullAddonsName}
             selectedAddons={selectedAddons}

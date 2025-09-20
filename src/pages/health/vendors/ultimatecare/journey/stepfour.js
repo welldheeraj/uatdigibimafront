@@ -12,11 +12,9 @@ export default function StepFourForm({
   totalPremium
 }) {
 
-  const router = useRouter();
+const router = useRouter();
 const searchParams = useSearchParams();
-
 const handleEditStep = (stepNo) => {
-  console.log("Ram")
   const currentParams = new URLSearchParams(searchParams.toString());
   currentParams.set("step", stepNo); 
   router.push(`/health/vendors/ultimatecare/journey?${currentParams.toString()}`);
@@ -40,10 +38,6 @@ const handleEditStep = (stepNo) => {
       } else if (Array.isArray(raw)) {
         individualPed = raw;
       }
-
-      // console.log("Individual PED for", member.name, ":", individualPed);
-
-    
       individualPed.forEach((item) => {
         parsedPed.push({
           ...item,
@@ -51,22 +45,15 @@ const handleEditStep = (stepNo) => {
         });
       });
     });
-
-    // console.log("Final Combined PED:", parsedPed);
   } catch (err) {
     console.error("Invalid PED JSON:", err);
   }
-
- 
   const medicalHistory = parsedPed.filter(
     (item) => item.did?.startsWith("1.") || item.did?.startsWith("2.")
   );
   const lifestyleHistory = parsedPed.filter((item) =>
     item.did?.startsWith("3.")
   );
-
-  // console.log("Medical:", medicalHistory);
-  // console.log("Lifestyle:", lifestyleHistory);
   return (
     <form
       onSubmit={(e) => e.preventDefault()}

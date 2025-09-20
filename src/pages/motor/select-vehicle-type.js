@@ -9,7 +9,6 @@ import { CallApi, isAuth } from "../../api";
 import { FaCar, FaMotorcycle, FaTractor } from "react-icons/fa6";
 import { homecommercial } from "@/images/Image";
 
-
 export default function VehicleSelect({ usersData }) {
   const [carnumber, setCarnumber] = useState();
   const [bikenumber, setBikenumber] = useState();
@@ -60,7 +59,7 @@ export default function VehicleSelect({ usersData }) {
       carRegNumber: carnumber,
       bikeRegNumber: bikenumber,
     });
-  }, [usersData, carnumber, bikenumber,reset]);
+  }, [usersData, carnumber, bikenumber, reset]);
 
   useEffect(() => {
     async function getSavedResponse() {
@@ -70,14 +69,6 @@ export default function VehicleSelect({ usersData }) {
           "GET"
         );
         setCarnumber(response.data.carregnumber);
-        console.log("Saved responseee", response);
-        // if (response.data.carregnumber) {
-        //   // setValue("carRegNumber", response.data.carregnumber);
-
-        //   reset({
-        //     carRegNumber: response.data.carregnumber,
-        //   });
-        // }
       } catch (error) {
         console.error(error);
       }
@@ -92,8 +83,6 @@ export default function VehicleSelect({ usersData }) {
           constant.API.MOTOR.BIKE.BIKESAVESTEPONE,
           "GET"
         );
-
-        console.log("Getting From Bike Saved responseee", response);
         setBikenumber(response.data.bikeregnumber);
       } catch (error) {
         console.error(error);
@@ -107,9 +96,6 @@ export default function VehicleSelect({ usersData }) {
       const response = await CallApi(constant.API.MOTOR.GETCITY, "POST", {
         city: value,
       });
-
-      console.log("Cities ka response", response);
-
       setCities(response);
     } catch (error) {
       console.error(error);
@@ -117,14 +103,10 @@ export default function VehicleSelect({ usersData }) {
   };
 
   const onSubmit = async (data) => {
-    console.log("abc data", data);
     const selected = data.vehicle;
-    console.log("Vaahan", selected);
     var payload = {
       carregnumber: data.carRegNumber,
     };
-    console.log("im pay", payload);
-    // return ;
     if (selected === "car") {
       payload.carOption = data.carOption;
       if (data.carOption === "knowcar") {
@@ -134,7 +116,6 @@ export default function VehicleSelect({ usersData }) {
           const response = await CallApi(constant.API.MOTOR.VERIFYRTO, "POST", {
             carregnumber: data.carRegNumber,
           });
-          -console.log("res of verifying RTO", response);
 
           if (response.status === false) {
             showError(response.message);
@@ -153,7 +134,6 @@ export default function VehicleSelect({ usersData }) {
                 carregnumber: data.carRegNumber,
               }
             );
-            console.log("saving after verifying", saveresponse);
           }
           if (saveresponse) {
             router.push(constant.ROUTES.MOTOR.CAR.KNOWCARSTEPTWO);
@@ -204,8 +184,6 @@ export default function VehicleSelect({ usersData }) {
               bikeregnumber: data.bikeRegNumber,
             }
           );
-          -console.log("res of Bike verifying RTO", response);
-
           if (response.status === false) {
             showError(response.message);
           }
@@ -222,9 +200,6 @@ export default function VehicleSelect({ usersData }) {
                 bikeregnumber: data.bikeRegNumber,
               }
             );
-
-            console.log(bikeDetailsSave);
-
             if (bikeDetailsSave.status === true) {
               router.push(constant.ROUTES.MOTOR.BIKE.KNOWBIKESTEPTWO);
             }
@@ -249,9 +224,6 @@ export default function VehicleSelect({ usersData }) {
               newbikecity: selectedcity,
             }
           );
-
-          console.log("new bike kaa res", response);
-
           if (response.status === false) {
             showError(response.message);
           }
@@ -288,16 +260,14 @@ export default function VehicleSelect({ usersData }) {
     };
   }, []);
   const onInvalid = (errors) => {
-  const firstErrorKey = Object.keys(errors)[0];
-  const message = errors[firstErrorKey]?.message || "Please check required fields.";
-  showError(message);
-};
+    const firstErrorKey = Object.keys(errors)[0];
+    const message =
+      errors[firstErrorKey]?.message || "Please check required fields.";
+    showError(message);
+  };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="bgcolor py-6 sm:py-10"
-    >
+    <form onSubmit={handleSubmit(onSubmit)} className="bgcolor py-6 sm:py-10">
       <div className="flex justify-center items-center min-h-screen">
         <div className="w-full max-w-6xl rounded-[64px] bg-white shadow-lg px-6 sm:px-8 md:px-10 py-6 sm:py-8 md:py-10 gap-6 flex flex-col md:flex-row items-center">
           {/* Left Section (Form Content) */}
@@ -352,48 +322,49 @@ export default function VehicleSelect({ usersData }) {
               {/* CAR FORM */}
               {selectedVehicle === "car" && (
                 <div className="space-y-4 ">
-<div className="flex items-center bg-[#E9F1FF] rounded-full p-1 w-fit shadow-sm">
-  {/* Know Car No. */}
-  <label className="cursor-pointer">
-    <input
-      type="radio"
-      value="knowcar"
-      {...register("carOption")}
-      className="peer hidden"
-    />
-    <div className="
+                  <div className="flex items-center bg-[#E9F1FF] rounded-full p-1 w-fit shadow-sm">
+                    {/* Know Car No. */}
+                    <label className="cursor-pointer">
+                      <input
+                        type="radio"
+                        value="knowcar"
+                        {...register("carOption")}
+                        className="peer hidden"
+                      />
+                      <div
+                        className="
       px-5 py-1.5 rounded-full text-sm font-semibold
       text-[#195BDA] hover:bg-[#d3e6ff]
       transition-all duration-300 ease-in-out
       peer-checked:bg-[#7998F4] 
       peer-checked:text-white
-    ">
-      Know car No.
-    </div>
-  </label>
+    "
+                      >
+                        Know car No.
+                      </div>
+                    </label>
 
-  {/* New Car */}
-  <label className="cursor-pointer">
-    <input
-      type="radio"
-      value="newcar"
-      {...register("carOption")}
-      className="peer hidden"
-    />
-    <div className="
+                    {/* New Car */}
+                    <label className="cursor-pointer">
+                      <input
+                        type="radio"
+                        value="newcar"
+                        {...register("carOption")}
+                        className="peer hidden"
+                      />
+                      <div
+                        className="
        px-5 py-1.5 rounded-full text-sm font-semibold
       text-[#195BDA] hover:bg-[#d3e6ff]
       transition-all duration-300 ease-in-out
       peer-checked:bg-[#7998F4] 
       peer-checked:text-white
-    ">
-      New car
-    </div>
-  </label>
-</div>
-
-
-
+    "
+                      >
+                        New car
+                      </div>
+                    </label>
+                  </div>
 
                   {carOption === "knowcar" && (
                     <>
@@ -422,7 +393,6 @@ export default function VehicleSelect({ usersData }) {
                                 .slice(0, 10);
                             }}
                           />
-                         
                         </div>
 
                         <div className="flex flex-col flex-1">
@@ -443,7 +413,6 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls"
                           />
-                          
                         </div>
                       </div>
                     </>
@@ -452,7 +421,10 @@ export default function VehicleSelect({ usersData }) {
                   {carOption === "newcar" && (
                     <>
                       <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex flex-col relative flex-1" ref={cityRef}>
+                        <div
+                          className="flex flex-col relative flex-1"
+                          ref={cityRef}
+                        >
                           <label className="labelcls">City Name</label>
                           <input
                             type="text"
@@ -466,7 +438,6 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls"
                           />
-                         
 
                           {cities?.length > 0 && (
                             <ul className="absolute top-full left-0 right-0 z-10 border rounded bg-white max-h-40 overflow-y-auto shadow-md mt-1">
@@ -505,7 +476,6 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls"
                           />
-                         
                         </div>
                       </div>
                     </>
@@ -517,40 +487,44 @@ export default function VehicleSelect({ usersData }) {
               {selectedVehicle === "bike" && (
                 <div className="space-y-4 ">
                   <div className="flex items-center bg-[#E9F1FF] rounded-full p-1 w-fit shadow-sm mb-">
-                      <label className="cursor-pointer">
-                        <input
-                          type="radio"
-                          value="knowbike"
-                          {...register("bikeOption")}
-                          className="peer hidden"
-                        />
-                        <div className="
+                    <label className="cursor-pointer">
+                      <input
+                        type="radio"
+                        value="knowbike"
+                        {...register("bikeOption")}
+                        className="peer hidden"
+                      />
+                      <div
+                        className="
                           px-5 py-1.5 rounded-full text-sm font-semibold capitalize
                               text-[#2F4A7E] hover:bg-[#d3e6ff]
                               transition-all duration-300 ease-in-out
                               peer-checked:bg-[#7998F4]
                               peer-checked:text-white
-                        ">
-                          Know Bike No.
-                        </div>
-                      </label>
+                        "
+                      >
+                        Know Bike No.
+                      </div>
+                    </label>
                     <label className="cursor-pointer">
-    <input
-      type="radio"
-      value="newbike"
-      {...register("bikeOption")}
-      className="peer hidden"
-    />
-    <div className="
+                      <input
+                        type="radio"
+                        value="newbike"
+                        {...register("bikeOption")}
+                        className="peer hidden"
+                      />
+                      <div
+                        className="
      px-5 py-1.5 rounded-full text-sm font-semibold capitalize
                               text-[#2F4A7E] hover:bg-[#d3e6ff]
                               transition-all duration-300 ease-in-out
                               peer-checked:bg-[#7998F4] 
                               peer-checked:text-white
-    ">
-      New Bike
-    </div>
-  </label>
+    "
+                      >
+                        New Bike
+                      </div>
+                    </label>
                   </div>
 
                   {bikeOption === "knowbike" && (
@@ -576,7 +550,6 @@ export default function VehicleSelect({ usersData }) {
                                 .slice(0, 10);
                             }}
                           />
-                         
                         </div>
 
                         <div className="flex flex-col flex-1">
@@ -594,7 +567,6 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls"
                           />
-                         
                         </div>
                       </div>
                     </>
@@ -620,8 +592,6 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls"
                           />
-
-                         
 
                           {cities?.length > 0 && (
                             <ul className="absolute top-full left-0 right-0 z-10 border rounded bg-white max-h-40 overflow-y-auto shadow-md mt-1">
@@ -657,7 +627,6 @@ export default function VehicleSelect({ usersData }) {
                             })}
                             className="inputcls "
                           />
-                         
                         </div>
                       </div>
                     </>
@@ -691,9 +660,7 @@ export default function VehicleSelect({ usersData }) {
 
                   {commercialOption === "knowcommercial" && (
                     <>
-                     
                       <div className="flex flex-col md:flex-row gap-4">
-                       
                         <div className="flex flex-col gap-4 flex-1">
                           <div className="flex flex-col w-full">
                             <label className="labelcls">
@@ -725,7 +692,6 @@ export default function VehicleSelect({ usersData }) {
                           </div>
                         </div>
 
-                     
                         <div className="flex flex-col flex-1">
                           <label className="labelcls">Mobile Number</label>
                           <input
@@ -781,10 +747,10 @@ export default function VehicleSelect({ usersData }) {
                 </button>
                 <button
                   type="button"
-                   onClick={handleSubmit(onSubmit, onInvalid)}
+                  onClick={handleSubmit(onSubmit, onInvalid)}
                   className="px-6 py-2 text-white rounded-full text-sm font-semibold shadow-md hover:scale-105 transition"
                   style={{
-                     background: "#7998F4",
+                    background: "#7998F4",
                   }}
                 >
                   Continue

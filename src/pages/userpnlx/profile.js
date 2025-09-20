@@ -94,7 +94,6 @@ const Profile = ({ usersData }) => {
       marital_status: usersData?.martial_status || "",
       dob: usersData?.dob || "",
     });
-    console.log("udata", usersData);
   }, [usersData,reset]);
 
   return (

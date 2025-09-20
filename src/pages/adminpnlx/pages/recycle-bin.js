@@ -27,18 +27,11 @@ export default function Policy() {
   const [currentPage, setCurrentPage] = useState(1);
   const [fromIndex, setFromIndex] = useState(1);
 
-            // Kitne pages dikhane hain ek baar me
 const pageWindow = 5;
-
-// start aur end calculate karo
 const startPage = Math.max(1, currentPage - Math.floor(pageWindow / 2));
 const endPage = Math.min(pageCount, startPage + pageWindow - 1);
 
   const skeletonWidths = ["w-8", "w-24", "w-20", "w-28", "w-10","w-10","w-10","w-10","w-10"];
-  // const [pagination, setPagination] = useState({
-  //   // pageIndex: 0,
-  //   // pageSize: 20,
-  // });
 
   const columns = useMemo(
     () => [
@@ -138,8 +131,6 @@ const endPage = Math.min(pageCount, startPage + pageWindow - 1);
       "GET"
     );
 
-    console.log("Recycle Bin ka res", response);
-
     const tableData =
       response?.data?.data?.map((item) => ({
         productname: item.productname,
@@ -166,13 +157,12 @@ const endPage = Math.min(pageCount, startPage + pageWindow - 1);
   }, []);
 
 const handleDownload = async (policy) => {
-    console.log("Download clicked row data:", policy);
     // return false;
   try {
     setLoading(true);
 
-    const res = await CallApi(constant.API.USER.DOWNLOADPOLICY, "POST",policy.policy_pdf_path)
- console.log(res)
+    const res = await CallApi(constant.API.USER.DOWNLOADPOLICY, "POST",policy.policy_pdf_path);
+
 
   } catch (error) {
     console.error("Download failed:", error);

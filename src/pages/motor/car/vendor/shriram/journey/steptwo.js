@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect,useMemo,useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import UniversalDatePicker from "../../../../../datepicker/index";
 import { format, parse } from "date-fns";
 import { Controller } from "react-hook-form";
@@ -19,83 +19,70 @@ export default function StepTwoForm({
   bankdata,
   prevInsurdata,
 }) {
-  console.log("motor type",motortype)
-  //  const policyDetails = JSON.parse(journeydata.pre_policy_details || "{}");
-  // console.log("prevInsuranceId as string:", String(policyDetails.prevInsuranceId));
-  console.log(bankdata);
   const [enabled, setEnabled] = useState(false);
-   const [optionsChunk, setOptionsChunk] = useState([]);
+  const [optionsChunk, setOptionsChunk] = useState([]);
   const [page, setPage] = useState(1);
   const { handleSubmit, control, register, setValue, formState } = step2Form;
 
-useEffect(() => {
-   console.log("car pre poli",cardata?.prepolitype)
-  if (cardata?.prepolitype === "bundled") {
-    setValue("policyfdate", cardata.bdfromdate || "");
-    setValue("policytodate", cardata.bdtodate || "");
-    setValue("tppolicyfdate", cardata.bdtpfromdate || "");
-    setValue("tppolicytodate", cardata.bdtptodate || "");
-  }
-  if (cardata?.prepolitype === "comprehensive") {
-    setValue("policyfdate", cardata.compfromdate || "");
-    setValue("policytodate", cardata.comptodate || "");
-  }
-  if (cardata?.prepolitype === "odonly") {
-    setValue("policyfdate", cardata.odfromdate || "");
-    setValue("policytodate", cardata.odtodate || "");
-    setValue("tppolicyfdate", cardata.odtpfromdate || "");
-    setValue("tppolicytodate", cardata.odtptodate || "");
-  }
-  if (cardata?.prepolitype === "tponly") {
-    setValue("policyfdate", cardata.tpfromdate || "");
-    setValue("policytodate", cardata.tptodate || "");
-  }
-
-  if (cardata?.prepolitype) {
-    console.log("mila hai")
-    setValue("policytype", cardata.prepolitype.toUpperCase());
-  }
-}, [cardata, setValue]);
-
-
-useEffect(() => {
-  if (!journeydata || Object.keys(journeydata).length === 0) return;
-
-  const safeParse = (val) => {
-    try {
-      return val ? JSON.parse(val) : {};
-    } catch {
-      return {};
+  useEffect(() => {
+    if (cardata?.prepolitype === "bundled") {
+      setValue("policyfdate", cardata.bdfromdate || "");
+      setValue("policytodate", cardata.bdtodate || "");
+      setValue("tppolicyfdate", cardata.bdtpfromdate || "");
+      setValue("tppolicytodate", cardata.bdtptodate || "");
     }
-  };
+    if (cardata?.prepolitype === "comprehensive") {
+      setValue("policyfdate", cardata.compfromdate || "");
+      setValue("policytodate", cardata.comptodate || "");
+    }
+    if (cardata?.prepolitype === "odonly") {
+      setValue("policyfdate", cardata.odfromdate || "");
+      setValue("policytodate", cardata.odtodate || "");
+      setValue("tppolicyfdate", cardata.odtpfromdate || "");
+      setValue("tppolicytodate", cardata.odtptodate || "");
+    }
+    if (cardata?.prepolitype === "tponly") {
+      setValue("policyfdate", cardata.tpfromdate || "");
+      setValue("policytodate", cardata.tptodate || "");
+    }
 
-  const bankDetails = safeParse(journeydata.bank_details);
-  const vehicleDetails = safeParse(journeydata.vehicle_details);
-  const policyDetails = safeParse(journeydata.pre_policy_details);
-  console.log(bankDetails);
+    if (cardata?.prepolitype) {
+      setValue("policytype", cardata.prepolitype.toUpperCase());
+    }
+  }, [cardata, setValue]);
 
-  if (bankDetails?.bankloantype || bankDetails?.financierbranch) {
-    setEnabled(true);
-    setValue("bankloantype", bankDetails.bankloantype || "");
-    setValue("financierbranch", bankDetails.financierbranch || "");
-  }
+  useEffect(() => {
+    if (!journeydata || Object.keys(journeydata).length === 0) return;
 
-  setValue("enginenumber", vehicleDetails.Enginenumber || "");
-  setValue("chassisnumber", vehicleDetails.Chassisnumber || "");
-  setValue("prevInsurance", policyDetails.prevInsuranceId || "");
-  // setValue(
-  //   "policytype",
-  //   policyDetails.policytype || cardata?.prepolitype?.toUpperCase() || ""
-  // );
-  setValue("policynumber", policyDetails.policynumber || "");
+    const safeParse = (val) => {
+      try {
+        return val ? JSON.parse(val) : {};
+      } catch {
+        return {};
+      }
+    };
 
-  if (policyDetails.tpprevInsurance || policyDetails.tppolicynumber) {
-    setValue("tpprevInsurance", policyDetails.tpprevInsurance || "");
-    setValue("tppolicytype", policyDetails.tppolicytype || "ODONLY");
-    setValue("tppolicynumber", policyDetails.tppolicynumber || "");
-  }
-}, [journeydata, cardata, setValue, setEnabled]);
+    const bankDetails = safeParse(journeydata.bank_details);
+    const vehicleDetails = safeParse(journeydata.vehicle_details);
+    const policyDetails = safeParse(journeydata.pre_policy_details);
 
+    if (bankDetails?.bankloantype || bankDetails?.financierbranch) {
+      setEnabled(true);
+      setValue("bankloantype", bankDetails.bankloantype || "");
+      setValue("financierbranch", bankDetails.financierbranch || "");
+    }
+
+    setValue("enginenumber", vehicleDetails.Enginenumber || "");
+    setValue("chassisnumber", vehicleDetails.Chassisnumber || "");
+    setValue("prevInsurance", policyDetails.prevInsuranceId || "");
+    setValue("policynumber", policyDetails.policynumber || "");
+
+    if (policyDetails.tpprevInsurance || policyDetails.tppolicynumber) {
+      setValue("tpprevInsurance", policyDetails.tpprevInsurance || "");
+      setValue("tppolicytype", policyDetails.tppolicytype || "ODONLY");
+      setValue("tppolicynumber", policyDetails.tppolicynumber || "");
+    }
+  }, [journeydata, cardata, setValue, setEnabled]);
 
   const toggleLoan = () => {
     const newVal = !enabled;
@@ -106,22 +93,21 @@ useEffect(() => {
     }
   };
 
+  const getNextChunk = useCallback(
+    (page) => {
+      const start = 0;
+      const end = page * CHUNK_SIZE;
+      return bankdata.slice(0, end).map((bank) => ({
+        value: bank.id,
+        label: bank.FIN_NAME,
+      }));
+    },
+    [bankdata]
+  );
 
- const getNextChunk = useCallback(
-  (page) => {
-    const start = 0;
-    const end = page * CHUNK_SIZE;
-    return bankdata.slice(0, end).map((bank) => ({
-      value: bank.id,
-      label: bank.FIN_NAME,
-    }));
-  },
-  [bankdata]
-);
-
-useEffect(() => {
-  setOptionsChunk(getNextChunk(1));
-}, [getNextChunk]);
+  useEffect(() => {
+    setOptionsChunk(getNextChunk(1));
+  }, [getNextChunk]);
 
   const loadMoreOptions = () => {
     const nextPage = page + 1;
@@ -150,51 +136,36 @@ useEffect(() => {
           />
         </label>
       </div>
-
-      {/* Loan Fields (only shown when enabled = true) */}
       {enabled && (
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="labelcls">Enter Bank/ Loan provider</label>
-            {/* <DropdownWithSearch
-              id="bankloantype"
+            <Controller
               name="bankloantype"
-              // options={brands.map((brand) => ({
-              //   value: brand.MANUFACTURER,
-              //   label: brand.MANUFACTURER,
-              // }))}
-              {...register("bankloantype")}
-              value={selectedBrand}
-              onChange={(value) => {
-                setSelectedBrand(value);
-                setValue("bankloantype", value);
-              }}
-              placeholder="Select provider"
-              className="inputcls"
-            /> */}
-    <Controller
-      name="bankloantype"
-      control={control}
-      rules={{ required: "Please select a Bank Loan Type" }}
-      render={({ field, fieldState: { error } }) => (
-        <div>
-          <WindowedSelect
-            options={optionsChunk}
-            value={optionsChunk.find((opt) => opt.value === field.value)}
-            onChange={(selected) => field.onChange(selected?.value || "")}
-            onMenuScrollToBottom={loadMoreOptions}
-            placeholder="Select or type Bank"
-            styles={{
-              menu: (base) => ({ ...base, zIndex: 9999 }),
-            }}
-          />
-          {error && (
-            <p className="text-red-500 text-sm mt-1">{error.message}</p>
-          )}
-        </div>
-      )}
-    />
-
+              control={control}
+              rules={{ required: "Please select a Bank Loan Type" }}
+              render={({ field, fieldState: { error } }) => (
+                <div>
+                  <WindowedSelect
+                    options={optionsChunk}
+                    value={optionsChunk.find(
+                      (opt) => opt.value === field.value
+                    )}
+                    onChange={(selected) =>
+                      field.onChange(selected?.value || "")
+                    }
+                    onMenuScrollToBottom={loadMoreOptions}
+                    placeholder="Select or type Bank"
+                    styles={{
+                      menu: (base) => ({ ...base, zIndex: 9999 }),
+                    }}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error.message}</p>
+                  )}
+                </div>
+              )}
+            />
           </div>
           <div>
             <label className="labelcls">Enter Financier Branch</label>
@@ -217,13 +188,13 @@ useEffect(() => {
           <div>
             <label className="labelcls">Engine Number</label>
             <input
-            type="text"
-            {...register("enginenumber", { minLength: 5, maxLength: 21 })}
-            onChange={(e) => isAlphaNumeric(e, setValue, "enginenumber")}
-             maxLength={21} 
-            className={inputClass}
-            placeholder="Engine Number"
-          />
+              type="text"
+              {...register("enginenumber", { minLength: 5, maxLength: 21 })}
+              onChange={(e) => isAlphaNumeric(e, setValue, "enginenumber")}
+              maxLength={21}
+              className={inputClass}
+              placeholder="Engine Number"
+            />
           </div>
           <div>
             <label className="labelcls">Chassis Number</label>
@@ -231,7 +202,7 @@ useEffect(() => {
               type="text"
               {...register("chassisnumber", { minLength: 5, maxLength: 17 })}
               onChange={(e) => isAlphaNumeric(e, setValue, "chassisnumber")}
-               maxLength={17}
+              maxLength={17}
               className={inputClass}
               placeholder="Chassis Number"
             />
@@ -240,137 +211,22 @@ useEffect(() => {
       </div>
 
       {motortype !== "newcar" && (
-      <div>
-        <h3 className="text-md font-semibold mb-2">
-          Previous Policy Details <span className="text-red-500">*</span>
-        </h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="labelcls">Select Insurance</label>
-            {/* <select {...register("prevInsurance")} className={inputClass}>
-              <option value="">-- Select Insurance --</option>
-              <option value="acko">Acko General Insurance Ltd</option>
-              <option value="bajaj">Bajaj Allianz</option>
-              <option value="hdfc">HDFC ERGO</option>
-            </select> */}
-            <Controller
-              name="prevInsurance"
-              control={control}
-              rules={{ required: "Please select an insurance company" }}
-              render={({ field, fieldState: { error } }) => (
-                <>
-                  <DropdownWithSearch
-                    id="prevInsurance"
-                    name="prevInsurance"
-                    options={
-                      Array.isArray(prevInsurdata)
-                        ? prevInsurdata.map((prevInsur) => ({
-                            value: prevInsur.id,
-                            label: prevInsur.insurance,
-                          }))
-                        : []
-                    }
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="Select or type brand"
-                    className="inputcls"
-                  />
-                  {error && (
-                    <p className="text-red-500 text-sm mt-1">{error.message}</p>
-                  )}
-                </>
-              )}
-            />
-          </div>
-          <div>
-            <label className="labelcls">Policy Type</label>
-            <input
-              type="text"
-              {...register("policytype")}
-              readOnly
-              className={`${inputClass} bg-gray-100`}
-            />
-          </div>
-          <div>
-            <label className="labelcls">Policy Number</label>
-            <input
-              type="text"
-              {...register("policynumber")}
-              className={inputClass}
-              placeholder="Policy Number"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="labelcls">Policy From Date</label>
-              <Controller
-                control={control}
-                name="policyfdate"
-                render={({ field }) => (
-                  <UniversalDatePicker
-                    id="policyfdate"
-                    className={inputClass}
-                    value={
-                      field.value
-                        ? parse(field.value, "dd-MM-yyyy", new Date())
-                        : null
-                    }
-                    onChange={() => {}}
-                    disabled
-                  />
-                )}
-              />
-            </div>
-            <div>
-              <label className="labelcls">Policy To Date</label>
-              <Controller
-                control={control}
-                name="policytodate"
-                render={({ field }) => (
-                  <UniversalDatePicker
-                    id="policytodate"
-                    className={inputClass}
-                    value={
-                      field.value
-                        ? parse(field.value, "dd-MM-yyyy", new Date())
-                        : null
-                    }
-                    onChange={() => {}}
-                    disabled
-                  />
-                )}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-     )}
-      {/* TP Policy (conditional) */}
-      
-   {motortype !== "newcar" &&
-  (cardata?.prepolitype === "odonly" || cardata?.prepolitype === "bundled") && (
         <div>
           <h3 className="text-md font-semibold mb-2">
-            TP Policy Details <span className="text-red-500">*</span>
+            Previous Policy Details <span className="text-red-500">*</span>
           </h3>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="labelcls">Select Insurance</label>
-              {/* <select {...register("tpprevInsurance")} className={inputClass}>
-                <option value="">-- Select Insurance --</option>
-                <option value="acko">Acko General Insurance Ltd</option>
-                <option value="bajaj">Bajaj Allianz</option>
-                <option value="hdfc">HDFC ERGO</option>
-              </select> */}
               <Controller
-                name="tpprevInsurance"
+                name="prevInsurance"
                 control={control}
                 rules={{ required: "Please select an insurance company" }}
                 render={({ field, fieldState: { error } }) => (
                   <>
                     <DropdownWithSearch
-                      id="tpprevInsurance"
-                      name="tpprevInsurance"
+                      id="prevInsurance"
+                      name="prevInsurance"
                       options={
                         Array.isArray(prevInsurdata)
                           ? prevInsurdata.map((prevInsur) => ({
@@ -397,8 +253,7 @@ useEffect(() => {
               <label className="labelcls">Policy Type</label>
               <input
                 type="text"
-                value="ODONLY"
-                {...register("tppolicytype")}
+                {...register("policytype")}
                 readOnly
                 className={`${inputClass} bg-gray-100`}
               />
@@ -407,7 +262,7 @@ useEffect(() => {
               <label className="labelcls">Policy Number</label>
               <input
                 type="text"
-                {...register("tppolicynumber")}
+                {...register("policynumber")}
                 className={inputClass}
                 placeholder="Policy Number"
               />
@@ -417,23 +272,18 @@ useEffect(() => {
                 <label className="labelcls">Policy From Date</label>
                 <Controller
                   control={control}
-                  name="tppolicyfdate"
-                  rules={{ required: "Please select a valid date" }}
-                  render={({ field, fieldState }) => (
+                  name="policyfdate"
+                  render={({ field }) => (
                     <UniversalDatePicker
-                      id="tppolicyfdate"
+                      id="policyfdate"
                       className={inputClass}
                       value={
                         field.value
                           ? parse(field.value, "dd-MM-yyyy", new Date())
                           : null
                       }
-                      onChange={(date) =>
-                        field.onChange(date ? format(date, "dd-MM-yyyy") : "")
-                      }
-                      placeholder="Pick a date"
-                      error={!!fieldState.error}
-                      errorText={fieldState.error?.message}
+                      onChange={() => {}}
+                      disabled
                     />
                   )}
                 />
@@ -442,23 +292,18 @@ useEffect(() => {
                 <label className="labelcls">Policy To Date</label>
                 <Controller
                   control={control}
-                  name="tppolicytodate"
-                  rules={{ required: "Please select a valid date" }}
-                  render={({ field, fieldState }) => (
+                  name="policytodate"
+                  render={({ field }) => (
                     <UniversalDatePicker
-                      id="tppolicytodate"
+                      id="policytodate"
                       className={inputClass}
                       value={
                         field.value
                           ? parse(field.value, "dd-MM-yyyy", new Date())
                           : null
                       }
-                      onChange={(date) =>
-                        field.onChange(date ? format(date, "dd-MM-yyyy") : "")
-                      }
-                      placeholder="Pick a date"
-                      error={!!fieldState.error}
-                      errorText={fieldState.error?.message}
+                      onChange={() => {}}
+                      disabled
                     />
                   )}
                 />
@@ -467,6 +312,123 @@ useEffect(() => {
           </div>
         </div>
       )}
+      {/* TP Policy (conditional) */}
+
+      {motortype !== "newcar" &&
+        (cardata?.prepolitype === "odonly" ||
+          cardata?.prepolitype === "bundled") && (
+          <div>
+            <h3 className="text-md font-semibold mb-2">
+              TP Policy Details <span className="text-red-500">*</span>
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="labelcls">Select Insurance</label>
+                <Controller
+                  name="tpprevInsurance"
+                  control={control}
+                  rules={{ required: "Please select an insurance company" }}
+                  render={({ field, fieldState: { error } }) => (
+                    <>
+                      <DropdownWithSearch
+                        id="tpprevInsurance"
+                        name="tpprevInsurance"
+                        options={
+                          Array.isArray(prevInsurdata)
+                            ? prevInsurdata.map((prevInsur) => ({
+                                value: prevInsur.id,
+                                label: prevInsur.insurance,
+                              }))
+                            : []
+                        }
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select or type brand"
+                        className="inputcls"
+                      />
+                      {error && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {error.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+                />
+              </div>
+              <div>
+                <label className="labelcls">Policy Type</label>
+                <input
+                  type="text"
+                  value="ODONLY"
+                  {...register("tppolicytype")}
+                  readOnly
+                  className={`${inputClass} bg-gray-100`}
+                />
+              </div>
+              <div>
+                <label className="labelcls">Policy Number</label>
+                <input
+                  type="text"
+                  {...register("tppolicynumber")}
+                  className={inputClass}
+                  placeholder="Policy Number"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="labelcls">Policy From Date</label>
+                  <Controller
+                    control={control}
+                    name="tppolicyfdate"
+                    rules={{ required: "Please select a valid date" }}
+                    render={({ field, fieldState }) => (
+                      <UniversalDatePicker
+                        id="tppolicyfdate"
+                        className={inputClass}
+                        value={
+                          field.value
+                            ? parse(field.value, "dd-MM-yyyy", new Date())
+                            : null
+                        }
+                        onChange={(date) =>
+                          field.onChange(date ? format(date, "dd-MM-yyyy") : "")
+                        }
+                        placeholder="Pick a date"
+                        error={!!fieldState.error}
+                        errorText={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                </div>
+                <div>
+                  <label className="labelcls">Policy To Date</label>
+                  <Controller
+                    control={control}
+                    name="tppolicytodate"
+                    rules={{ required: "Please select a valid date" }}
+                    render={({ field, fieldState }) => (
+                      <UniversalDatePicker
+                        id="tppolicytodate"
+                        className={inputClass}
+                        value={
+                          field.value
+                            ? parse(field.value, "dd-MM-yyyy", new Date())
+                            : null
+                        }
+                        onChange={(date) =>
+                          field.onChange(date ? format(date, "dd-MM-yyyy") : "")
+                        }
+                        placeholder="Pick a date"
+                        error={!!fieldState.error}
+                        errorText={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       <button type="submit" className="mt-6 px-6 py-2 thmbtn">
         Continue

@@ -103,7 +103,6 @@ export default function StepOneForm({
                   "POST",
                   { newpincode: value }
                 );
-                console.log("CHANGEPINCODE Response:", quoteResponse);
                 if (quoteResponse?.status) {
                   setQuoteData({
                     totalpremium: quoteResponse.totalpremium,
@@ -142,7 +141,7 @@ export default function StepOneForm({
           constant.API.HEALTH.ULTIMATECARE.SAVESTEPONE,
           "GET"
         );
-        console.log(res);
+        console.log(res)
         setUsersData(res);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -153,13 +152,11 @@ export default function StepOneForm({
 
   useEffect(() => {
     if (!usersData || isUserPrefilled) return;
-
     const user = usersData.data || {};
     const userInfo = usersData.user?.[0] || {};
     const contact = JSON.parse(user.contact_details || "{}");
     const permanent = JSON.parse(user.permanent_address || "{}");
     const comm = JSON.parse(user.comunication_address || "{}");
-
     const typeMap = {
       p: "PAN Card",
       a: "Aadhar ( Last 4 Digits )",
@@ -564,11 +561,11 @@ export default function StepOneForm({
                 name="aadharDob"
                 value={dates.aadhar}
                 onChange={(date) => {
-                                 if (date instanceof Date && !isNaN(date)) {
-                                   const formatted = format(date, "dd-MM-yyyy");
-                                   handleDateChange("aadhar", "aadharDob");
-                                 }
-                               }}
+                  if (date instanceof Date && !isNaN(date)) {
+                    const formatted = format(date, "dd-MM-yyyy");
+                    handleDateChange("aadhar", "aadharDob");
+                  }
+                }}
                 placeholder="Pick a start date"
                 error={!dates.aadhar}
                 errorText="Please select a valid date"

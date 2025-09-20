@@ -26,9 +26,6 @@ export default function AddonModal({
   comselectedAddon,
   savingAddons,
 }) {
-  console.log("hello", selectedPlanType, odAddonlist);
-  //console.log("hello", selectedPlanType,odAddonlist,tpAddonlist,odselectedAddon,tpselectedAddon,selectedAddon,addons,);
-
   const [accessoryData, setAccessoryData] = React.useState([
     { type: "electrical", checked: false, amount: "" },
     { type: "non-electrical", checked: false, amount: "" },
@@ -50,11 +47,8 @@ export default function AddonModal({
       )
     );
   };
-
-  // onConfirm logic (optional if not needed)
   const handleConfirm = () => {
     if (activeTab === "Tab1") {
-      // console.log(selectedPlanType, data);
       handleSaveAddons(addon115Amount);
     } else if (activeTab === "Tab2") {
       const accessoriesPayload = accessoryData
@@ -262,8 +256,6 @@ export function VendorAddonModal({
   selectedPlan,
   fullAddonsName,
 }) {
-  console.log("ram")
-  // Addons key detect
   const addonKeys = ["selectedaddon", "tpselectedaddon", "odselectedaddon"];
   const currentAddonKey = addonKeys.find((key) => selectedPlan?.addons?.[key]);
 

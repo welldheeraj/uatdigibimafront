@@ -51,7 +51,6 @@ export default function KnowCarStepTwo() {
           constant.API.MOTOR.CAR.KNOWCARDETAILSTWO,
           "GET"
         );
-        console.log("Saved response of page 2", response);
         setSavedPageData(response.data);
       } catch (error) {
         console.error(error);
@@ -133,7 +132,6 @@ export default function KnowCarStepTwo() {
         const car = "MOT-PRD-001";
         const data = { brand: selectedBrand, type: car };
         const response = await CallApi(constant.API.MOTOR.MODELS, "POST", data);
-        console.log(response);
         setModels(response);
         reset((prev) => ({ ...prev, model: "" }));
       } catch (error) {
@@ -144,7 +142,6 @@ export default function KnowCarStepTwo() {
   }, [selectedBrand,reset]);
 
   const onSubmit = async (data) => {
-    console.log("Submitted Data:", data);
     try {
       const response = await CallApi(
         constant.API.MOTOR.CAR.KNOWCARDETAILSTWO,

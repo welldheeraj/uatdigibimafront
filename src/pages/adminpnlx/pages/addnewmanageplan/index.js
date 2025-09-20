@@ -12,9 +12,7 @@ const AddPlanForm = forwardRef(function AddPlanForm({ closeModal, refreshData },
 
   const handleSubmit = async () => {
     try {
-             console.log(formValues)
       const res = await CallApi(constant.API.ADMIN.ADDNEWPLAN, "POST", formValues);
-       console.log(res)
       if (res?.status) {
         showSuccess("Plan added successfully");
         if (refreshData) refreshData();

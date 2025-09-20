@@ -57,8 +57,6 @@ const calculateToDate = (fromDateStr, isThreeYear = false, customYears = null) =
           constant.API.MOTOR.BIKE.KNOWBIKEDETAILSTHREE,
           "GET"
         );
-        console.log("Saved response", res.data);
-
         const data = res?.data;
         if (data) {
           setData(data);
@@ -134,15 +132,12 @@ useEffect(() => {
         return;
       }
     }
-
-    console.log("Form submitted:", data);
     try {
       const res = await CallApi(
         constant.API.MOTOR.BIKE.KNOWBIKEDETAILSTHREE,
         "POST",
         data
       );
-      console.log(res);
       if (res) {
         router.push(constant.ROUTES.MOTOR.BIKE.BIKEPLANS);
       }

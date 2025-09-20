@@ -86,26 +86,18 @@ const [fromIndex, setFromIndex] = useState(1);
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    // onPaginationChange: setPagination,
-    // manualPagination: true,
-    // pageCount: pageCount,
   });
 
   async function getPolicyPage(pageNum) {
     try {
 
       const response = await CallApi(`${constant.API.USER.POLICY}?page=${pageNum}`, "GET");
-
-      console.log("policy ka res", response)
-
-
       const tableData = response?.data?.policies?.data?.map((item) => ({
         proposerName: item.proposar_name,
         policyName: item.policy_name,
         policyType: item.policy_type,
         proposalNumber: item.proposal,
         policyNumber: item.policy,
-        // applyDate : item,
         status: item.status_details || "NA",
       })) || [];
 
@@ -160,12 +152,6 @@ const [fromIndex, setFromIndex] = useState(1);
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="p-2 border rounded"
           />
-          {/* <label className="text-sm font-medium">Import CSV:
-            <input type="file" accept=".csv" onChange={handleCSVImport} className="ml-2" />
-          </label>
-          <label className="text-sm font-medium">Import Excel:
-            <input type="file" accept=".xlsx, .xls" onChange={handleExcelImport} className="ml-2" />
-          </label> */}
         </div>
 
         <div className="overflow-x-auto">

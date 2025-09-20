@@ -9,7 +9,6 @@ import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
 import StepFourForm from "./stepfour.js";
 import VehicleCard from "../../../../vehicledetails/index.js";
-
 import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "@/styles/js/validation.js";
 import constant from "@/env.js";
@@ -38,7 +37,6 @@ export default function StepperForm({ usersData, kycData }) {
   const [isPanKycHidden, setIsPanKycHidden] = useState(false);
   const [isAadharKycHidden, setIsAadharKycHidden] = useState(false);
   const [isOtherKycHidden, setIsOtherKycHidden] = useState(false);
-
   const [vehicleDetails, setVehicleDetails] = useState([]);
   const [cardata, setCarData] = useState([]);
   const [journeydata, setJourneyData] = useState([]);
@@ -48,7 +46,6 @@ export default function StepperForm({ usersData, kycData }) {
   const [motortype, setMotorType] = useState([]);
 
   const searchParams = useSearchParams();
-  // console.log("User Data:", kycData);
   const summaryData = useMemo(() => {
     const getParsed = (key) => {
       try {
@@ -57,7 +54,6 @@ export default function StepperForm({ usersData, kycData }) {
         return [];
       }
     };
-    // console.log("hello World", searchParams);
     return {
       tenure: searchParams.get("tenure") || "",
       coverAmount: searchParams.get("coverAmount") || "",
@@ -108,28 +104,20 @@ export default function StepperForm({ usersData, kycData }) {
 
   const validateFormStepOne = async () => {
     const rawValues = step1Form.getValues();
-    console.log(rawValues);
     if (!kycVerified) {
       showError("Please complete KYC verification before proceeding.");
       return false;
     }
     step1Form.unregister("gstnumber");
-
     const fieldsValid = await validateFields(step1Form);
     if (!fieldsValid) return false;
-
-    // GST number validation only if value exists
     const gstValue = rawValues.gstnumber?.trim();
-
     const values = {
       ...rawValues,
       customerpancardDob: rawValues.customerpancardDob,
       sameAddress: sameAddress ? "1" : "0",
     };
     delete values.panDob;
-
-    console.log(values);
-    console.log("pandob", values.customerpancardDob);
     try {
       setLoading(true);
 
@@ -138,7 +126,6 @@ export default function StepperForm({ usersData, kycData }) {
         "POST",
         values
       );
-      console.log(res);
       if (res === 1 || res?.status) {
         setStepOneData(res);
         return true;
@@ -214,7 +201,6 @@ export default function StepperForm({ usersData, kycData }) {
     }
 
     const data = step3Form.getValues();
-    console.log("save data33333", data);
 setLoading(true);
     try {
       const res = await CallApi(
@@ -222,9 +208,6 @@ setLoading(true);
         "POST",
         data
       );
-
-      console.log("Step 3 API Response:", res);
-
       const status = res?.data?.status;
       const errorDesc = res?.data?.apiresponse?.ERROR_DESC;
 
@@ -282,25 +265,16 @@ setLoading(true);
     setSubmitStepLoader(true);
     try {
       let isValid = false;
-      // console.log("runs1");
       if (currentStep === 1) {
         isValid = await validateFormStepOne();
-        // console.log("isValid", isValid);
       } else if (currentStep === 2) isValid = await validateFormStepTwo();
       else if (currentStep === 3)
         isValid = await validateFormStepThree(step3Form, steptwodata);
       else if (currentStep === 4) isValid = await GoToPayment();
-
-      // console.log("runs2");
-
       if (!isValid) {
         setSubmitStepLoader(false);
-        // console.log("runs3");
         return;
       }
-
-      console.log("runs3 outside");
-
       const formToUse =
         currentStep === 1
           ? step1Form
@@ -310,18 +284,11 @@ setLoading(true);
           ? step3Form
           : step4Form;
 
-      // console.log("runs4");
-
-      console.log(`Step ${currentStep} Data:`, formToUse.getValues());
-
-      // console.log("runs5");
       goNext();
     } catch (e) {
     } finally {
       setSubmitStepLoader(false);
     }
-
-    // setLoading(false);
   };
 
   const handleVerifyPan = async () => {
@@ -405,8 +372,6 @@ setLoading(true);
           constant.API.MOTOR.CAR.SHRIRAM.SAVEDATA,
           "GET"
         );
-
-        console.log("Full response:", res);
         if (res?.data?.details) {
           setCarData(res.data.details);
         }
@@ -430,21 +395,6 @@ setLoading(true);
         if (res?.cache) {
           setMotorType(res.cache);
         }
-        // if (res?.journey) {
-        //   setJourneyData(res.journey);
-        // }
-
-        // const carDataArray = res.data;
-        // if (Array.isArray(carDataArray) && carDataArray.length > 0) {
-        //   const firstEntry = carDataArray[0];
-
-        //   try {
-        //     const parsedDetails = JSON.parse(firstEntry.knowcar_reg_details);
-        //     setCarData(parsedDetails);
-        //   } catch (err) {
-        //     console.error("Failed to parse knowcar_reg_details:", err);
-        //   }
-        // }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -467,10 +417,8 @@ setLoading(true);
           </button>
 
           <div className="max-w-7xl mx-auto grid grid-cols-12 gap-3">
-            {/* Left Side: Stepper + Forms (8 columns) */}
             <div className="col-span-12 md:col-span-8">
               <div className="bg-white rounded-[32px] shadow p-4 sm:p-6 md:p-8">
-                {/* Stepper */}
                 <div className="flex justify-between items-center">
                   {steps.map((label, i) => {
                     const sn = i + 1;
@@ -586,8 +534,6 @@ setLoading(true);
                 </div>
               </div>
             </div>
-
-            {/* Right Side: Empty 4 Columns */}
             <div className="col-span-12 md:col-span-4 self-start">
               <div className="bg-white rounded-[32px] shadow p-4 sm:p-6 md:p-8">
                    {(motortype === "knowcar" || motortype === "newcar") && (

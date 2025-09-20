@@ -1,5 +1,4 @@
 import { FaLink, FaBuilding, FaMapMarkerAlt, FaInfoCircle, FaChevronRight } from "react-icons/fa";
-
 export default function Footer() {
   return (
     <footer className="w-full bg-[#4C6991] text-white text-sm py-10">

@@ -40,10 +40,6 @@ export default function WelcomeBanner({
   setOpenMenus,
   admindata,
 }) {
-  console.log(admindata);
-
-
-
   const categories = [
     { label: "Health", image: homehealth, redirectTo: "/health/common/insure" },
     {

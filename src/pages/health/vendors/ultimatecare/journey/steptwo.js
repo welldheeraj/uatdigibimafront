@@ -9,8 +9,6 @@ import { Controller } from "react-hook-form";
 
 // --- helpers ---
 const normalizeRelation = (rel = "") => rel?.toLowerCase().trim();
-
-
 const getPrefixByRelation = (relation) => {
   const r = normalizeRelation(relation);
   if (r === "son" || r === "daughter") return "child";
@@ -69,10 +67,7 @@ export default function StepTwoForm({
 
     const self = steponedata?.self?.[0] || {};
     const u = usersData || {};
-    console.log("step one data:", steponedata);
-
     const getVal = (key) => self[key] || u[key] || "";
-
     const fieldMap = {
       proposername: "kyc_name",
       proposerdob2: "dob",
@@ -140,8 +135,6 @@ export default function StepTwoForm({
           constant.API.HEALTH.ULTIMATECARE.SAVESTEPTWO,
           "GET"
         );
-        console.log("API Response:", res);
-
         const savedData = res.data || [];
 
         // BANK
@@ -186,7 +179,6 @@ export default function StepTwoForm({
           (item.relation || "").toLowerCase().includes("nominee")
         );
         if (nomineeData) {
-          console.log("nomineeData",nomineeData)
           step2Form.setValue("nomineename", nomineeData.name || "");
           step2Form.setValue("nomineedob", nomineeData.dob || "");
         

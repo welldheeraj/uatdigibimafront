@@ -75,8 +75,6 @@ useEffect(() => {
       showError("Please select a previous policy type.");
       return;
     }
-
-    console.log(requiredDates[data.prepolitype]);
     const fieldsToCheck = requiredDates[data.prepolitype] || [];
     for (let field of fieldsToCheck) {
       if (!data[field]) {
@@ -89,8 +87,6 @@ useEffect(() => {
       showError("Please select a No Claim Bonus (NCB) percentage.");
       return;
     }
-
-    console.log("Form submitted:", data);
     router.push(constant.ROUTES.MOTOR.PLANS);
   };
 

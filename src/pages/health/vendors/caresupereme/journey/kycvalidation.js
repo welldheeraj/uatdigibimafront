@@ -18,11 +18,8 @@ export default async function validateKycStep(
   setIsOtherKycHidden 
 ) {
   if (!kycType) return showError("Please select a KYC type."), false;
-
   try {
     let payload, res;
-
-    // PAN Verification
     if (kycType === "PAN Card") {
       const { customerpancardno, customerpancardDob } = values;
       if (!customerpancardno || !customerpancardDob)
@@ -59,8 +56,6 @@ export default async function validateKycStep(
       );
       return false;
     }
-
-    // Aadhar Verification
     else if (kycType === "Aadhar ( Last 4 Digits )") {
       const {
         customerAadharGender,

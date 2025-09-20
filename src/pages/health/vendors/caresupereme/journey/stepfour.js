@@ -15,7 +15,6 @@ export default function StepFourForm({
   const searchParams = useSearchParams();
 
   const handleEditStep = (stepNo) => {
-    console.log("Ram",stepNo);
     const currentParams = new URLSearchParams(searchParams.toString());
     currentParams.set("step", stepNo);
     router.push(`/health/vendors/caresupereme/journey?${currentParams.toString()}`);
@@ -39,9 +38,6 @@ export default function StepFourForm({
       } else if (Array.isArray(raw)) {
         individualPed = raw;
       }
-
-      // console.log("Individual PED for", member.name, ":", individualPed);
-
       individualPed.forEach((item) => {
         parsedPed.push({
           ...item,
@@ -49,8 +45,6 @@ export default function StepFourForm({
         });
       });
     });
-
-    // console.log("Final Combined PED:", parsedPed);
   } catch (err) {
     console.error("Invalid PED JSON:", err);
   }
@@ -61,9 +55,6 @@ export default function StepFourForm({
   const lifestyleHistory = parsedPed.filter((item) =>
     item.did?.startsWith("3.")
   );
-
-  // console.log("Medical:", medicalHistory);
-  // console.log("Lifestyle:", lifestyleHistory);
   return (
     <form
       onSubmit={(e) => e.preventDefault()}

@@ -19,8 +19,6 @@ export default function VendorCard({ data, onAddonsClick, handlePlanSubmit }) {
     setSelectedPremiumData(premiumArray);
     setShowModal(true);
   };
-  console.log(data);
-
   return (
     <>
       {/* Card */}

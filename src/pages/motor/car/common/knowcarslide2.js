@@ -8,8 +8,6 @@ import constant from "../../../../env";
 import { CallApi } from "../../../../api";
 import UniversalDatePicker from "../../../datepicker/index";
 import { format, parse } from "date-fns";
-
-// import DropdownWithSearch from "@/DropdownWithSearch";
 import DropdownWithSearch from "../../../lib/DropdownWithSearch";
 
 export default function KnowCarSlideTwo() {
@@ -49,23 +47,13 @@ export default function KnowCarSlideTwo() {
           constant.API.MOTOR.CAR.SAVESTEPTWO,
           "GET"
         );
-        console.log("Saved response of page 2", response);
         setSavedPageData(response.data);
       } catch (error) {
         console.error(error);
       }
     }
-
     getSavedResponse();
   }, []);
-
-  // useEffect(() => {
-  //   console.log("datesegff", dates);
-  //   //console.log("datesegff", parsedDate);
-  // }, [dates, parsedDate]);
-
-
-
   useEffect(() => {
     if (savedPageData && brands.length > 0) {
       setSelectedBrand(savedPageData.brand || null);
@@ -108,19 +96,16 @@ useEffect(() => {
     if (!date || isNaN(date.getTime())) {
       return;
     }
-    console.log("date2", date);
     const formatted = format(date, "dd-MM-yyyy");
     setDates({ [key]: formatted, [`${key}Raw`]: date });
     setValue("carregdate", formatted);
-    console.log("date2dfd", formatted);
-    //setParsedDate(formatted);
+
   };
 
 const handleGetBrands = useCallback(async () => {
   try {
     const brand = { brand: "CAR" };
     const response = await CallApi(constant.API.MOTOR.BRANDS, "POST", brand);
-    console.log("Brands ka res", response);
     setBrands(response.brand);
   } catch (error) {
     console.error("error fetching in brands", error);
@@ -141,7 +126,6 @@ useEffect(() => {
           type: "TW",
         };
         const response = await CallApi(constant.API.MOTOR.MODELS, "POST", data);
-        console.log("i'm Model", response);
         setModels(response);
         reset({
           model: "",
@@ -154,7 +138,6 @@ useEffect(() => {
   }, [selectedBrand,reset]);
 
   const onSubmit = async (data) => {
-    console.log("Submitted Data:", data);
 
     try {
       const response = await CallApi(
@@ -162,8 +145,6 @@ useEffect(() => {
         "POST",
         data
       );
-      console.log(response);
-
       var savepagedata;
       if (response) {
         savepagedata = await CallApi(
@@ -171,8 +152,6 @@ useEffect(() => {
           "POST",
           data
         );
-
-        console.log(savepagedata);
       }
 
       if (savepagedata) {
@@ -270,8 +249,6 @@ useEffect(() => {
               {errors.brand && (
                 <span className="text-red-600 text-sm">Brand is required</span>
               )}
-              {console.log("brands error",errors.brand)}
-              {console.log("selected brand = ", selectedBrand )}
             </div>
 
             {/* Model & Variant */}

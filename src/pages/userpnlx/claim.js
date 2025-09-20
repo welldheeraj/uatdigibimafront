@@ -25,7 +25,6 @@ const Claims = () => {
   const { register, handleSubmit, reset } = useForm();
 
   const onSubmit = (data) => {
-    console.log("claims data", data);
   };
 
   return (

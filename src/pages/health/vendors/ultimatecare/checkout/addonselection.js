@@ -15,22 +15,16 @@ export default function AddOnSelection({
   setApplyClicked,
   setIsAddOnsModified,
 }) {
-  console.log("addon description", selectedAddons);
-
   const normalizedAddons = Array.isArray(selectedAddons)
     ? selectedAddons
     : typeof selectedAddons === "string" && selectedAddons.startsWith("[")
     ? JSON.parse(selectedAddons)
     : Object.values(selectedAddons || {});
-
-  // ---- PED defaults (as-is) ----
   const pedDefaultValue = normalizedAddons.includes("1")
     ? "1"
     : normalizedAddons.includes("2")
     ? "2"
     : "";
-
-  // ---- OPD defaults (supports combined tokens: opd500/opd5000) ----
   const opdToken = (normalizedAddons || []).find((a) =>
     /^opd(500|5000)$/i.test(String(a))
   );
@@ -42,8 +36,6 @@ export default function AddOnSelection({
     : normalizedAddons.includes("5000")
     ? "5000"
     : "";
-
-
   const initialAddons = {};
   Object.keys(addons || {}).forEach((k) => {
     initialAddons[k] = normalizedAddons.includes(k);
@@ -62,7 +54,6 @@ export default function AddOnSelection({
 
   const [hasUserChanged, setHasUserChanged] = useState(false);
   const [loading, setLoading] = useState(false);
-
 
   const pedChecked = useWatch({
     control,
@@ -106,7 +97,7 @@ export default function AddOnSelection({
       pedaddonvalue: nextPedVal,
       opdaddonvalue: nextOpdVal,
     });
-  }, [reset, addons, selectedAddons]); 
+  }, [reset, addons, selectedAddons]);
 
   useEffect(() => {
     if (opdToken) {
@@ -126,7 +117,6 @@ export default function AddOnSelection({
     const addonsData = data.addons || {};
     const isPedChecked = addonsData.ped;
     const pedValue = data.pedaddonvalue;
-
 
     const isOpdChecked = addonsData.opd;
     const opdValue = data.opdaddonvalue;
@@ -153,7 +143,6 @@ export default function AddOnSelection({
     } else {
       selectedKeys = selectedKeys.filter((val) => val !== "1" && val !== "2");
     }
-
 
     if (isOpdChecked) {
       if (!opdValue) {
@@ -183,8 +172,6 @@ export default function AddOnSelection({
         "POST",
         payload
       );
-      console.log("AddOns Applied:", response);
-
       if (typeof setApplyClicked === "function") setApplyClicked(true);
       if (typeof setIsAddOnsModified === "function") setIsAddOnsModified(false);
 
@@ -339,7 +326,6 @@ export default function AddOnSelection({
                       <option value="2">2 Years</option>
                     </select>
                   )}
-
 
                   {isOPD && (
                     <select

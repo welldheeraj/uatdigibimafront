@@ -7,7 +7,6 @@ import Footer from "./partial/footer";
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect, React } from "react";
 import { Poppins } from "next/font/google";
-// import HealthInsuranceLoader from "./health/loader";
 import CarInsuranceLoader, { BikeInsuranceLoader, HealthLoaderOne, DashboardLoader } from "@/components/loader";
 import { useRouter } from "next/router";
 import { VerifyToken } from "../api";
@@ -19,7 +18,7 @@ import { showError } from "@/layouts/toaster";
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "500", "600"], // optional
+  weight: ["400", "500", "600"], 
   variable: "--font-poppins",
 });
 
@@ -47,36 +46,11 @@ export default function App({ Component, pageProps }) {
     .trim()
     .split("/")
     .filter((segment) => segment !== "")[0];
-
-  async function getSession() {
-    let status = false;
-
-    //tokenresponse= await tokenresponse.json();
-    console.log(
-      "token",
-      localStorage.getItem("token"),
-      "cookie",
-      tokenresponse
-    );
-    //setAuthkey(tokenresponse.authkey);
-    // if(tokenresponse.authkey && localStorage.getItem("token") && tokenresponse.authkey == localStorage.getItem("token") )
-    // {
-    //   // console.log('tkn',true);
-    //   status=true;
-    // }
-    // else{console.log('tkn',false);
-    // }
-    // return status;
-  }
-
   useEffect(() => {
     const verifyAuth = async () => {
       const storedToken = localStorage.getItem("token");
-      //svar storedCookie = await getSession();
-      // console.log('gettokenresponse',storedCookie);
       if (!storedToken) {
         setToken(null);
-        //setAuthkey(null);
         setLoading(false);
         if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
           router.push(constant.ROUTES.HEALTH.INDEX);
@@ -119,9 +93,7 @@ export default function App({ Component, pageProps }) {
     verifyAuth();
     const handleAuthChange = () => {
       const updatedToken = localStorage.getItem("token");
-      //const updatedCookie = getSession().status ? getSession().authkey : null;
       setToken(updatedToken);
-      //setAuthkey(updatedCookie);
     };
     window.addEventListener("auth-change", handleAuthChange);
     return () => window.removeEventListener("auth-change", handleAuthChange);
@@ -144,7 +116,7 @@ export default function App({ Component, pageProps }) {
     };
 
     checkAuth();
-  }, [router, router.asPath]); // public routes are hoisted; no warning
+  }, [router, router.asPath]);
 
   useEffect(() => {
     if (token) {
@@ -153,7 +125,6 @@ export default function App({ Component, pageProps }) {
           setIsLoading(true);
           const response = await getUserinfo(token);
           const data = await response.json();
-          // console.log('ghgh',data);
           setKycData(data.kyctype, data.status);
           if (data.status && data.user?.name) {
             setUserData(data.user);
@@ -201,11 +172,6 @@ export default function App({ Component, pageProps }) {
     if (route.startsWith("/motor/car")) return <CarInsuranceLoader />;
     return <DashboardLoader />;
   };
-
-  // useEffect(() => {
-  //   // console.log('uuuatttu1', userData);
-  // }, [userData]);
-
   return (
     <div className={poppins.className}>
       {!isDashboard && (

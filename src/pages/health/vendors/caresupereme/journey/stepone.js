@@ -109,7 +109,6 @@ export default function StepOneForm({
                   "POST",
                   { newpincode: value }
                 );
-                // console.log("CHANGEPINCODE Response:", quoteResponse);
                 if (quoteResponse?.status) {
                   setQuoteData({
                     totalpremium: quoteResponse.totalpremium,
@@ -148,7 +147,6 @@ export default function StepOneForm({
           constant.API.HEALTH.CARESUPEREME.SAVESTEPONE,
           "GET"
         );
-        console.log(res);
         setUsersData(res);
       } catch (error) {
         console.error("Error fetching data:", error);

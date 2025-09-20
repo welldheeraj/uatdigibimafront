@@ -26,7 +26,6 @@ export default function SummaryCard({
   oldPincode,
   newPincode,
 }) {
-  console.log(selectedAddons, addons);
   const [priceChangeMsg, setPriceChangeMsg] = useState("");
   const router = useRouter();
   const pathname = usePathname();
@@ -105,7 +104,6 @@ export default function SummaryCard({
       );
       return;
     }
-    console.log("hello total", totalPremium);
     const params = new URLSearchParams();
     params.append("tenure", tenure);
     params.append("coverAmount", coverAmount);

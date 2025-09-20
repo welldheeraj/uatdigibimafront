@@ -21,13 +21,12 @@ export default function InsurePage() {
 
   const [showModal, setShowModal] = useState(true);
   const [planType, setPlanType] = useState("");
-   const [tenure, setTenure] = useState("");
+  const [tenure, setTenure] = useState("");
 
   useEffect(() => {
     const getInsureData = async () => {
       try {
         const res = await CallApi(constant.API.HEALTH.GETINSURE);
-        console.log("step two data", res);
         if (res.status && res.data) {
           if (res.gender) {
             setGender(res.gender.toLowerCase());
@@ -116,8 +115,6 @@ export default function InsurePage() {
       const updatedSelection = prev.includes(name)
         ? prev.filter((m) => m !== name)
         : [...prev, name];
-
-      console.log("Updated selected members:", updatedSelection);
       return updatedSelection;
     });
   };
@@ -127,7 +124,6 @@ export default function InsurePage() {
       const updatedMembers = prev.map((m) =>
         m.name === name ? { ...m, age } : m
       );
-      console.log("Updated members:", updatedMembers);
       return updatedMembers;
     });
   };
@@ -233,15 +229,12 @@ export default function InsurePage() {
     }));
     let membersss = selected.map((m) => ({ name: m.name, age: m.age }));
     const formData = [...childdd, ...membersss];
-    console.log("Submitting form data:", formData);
-
     try {
       const response = await CallApi(
         constant.API.HEALTH.ILLNESS,
         "POST",
         formData
       );
-      console.log("Server response:", response);
       if (response.status) {
         showSuccess("Data saved!");
         router.push(constant.ROUTES.HEALTH.ILLNESS);
@@ -266,9 +259,7 @@ export default function InsurePage() {
         setShowModal(true);
       }
     };
-
     window.addEventListener("load", handleLoad);
-
     return () => window.removeEventListener("load", handleLoad);
   }, []);
 
@@ -277,25 +268,15 @@ export default function InsurePage() {
       showError("Please select a plan type.");
       return;
     }
-     if (planType === "2" && !tenure) {
-    showError("Please select a Tenure.");
-    return;
-  }
-
+    if (planType === "2" && !tenure) {
+      showError("Please select a Tenure.");
+      return;
+    }
     try {
       const response = await CallApi(constant.API.HEALTH.PLANTYPE, "POST", {
         plantype: planType,
         tenure: planType === "2" ? tenure : null,
       });
-
-      console.log(
-        "Server response:",
-        response,
-        constant.API.HEALTH.PLANTYPE,
-        planType
-      );
-      // return false;
-
       if (response.status) {
         showSuccess("Plan submitted successfully!");
         localStorage.setItem("planType", response.plantype);
@@ -343,8 +324,6 @@ export default function InsurePage() {
                   New Plan
                 </span>
               </label>
-
-              {/* Port Existing */}
               <label
                 className={`flex items-center gap-3 cursor-pointer p-4 rounded-2xl transition-all border-2 
                 ${
@@ -369,25 +348,23 @@ export default function InsurePage() {
                   Port Existing
                 </span>
               </label>
-           {planType === "2" && (
-              <select
-                name="tenure"
-                value={tenure}
-                onChange={(e) => setTenure(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-3 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
-              >
-                <option value="" disabled>
-                  Select Tenure
-                </option>
-                <option value="1">1 Year</option>
-                <option value="2">2 Years</option>
-                <option value="3">3 Years & Above</option>
-              </select>
-            )}
-
+              {planType === "2" && (
+                <select
+                  name="tenure"
+                  value={tenure}
+                  onChange={(e) => setTenure(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-3 py-3 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
+                >
+                  <option value="" disabled>
+                    Select Tenure
+                  </option>
+                  <option value="1">1 Year</option>
+                  <option value="2">2 Years</option>
+                  <option value="3">3 Years & Above</option>
+                </select>
+              )}
             </div>
 
-           
             <div className="mt-8 text-center">
               <button
                 onClick={handleplanSubmit}
@@ -521,7 +498,7 @@ function MemberCard({ member, selectedMembers, handleToggle, ageChange }) {
 function ChildrenSection({
   isChildChecked,
   toggleChildCheckbox,
-  childrenList, // updated prop name
+  childrenList,
   addChild,
   removeChild,
   childChange,

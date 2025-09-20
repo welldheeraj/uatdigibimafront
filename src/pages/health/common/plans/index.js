@@ -55,7 +55,6 @@ export default function HealthPlan() {
   useEffect(() => {
     CallApi(constant.API.HEALTH.PLANDATA)
       .then((res) => {
-        console.log(res);
         setVendorData(res.vendor || []);
         setCoveragelist(res.coveragelist || []);
         setTenurelist(res.tenurelist || []);
@@ -79,7 +78,7 @@ export default function HealthPlan() {
           coverage: normalizedCoverage,
           tenure: res.tenure?.toString() || "",
           covertype: res.covertype?.toString() || "",
-          porttenure: mapPortTenureLabel(res.porttenure), 
+          porttenure: mapPortTenureLabel(res.porttenure),
         });
 
         const allMembers = res.aInsureData || [];
@@ -175,8 +174,7 @@ export default function HealthPlan() {
     (async () => {
       const responses = await Promise.all(
         vendorData.map(async (vendor) => {
-          const route =
-            constant.ROUTES.HEALTH.VENDOR[String(vendor.vid)] || "";
+          const route = constant.ROUTES.HEALTH.VENDOR[String(vendor.vid)] || "";
           const vendorWithRoute = { ...vendor, route };
           try {
             const res = await CallApi(
@@ -204,11 +202,8 @@ export default function HealthPlan() {
     };
 
     if (data?.plantype === "2" || data?.plantype?.toLowerCase() === "port") {
-      formatted.porttenure =
-        data?.porttenure?.replace(/\s*Years?$/, "") || "";
+      formatted.porttenure = data?.porttenure?.replace(/\s*Years?$/, "") || "";
     }
-
-    console.log(formatted);
     try {
       setLoadingPlans(true);
       const res = await CallApi(
@@ -331,17 +326,29 @@ export default function HealthPlan() {
         {compared.length > 0 && (
           <motion.div
             key="compare-drawer"
-            initial={{ y: "-120vh", opacity: 0, scale: 0.95, filter: "blur(2px)" }}
+            initial={{
+              y: "-120vh",
+              opacity: 0,
+              scale: 0.95,
+              filter: "blur(2px)",
+            }}
             animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
             exit={{ y: "-20%", opacity: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 24, bounce: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 24,
+              bounce: 1,
+            }}
             className="fixed right-4 bottom-4 z-50 w-80 max-w-[88vw] rounded-xl shadow-2xl bg-white border border-gray-200"
             role="region"
             aria-label="Compare plans drawer"
             style={{ willChange: "transform" }}
           >
             <div className="px-4 py-3 border-b">
-              <h3 className="text-sm font-semibold text-gray-800">Compare Plans</h3>
+              <h3 className="text-sm font-semibold text-gray-800">
+                Compare Plans
+              </h3>
             </div>
 
             <div className="max-h-72 overflow-y-auto px-3 py-2 space-y-2">
@@ -357,7 +364,6 @@ export default function HealthPlan() {
                 >
                   <div className="h-10 w-10 bg-gray-50 rounded overflow-hidden flex items-center justify-center">
                     {p?.logo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={`/images/health/vendorimage/${p.logo}`}
                         alt={p.productname || "logo"}

@@ -20,7 +20,6 @@ const AddonForm =  forwardRef(({ selectedProduct, closeModal, refreshData, plans
 
   const [newAddonOption, setNewAddonOption] = useState(null);
   const [showNewAddon, setShowNewAddon] = useState(false);
-
   const planOptions = useMemo(() => {
     return (plans || []).map((plan) => ({
       value: plan.id,
@@ -88,7 +87,6 @@ const AddonForm =  forwardRef(({ selectedProduct, closeModal, refreshData, plans
   };
 
   const handleSave = async () => {
-    console.log(formValues.selectedPlan)
     const payload = {
       productname: formValues.productName,
       vendorname: formValues.vendorName,
@@ -97,10 +95,8 @@ const AddonForm =  forwardRef(({ selectedProduct, closeModal, refreshData, plans
        productId: selectedProduct?.id || "",
       // addons: formValues.selectedAddons.map((addon) => addon.value),
     };
-    console.log(payload);
     try {
       const response = await CallApi(constant.API.ADMIN.EDITPRODUCT, "POST",payload);
-      console.log(response);
        if (response?.status) {
               showSuccess(response?.message);
                if (refreshData) refreshData();

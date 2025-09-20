@@ -20,8 +20,6 @@ export default function StepOneForm({
   handleVerifyAadhar,
   handleVerifyOther,
   loading,
-  // sameAddress,
-  // setSameAddress,
   fileNames,
   setFileNames,
   proofs,
@@ -41,8 +39,6 @@ export default function StepOneForm({
   setSameAddress,
   journeydata,
   userinfodata,
-  // fileNames,
-  // setFileNames,
   isPanKycHidden,
   setIsPanKycHidden,
   isAadharKycHidden,
@@ -50,18 +46,8 @@ export default function StepOneForm({
   isOtherKycHidden,
   setIsOtherKycHidden,
 }) {
-  //  console.log("step One data",journeydata);
-  console.log("car data aa gya", journeydata);
-  // const [proofs, setProofs] = useState({});
+
   const [mediaPreview, setMediaPreview] = useState(null);
-
-  // const isPanKyc = kycData?.kyctype?.toLowerCase() === "p";
-  // const isOtherKyc = kycData?.kyctype?.toLowerCase() === "o";
-
-  // const isPanKycHidden = kycVerified && isPanKyc;
-  // const isOtherKycHidden = kycVerified && isOtherKyc;
-  // console.log(isOtherKycHidden);
-
   const [dates, setDates] = useState({
     pancardno: "",
     aadhar: "",
@@ -82,7 +68,6 @@ export default function StepOneForm({
     const fieldId = e.target.name || e.target.id;
 
  if (value && value.length === 6) {
-      console.log("Ram",value)
       try {
         const res = await CallApi(constant.API.HEALTH.ACPINCODE, "POST", {
           pincode: value,
@@ -138,7 +123,6 @@ export default function StepOneForm({
         setIsOtherKycHidden(true);
       }
     }
-    // console.log(usersData)
     const formatted = typeMap[kycData?.kyctype?.toLowerCase()];
     if (formatted) {
       setKycType(formatted);
@@ -172,7 +156,6 @@ export default function StepOneForm({
   const safeParse = (val) => { try { return val ? JSON.parse(val) : {}; } catch {
             return {};}};
       const company = safeParse(journeydata.company_details);
-      console.log("company data",company)
           step1Form.setValue("ms", company.ms || "");
           step1Form.setValue("companyname", company.companyname || "");
           step1Form.setValue("dobincorporation", company.dobincorporation || "");

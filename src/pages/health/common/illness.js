@@ -1,10 +1,9 @@
 "use client";
-
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { showSuccess, showError } from "../../../layouts/toaster";
-import { CallApi, getUserinfo,isAuth } from "../../../api";
+import { CallApi, getUserinfo, isAuth } from "../../../api";
 import constant from "../../../env";
 
 export default function IllnessForm() {
@@ -26,19 +25,15 @@ export default function IllnessForm() {
   const isNoDiseaseSelected = selected.includes("No Existing Disease");
   const isAnyOtherSelected = selected.some((d) => d !== "No Existing Disease");
 
-  useEffect(()=>{
-    async function getAuth()
-    {
-      const isauth= await isAuth();
-    
-      console.log('auth:',isauth);
-      if(!isauth)
-      {
+  useEffect(() => {
+    async function getAuth() {
+      const isauth = await isAuth();
+      if (!isauth) {
         router.replace(constant.ROUTES.INDEX);
       }
     }
     getAuth();
-  },[router]);
+  }, [router]);
 
   useEffect(() => {
     const getToken = localStorage.getItem("token");
@@ -53,9 +48,6 @@ export default function IllnessForm() {
             const parsedPED = JSON.parse(data.user.ped || "{}");
             pedList = parsedPED.data || [];
           }
-
-          console.log("Final PED list:", pedList); 
-
           if (data.status) {
             reset({ data: pedList });
           }
@@ -66,8 +58,6 @@ export default function IllnessForm() {
       fetchData();
     }
   }, [reset]);
-
-
   const toggleSelection = (value) => {
     let newValues = new Set(selected);
     if (newValues.has(value)) {
@@ -82,7 +72,6 @@ export default function IllnessForm() {
     }
     setValue("data", Array.from(newValues));
   };
-
   const onSubmit = async (formData) => {
     if (formData.data.length === 0) {
       showError("Please select at least one illness.");
@@ -94,7 +83,6 @@ export default function IllnessForm() {
         "POST",
         formData
       );
-      console.log("Server Response:", response);
       router.push(constant.ROUTES.HEALTH.PLANS);
     } catch (err) {
       console.error("API error:", err);
@@ -114,7 +102,6 @@ export default function IllnessForm() {
           regular medication?
         </h2>
 
-        {/* Illness Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4 justify-items-center mb-6">
           {illnesses.map((illness) => {
             const isChecked = selected.includes(illness);
@@ -148,8 +135,6 @@ export default function IllnessForm() {
             );
           })}
         </div>
-
-        {/* No Existing Disease */}
         <div className="flex justify-center mb-6">
           <label
             className={`relative flex justify-between items-center w-[280px] px-4 py-3 bg-white text-black rounded-xl font-medium border ${
@@ -177,8 +162,6 @@ export default function IllnessForm() {
             )}
           </label>
         </div>
-
-        {/* Buttons */}
         <div className="flex justify-center gap-4 flex-wrap">
           <button
             type="button"

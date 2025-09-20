@@ -55,13 +55,9 @@ export default function Plans() {
       try {
         setLoading(true);
         const res = await CallApi(constant.API.MOTOR.BIKE.PLANS, "GET");
-        console.log(res);
-
         if (res.data?.under === "company") {
           setIsCompany(true);
         }
-
-        // Determine plan type from keys
         const planTypeKeys = Object.keys(res.data?.plantype || {});
         let planType = null;
 
@@ -74,11 +70,6 @@ export default function Plans() {
         }
 
         setSelectedPlanType(planType);
-
-        // Use local planType directly here
-        console.log("PlanType detected immediately:", planType);
-
-        // Pick addon list based on selected plan type
         let addonSource = {};
         if (planType === 2) {
           addonSource = res.data?.addons || {};
@@ -93,7 +84,6 @@ export default function Plans() {
             label: label.trim(),
           }))
         );
-        // Plan type list for dropdown
         const plantypeObj = res.data?.plantype || {};
         const plantypeList = Object.entries(plantypeObj).map(
           ([key, label]) => ({
@@ -102,35 +92,16 @@ export default function Plans() {
           })
         );
         setPlanTypes(plantypeList);
-
-        // Vendors
         const vendorArr = res.data?.vendor || [];
         setFullAddonsName(res.data?.addons || {});
         const activeVendors = vendorArr.filter((v) => v.isActive === "1");
-        setVendorList(activeVendors);
-
-        // Vehicle details
+        setVendorList(activeVendors);s
         setVehicleDetails(res.data?.vehicledetails || []);
-
-        // PACover
         const paCover = res.data?.pacover;
         if (paCover === "1") {
           setPaCoverChecked(paCover);
         }
-
-        // Selected addons based on selected plan type
-        // if (planType === 2) {
-        //   setSelectedAddon(res.data?.selectedaddon || []);
-        // } else if (planType === 1) {
-        //   setSelectedAddon(res.data?.odselectedaddon || []);
-        // } else if (planType === 3) {
-        //   setSelectedAddon(res.data?.tpselectedaddon || []);
-        // }
-
-        // Motor type
         setMotorType(res.cache);
-
-        // Still set all lists separately in case you need them later
         setCompAddonlist(
           Object.entries(res.data?.addons || {}).map(([key, label]) => ({
             id: key,
@@ -327,9 +298,6 @@ export default function Plans() {
          [payloadKey]: Object.keys(currentAddons || {}),
          addon115Amount: addon115Amount,
        };
- 
-       console.log(payload);
- 
        const res = await CallApi(
          constant.API.MOTOR.BIKE.ADDADDONS,
          "POST",
@@ -420,7 +388,6 @@ export default function Plans() {
           "POST",
           vendorWithRoute
         );
-        console.log("hello", response);
         if (response?.status === "1" && response?.data) {
           allPlans.push({ ...response.data, vendorId: vendorPayload.vid });
         }
@@ -463,8 +430,6 @@ export default function Plans() {
       );
 
       if (res.status === "1" || res.status === true) {
-        // console.log("Accessories saved successfully:", res);
-
         await getQuote();
       } else {
         console.error("Accessories update failed:", res);
@@ -481,30 +446,16 @@ export default function Plans() {
       console.warn("No route found for the selected plan.");
       return;
     }
-
-    console.log("Redirecting to:", route);
     router.push(route);
   };
-  // useEffect(() => {
-  //   if (vendorPlans.length > 0) {
-  //     setLoading(false);
-  //   }
-  // }, [vendorPlans]);
-  // useEffect(() => {
-  //   const timer = setTimeout(() => setLoading(false), 1500);
-  //   return () => clearTimeout(timer);
-  // }, []);
 const showSkeleton = loading || (vendorPlans.length === 0 && !quoteError);
   const handleRedirect = () => {
-    console.log("ram",motortype)
     if (motortype === "knowbike" || motortype === "") {
-      // console.log("➡ Redirecting to KNOWBIKESTEPTHREE");
       router.push(constant.ROUTES.MOTOR.BIKE.KNOWBIKESTEPTHREE);
     } else if (motortype === "newbike") {
-      // console.log("➡ Redirecting to NEWBike");
       router.push(constant.ROUTES.MOTOR.BIKE.NEWBIKE);
     } else {
-      // console.log("⚠ Unhandled motortype:", motortype);
+      // console.log("Unhandled motortype:", motortype);
     }
   };
 

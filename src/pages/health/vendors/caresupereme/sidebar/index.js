@@ -22,17 +22,14 @@ const SlidePanel = ({
   setPincode,
   setMemberName,
 }) => {
-  // console.log("pincode aa gya",pincode)
   const [showPincodePanel, setShowPincodePanel] = useState(false);
   const [showMemberPanel, setShowMemberPanel] = useState(false);
   const [showIllnessPanel, setShowIllnessPanel] = useState(false);
-
   const [cities, setCities] = useState({});
   const [error, setError] = useState("");
   const [displayedPincode, setDisplayedPincode] = useState(pincode);
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const pincodeRef = useRef();
    const router = useRouter();
 
@@ -78,7 +75,6 @@ const SlidePanel = ({
   };
 
   const handleCityClick = (pin) => {
-    console.log("Selected Pincode:", pin);
     setDisplayedPincode(pin);
     setPincode(pin);
     setCities({});
@@ -94,9 +90,6 @@ const updatePincode = async () => {
       "POST",
       { findpincode: displayedPincode }
     );
-
-    console.log("UPDATEPINCODE Response:", res);
-
     if (res?.status) {
       showSuccess("Pincode updated successfully!");
       router.push(constant.ROUTES.HEALTH.PLANS);

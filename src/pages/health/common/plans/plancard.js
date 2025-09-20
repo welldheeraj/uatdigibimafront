@@ -15,13 +15,8 @@ const PlanCard = ({
   onCompareChange = () => {},
   compared = false,
 }) => {
-  // console.log(`${constant.BASE_URL}/front/logo/Care_logo.png`)
   const [showModal, setShowModal] = useState(false);
-
   const { logo, productname, coverage, premium } = plan;
-  console.log("plans", allPlans);
-
-  //  robust premium parsing (handles string or number)
   const yearlyPremiumNumber = Number(
     String(premium ?? "")
       .toString()
@@ -31,19 +26,12 @@ const PlanCard = ({
 
   const displayCoverage =
     coverage === 100 || coverage === "100" ? "1 Cr" : `${coverage} Lakh`;
-
-  const handleConfirm = async () => {
-    // console.log("api call ho gyi hai");
-  };
-
-  //  unique id for the checkbox
   const compareId = `compare-${String(productname || "")
     .toLowerCase()
     .replace(/\s+/g, "-")}-${String(coverage || "")}`;
 
   return (
     <div>
-      {/* Modal Component */}
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
@@ -53,7 +41,6 @@ const PlanCard = ({
         showConfirmButton={false}
         confirmText="Yes, Delete"
         cancelText="No, Cancel"
-        // onConfirm={handleConfirm}
       >
         <div className="space-y-2 text-sm text-gray-700">
           <p className="font-semibold text-base text-blue-900">Available Add-ons:</p>
@@ -74,8 +61,6 @@ const PlanCard = ({
           )}
         </div>
       </Modal>
-
-      {/* Plan Card */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -109,9 +94,7 @@ const PlanCard = ({
               onClick={() => setShowModal(true)}
             >
               Addons & View Features
-            </div>
-             {/* Compare checkbox */}
-           {/* Compare checkbox */}
+            </div>        
 {allPlans.length > 1 && (
   <div className="flex items-center gap-2 mt-2">
     <input
@@ -142,8 +125,6 @@ const PlanCard = ({
 )}
 
           </div>
-
-          {/* Coverage + Compare */}
           <div className="flex flex-col items-start sm:items-center sm:ml-auto">
             <span className="text-xs text-gray-500 font-semibold">Cover</span>
             <span className="bg-gradient-to-r from-sky-100 to-sky-50 text-blue-800 font-semibold text-sm px-4 py-1.5 rounded-full shadow mt-1 whitespace-nowrap">
@@ -153,8 +134,6 @@ const PlanCard = ({
            
           </div>
         </div>
-
-        {/* Premium */}
         <div className="w-full sm:w-auto text-left sm:text-right">
           <button
             type="submit"

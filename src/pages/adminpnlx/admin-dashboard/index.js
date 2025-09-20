@@ -28,15 +28,11 @@ export default function DashboardPage({ usersData }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);  
   const { pathname } = router;
  
-
-  // Fetch token from localStorage on initial load
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
-    console.log(storedToken)
     setToken(storedToken);
   }, []); 
 
-  // Fetch user data once the token is available
   useEffect(() => {
     if (!token) return;
     const fetchUserData = async () => {
@@ -59,7 +55,6 @@ export default function DashboardPage({ usersData }) {
     }
   }, [router.isReady, router.query.tab]);
 
-  // Show loader initially
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
@@ -67,7 +62,6 @@ export default function DashboardPage({ usersData }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Show loader on every activePage change
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => {
@@ -105,8 +99,7 @@ useEffect(() => {
     const loginType = localStorage.getItem("logintype");
     const path = router.pathname; 
     const isPublic = publicRoutes.some(publicRoute => path.startsWith(publicRoute));
-
-    // Redirect if not logged in OR not admin
+    
     if (!token || loginType !== "admin") {
       router.push("/adminpnlx");
       showError("Access denied. Admin login required.");

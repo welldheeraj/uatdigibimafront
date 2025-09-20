@@ -12,9 +12,7 @@ export default function ThankYou() {
   const [loading, setLoading] = useState(true);
   const [policyData, setPolicyData] = useState(null);
   const router = useRouter();
-
   const hasRun = useRef(false);
-
   const qv = (v) => (Array.isArray(v) ? v[0] : v || "");
 
   useEffect(() => {
@@ -26,7 +24,6 @@ export default function ThankYou() {
     const param1 = qv(router.query.Param1);
     const param2 = qv(router.query.Param2);
     const policyurl = qv(router.query.policyurl);
-
     const baseKey = `thankyou_mcar_${policynumber}_${param1}_${param2}`;
     const fetchedKey = `${baseKey}_done`;
     const dataKey = `${baseKey}_data`;
@@ -55,16 +52,12 @@ export default function ThankYou() {
       };
 
       try {
-        // 🔹 Get token from localStorage
         const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
         if (!token) {
           showError("Token not found. Please login again.");
           setLoading(false);
           return;
         }
-
-        // 🔹 First API call (token + policy number)
         const firstPayload = {
           policy: policynumber,
         };
@@ -74,19 +67,12 @@ export default function ThankYou() {
           "POST",
           firstPayload
         );
-
-        console.log("First API Response:", firstResponse);
-
-        // First API success then second API run
         if (firstResponse?.status) {
           const response = await CallApi(
             "/api/motor-car-shriram/thankyou",
             "POST",
             payload
           );
-
-          console.log("Second API Response:", response);
-
           if (response?.status && response?.data) {
             setPolicyData(response.data);
             try {

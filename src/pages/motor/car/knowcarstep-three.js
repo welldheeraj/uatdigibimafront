@@ -51,8 +51,6 @@ export default function KnowCarSlideThree() {
           constant.API.MOTOR.CAR.KNOWCARDETAILSTHREE,
           "GET"
         );
-        console.log("Saved response", res.data);
-
         const data = res?.data;
         if (data) {
           setData(data);
@@ -123,15 +121,12 @@ useEffect(() => {
         return;
       }
     }
-
-    console.log("Form submitted:", data);
     try {
       const res = await CallApi(
         constant.API.MOTOR.CAR.KNOWCARDETAILSTHREE,
         "POST",
         data
       );
-      console.log(res);
       if (res) {
         router.push(constant.ROUTES.MOTOR.CAR.PLANS);
       }

@@ -26,13 +26,11 @@ export default function FormPage({ usersData }) {
   const [timer, setTimer] = useState(0);
   const [otp, setOtp] = useState("");
   const otpInputRef = useRef(null);
-
   const gender = watch("gender");
   const mobile = watch("mobile");
   const name = watch("name");
   const pincode = watch("pincode");
   const email = watch("email");
-
   const [cities, setCities] = useState({});
   const [error, setError] = useState("");
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
@@ -45,7 +43,6 @@ export default function FormPage({ usersData }) {
   useEffect(() => {
     const handleAuthChange = (event) => {
       const detail = event?.detail ?? null;
-      console.log("auth-change fired (type page):", detail);
       setToken(detail?.token ?? null);
 
       if (!detail?.token) {
@@ -79,7 +76,6 @@ export default function FormPage({ usersData }) {
     if (type === "motor" && getToken) {
       router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
     }
-    // console.log("token:", getToken);
     if (getToken) {
       setToken(getToken);
       setIsOtpVerified(true);
@@ -89,10 +85,6 @@ export default function FormPage({ usersData }) {
             typeof usersData?.json === "function"
               ? await usersData.json()
               : usersData;
-
-          //   console.log("usersData inside fetchData:", usersData);
-          //   console.log("Resolved data (pincode):", data.pincode);
-
           if (data) {
             reset({
               name: data.name || "",
@@ -115,11 +107,11 @@ export default function FormPage({ usersData }) {
           setIsReadOnly(false);
         }
       };
-      fetchData(); 
+      fetchData();
     } else {
       setIsReadOnly(false);
     }
-  }, [usersData, router, type, reset,setValue]);
+  }, [usersData, router, type, reset, setValue]);
 
   useEffect(() => {
     let interval;
@@ -148,11 +140,9 @@ export default function FormPage({ usersData }) {
   const fetchCities = async (cleaned) => {
     if (/^\d{5,6}$/.test(cleaned)) {
       let pincodeData = { pincode: cleaned };
-      console.log("pincode", pincodeData);
       await CallApi(constant.API.HEALTH.PINCODE, "POST", pincodeData)
         .then((pindata) => {
           setCities(pindata);
-          console.log("rcvpincode", pindata);
           setError("");
         })
         .catch(() => {
@@ -186,7 +176,6 @@ export default function FormPage({ usersData }) {
         "POST",
         sendotpdata
       );
-      console.log(res);
       if (res.status) {
         setOtpVisible(true);
         setTimer(30);
@@ -215,7 +204,6 @@ export default function FormPage({ usersData }) {
         "POST",
         verifyotpdata
       );
-      console.log(res);
       if (res.status) {
         setIsOtpVerified(true);
         setOtpVisible(false);
@@ -233,65 +221,16 @@ export default function FormPage({ usersData }) {
       setIsLoading(false);
     }
   };
-
-  // const onSubmit = async (data) => {
-  //   const gender = watch("gender");
-  //   const mobile = watch("mobile");
-  //   const name = watch("name");
-  //   const pincode = watch("pincode");
-  //   const email = watch("email");
-  //   console.log(pincode);
-  //   if (!name) {
-  //     showError("Please Enter your name");
-  //     return;
-  //   }
-
-  //   console.log(isOtpVerified, stoken);
-  //   if (!isOtpVerified) {
-  //     showError("Please verify your mobile number");
-  //     return;
-  //   }
-
-  //   if (!pincode) {
-  //     showError("Please Enter Pincode");
-  //     return;
-  //   }
-  //   if (!email) {
-  //     showError("Please Enter Email");
-  //     return;
-  //   }
-
-  //   try {
-  //     console.log("motor ka data" , data)
-  //     const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
-  //     console.log("login ka response",res);
-  //     if (!stoken) {
-  //       localStorage.setItem("token", res.token);
-  //       setToken(res.token);
-  //       window.dispatchEvent(new Event("auth-change"));
-  //     }
-  //     // showSuccess(res.message);
-  //     showSuccess("Login successfully")
-  //     router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
-  //   } catch (error) {
-  //     console.error("Submission Error:", error);
-  //     showError("Submission failed. Please try again later.");
-  //   }
-  // };
-
   const onSubmit = async (data) => {
     const gender = watch("gender");
     const mobile = watch("mobile");
     const name = watch("name");
     const pincode = watch("pincode");
     const email = watch("email");
-    console.log(pincode);
     if (!name) {
       showError("Please Enter your name");
       return;
     }
-
-    console.log(isOtpVerified, stoken);
     if (!isOtpVerified) {
       showError("Please verify your mobile number");
       return;
@@ -307,17 +246,12 @@ export default function FormPage({ usersData }) {
     }
     if (type === "motor") {
       try {
-        console.log("motor ka data", data);
         const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
-        console.log("motor login ka response", res);
         if (!stoken) {
           localStorage.setItem("token", res.token);
           localStorage.setItem("logintype", "user");
-          // save username
           localStorage.setItem("username", data.name || "");
           setToken(res.token);
-
-          // dispatch custom event
           window.dispatchEvent(
             new CustomEvent("auth-change", {
               detail: { username: data.name || "", token: res.token },
@@ -333,9 +267,7 @@ export default function FormPage({ usersData }) {
       }
     } else if (type === "health") {
       try {
-        console.log("health ka data", data);
         const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
-        console.log("health login ka response", res);
         if (res.status) {
           localStorage.setItem("token", res.token);
           localStorage.setItem("logintype", "user");
@@ -406,12 +338,9 @@ export default function FormPage({ usersData }) {
                 Name
               </label>
               <input
-                {...register("name")} // Register with React Hook Form
+                {...register("name")}
                 type="text"
-                //value={logindata.name} // If read-only, show logindata.name, else leave empty
                 placeholder="Enter Full Name"
-                //onChange={handleChange} // Handles changes when the field is editable
-                //readOnly={isReadOnly} // Makes the field read-only based on `isReadOnly`
                 className="w-full border border-gray-400 px-4 py-2 rounded-md text-sm"
               />
             </div>
@@ -425,7 +354,6 @@ export default function FormPage({ usersData }) {
               </label>
               <input
                 {...register("email", {
-                  //   required: "Email is required",
                   pattern: {
                     value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
                     message: "Enter a valid email address",
@@ -455,12 +383,10 @@ export default function FormPage({ usersData }) {
                       pattern: /^[0-9]{10}$/,
                     })}
                     type="tel"
-                    //value={logindata.mobile}
                     maxLength={10}
                     readOnly={isOtpVerified}
                     placeholder="Enter Mobile Number"
                     onInput={isNumber}
-                    //onChange={handleChange}
                     className={`w-full border border-gray-400 px-4 py-2 rounded-md text-sm ${
                       isOtpVerified
                         ? "bg-white text-gray-700"
@@ -528,15 +454,12 @@ export default function FormPage({ usersData }) {
                 {...register("pincode", {
                   pattern: /^[0-9]{5,6}$/,
                 })}
-                //value={displayedPincode}
-                //value={isReadOnly ? logindata.pincode : displayedPincode}
                 onChange={(e) => {
                   const cleaned = e.target.value.replace(/\D/g, "").slice(0, 6);
                   setDisplayedPincode(cleaned);
                   setValue("pincode", cleaned);
                   fetchCities(cleaned);
                 }}
-                //readOnly={isReadOnly}
                 placeholder="Enter Pincode"
                 className="w-full px-4 py-2 text-sm border border-gray-400 rounded-md"
               />
@@ -569,7 +492,7 @@ export default function FormPage({ usersData }) {
           <div className="flex flex-col md:items-start gap-1 mt-2">
             <button
               type="submit"
-              disabled={!(isOtpVerified || stoken)} // <-- actual button disabling
+              disabled={!(isOtpVerified || stoken)}
               className={`px-10 py-2 thmbtn text-base ${
                 isOtpVerified || stoken ? "" : "opacity-50 cursor-not-allowed"
               }`}

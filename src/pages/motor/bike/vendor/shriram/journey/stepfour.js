@@ -6,7 +6,7 @@ import constant from "@/env";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function StepFourForm({
-    motortype,
+  motortype,
   stepthreedata,
   step4Form,
   onSubmitStep,
@@ -14,12 +14,10 @@ export default function StepFourForm({
 }) {
   const { apiresponse, verify_details, proposal, paymentSummery } =
     stepthreedata || {};
-  console.log("four", stepthreedata);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const handleEditStep = (stepNo) => {
-    console.log("Ram");
     const currentParams = new URLSearchParams(searchParams.toString());
     currentParams.set("step", stepNo);
     router.push(`/health/journey?${currentParams.toString()}`);
@@ -27,7 +25,6 @@ export default function StepFourForm({
 
   return (
     <div className="p-6 bg-[#f9f9ff] rounded-2xl shadow-md space-y-6">
-      {/*Coverage Plan Header */}
       <div className="bg-white p-6 rounded-2xl shadow-sm flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-800">
@@ -46,21 +43,20 @@ export default function StepFourForm({
         </button>
       </div>
 
-      {/*Vehicle Details */}
-     <SectionCard title="Vehicle Details">
-      {motortype !== "newbike" && verify_details?.make && (
-        <InfoRow label="Make" value={verify_details.make} />
-      )}
-      { verify_details?.model && (
-        <InfoRow label="Model" value={verify_details.model} />
-      )}
-      {motortype !== "newbike" && verify_details?.regdate && (
-        <InfoRow label="Registration Date" value={verify_details.regdate} />
-      )}
-      {verify_details?.idv && (
-        <InfoRow label="IDV" value={`₹ ${verify_details.idv}`} />
-      )}
-    </SectionCard>
+      <SectionCard title="Vehicle Details">
+        {motortype !== "newbike" && verify_details?.make && (
+          <InfoRow label="Make" value={verify_details.make} />
+        )}
+        {verify_details?.model && (
+          <InfoRow label="Model" value={verify_details.model} />
+        )}
+        {motortype !== "newbike" && verify_details?.regdate && (
+          <InfoRow label="Registration Date" value={verify_details.regdate} />
+        )}
+        {verify_details?.idv && (
+          <InfoRow label="IDV" value={`₹ ${verify_details.idv}`} />
+        )}
+      </SectionCard>
 
       {/*Policy Details */}
       <SectionCard title="Policy Details">
@@ -70,23 +66,24 @@ export default function StepFourForm({
       </SectionCard>
 
       {/*Payment Summary */}
-   <SectionCard title="Payment Summary">
-  {(paymentSummery || []).map((item, idx) => {
-    const label = item.CoverDesc;
-    const value = item.Premium;
-    const isTotal = label?.toLowerCase().includes("total") || 
-                    label?.toLowerCase().includes("final");
+      <SectionCard title="Payment Summary">
+        {(paymentSummery || []).map((item, idx) => {
+          const label = item.CoverDesc;
+          const value = item.Premium;
+          const isTotal =
+            label?.toLowerCase().includes("total") ||
+            label?.toLowerCase().includes("final");
 
-    return (
-      <InfoRow
-        key={idx}
-        label={label}
-        value={`₹ ${value}`}
-        isTotal={isTotal}
-      />
-    );
-  })}
-</SectionCard>
+          return (
+            <InfoRow
+              key={idx}
+              label={label}
+              value={`₹ ${value}`}
+              isTotal={isTotal}
+            />
+          );
+        })}
+      </SectionCard>
     </div>
   );
 }
@@ -119,4 +116,3 @@ function InfoRow({ label, value, isTotal = false }) {
     </div>
   );
 }
-

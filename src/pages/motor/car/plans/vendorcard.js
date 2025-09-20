@@ -13,9 +13,8 @@ export default function VendorCard({
   compared = false,
   disableCompare = false,
   onCompareChange = () => {},
-   showCompare = true,
+  showCompare = true,
 }) {
-  console.log(data);
   const [showModal, setShowModal] = useState(false);
   const [selectedPremiumData, setSelectedPremiumData] = useState([]);
   const router = useRouter();
@@ -45,7 +44,7 @@ export default function VendorCard({
               src={`${constant.BASE_URL}/front/logo/${data.logo}` || ""}
               alt={data.title}
               width={80}
-                height={40}
+              height={40}
               className="h-auto w-[100%] object-contain"
             />
           </div>
@@ -86,30 +85,31 @@ export default function VendorCard({
             </button>
           </div>
 
-           {showCompare && (
-        <div className="flex items-center gap-2 mt-2">
-          <input
-            id={compareId}
-            type="checkbox"
-            className="h-4 w-4 accent-indigo-600"
-            checked={!!compared}
-            disabled={disableCompare && !compared}
-            onChange={(e) => onCompareChange(e.target.checked)}
-            onClick={(e) => e.stopPropagation()}
-          />
-          <label
-            htmlFor={compareId}
-            className={`text-sm ${
-              disableCompare && !compared ? "text-gray-400" : "text-gray-700"
-            } select-none cursor-pointer`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            Compare
-          </label>
+          {showCompare && (
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                id={compareId}
+                type="checkbox"
+                className="h-4 w-4 accent-indigo-600"
+                checked={!!compared}
+                disabled={disableCompare && !compared}
+                onChange={(e) => onCompareChange(e.target.checked)}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <label
+                htmlFor={compareId}
+                className={`text-sm ${
+                  disableCompare && !compared
+                    ? "text-gray-400"
+                    : "text-gray-700"
+                } select-none cursor-pointer`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                Compare
+              </label>
+            </div>
+          )}
         </div>
-      )}
-        </div>
-
       </div>
 
       <Modal

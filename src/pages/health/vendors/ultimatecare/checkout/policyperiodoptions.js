@@ -1,7 +1,5 @@
 "use client";
-
 import React, { useState, useEffect, useRef } from "react";
-
 export default function PolicyPeriodOptions({
   tenureOptions = [],
   tenure,
@@ -27,7 +25,7 @@ export default function PolicyPeriodOptions({
       setPriceLoading(true);
       prevPricesRef.current = tenurePrices;
 
-      const timeout = setTimeout(() => setPriceLoading(false), 600); // adjust duration as needed
+      const timeout = setTimeout(() => setPriceLoading(false), 600); 
       return () => clearTimeout(timeout);
     }
   }, [tenurePrices]);

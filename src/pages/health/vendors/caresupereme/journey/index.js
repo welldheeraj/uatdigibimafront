@@ -15,7 +15,6 @@ import validateStepTwoData  from "./validatesteptwoagedata.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
-// import HealthInsuranceLoader from "../../../loader";
 import {HealthLoaderOne} from "@/components/loader";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
@@ -41,10 +40,7 @@ export default function StepperForm({ usersData, kycData }) {
    const [quoteData, setQuoteData] = useState({totalpremium: "",basepremium: "",coverage: "",});
    const [oldPincode, setOldPincode] = useState("");
 const [newPincode, setNewPincode] = useState("");
-
-
   const searchParams = useSearchParams();
-
   const summaryData = useMemo(() => {
     const getParsed = (key) => {
       try {
@@ -53,7 +49,6 @@ const [newPincode, setNewPincode] = useState("");
         return [];
       }
     };
-    // console.log("hello World", searchParams);
     return {
       tenure: searchParams.get("tenure") || "",
       coverAmount: searchParams.get("coverAmount") || "",
@@ -99,9 +94,6 @@ const [newPincode, setNewPincode] = useState("");
 
   const validateFormStepOne = async () => {
     const rawValues = step1Form.getValues();
-
-    // console.log("Final Submit Payload:", rawValues);
-
     // const result = await validateKycStep(
     //   step1Form,
     //   kycType,
@@ -127,18 +119,13 @@ const [newPincode, setNewPincode] = useState("");
       sameAddress: sameAddress ? "1" : "0",
     };
     delete values.panDob;
-
-    // console.log(values);
-    // console.log("pandob", values.customerpancardDob);
     try {
       setLoading(true);
-      // console.log(constant.API.HEALTH.CARESUPEREME.SAVESTEPONE);
       const res = await CallApi(
         constant.API.HEALTH.CARESUPEREME.SAVESTEPONE,
         "POST",
         values
       );
-      // console.log(res);
       if (res === 1 || res?.status) {
         setStepOneData(res);
         return true;
@@ -157,28 +144,14 @@ const [newPincode, setNewPincode] = useState("");
 
   const validateFormStepTwo = async () => {
     const values = step2Form.getValues();
-    console.log("All form values", values);
-    // console.log("Nominee DOB:", values.nomineedob);
-
     const fieldsValid = await validateFields(step2Form);
     if (!fieldsValid) return false;
-
     const rawValues = step2Form.getValues();
-
     const nomineeDob = values.nomineedob;
-
-    // if (!nomineeDob || nomineeDob === "") {
-    //   showError("Please enter nominee's date of birth.");
-    //   return false;
-    // }
     const validAge = validateStepTwoData(values, steponedata);
     if (!validAge) return false;
-
     try {
-      console.log("step two datafrgfrgtrt", values);
-
       setLoading(true);
-
       const res = await CallApi(
         constant.API.HEALTH.CARESUPEREME.SAVESTEPTWO,
         "POST",
@@ -200,22 +173,16 @@ const [newPincode, setNewPincode] = useState("");
   };
 
   const validateFormStepThree = async (step3Form, steptwodata) => {
-    // const isValid = await step3Form.trigger();
-    // if (!isValid) return false;
-
     const data = step3Form.getValues();
     const members = steptwodata?.member || [];
     const agreeTnC = data.agreeTnC;
     const standingInstruction = data.standingInstruction;
-    // console.log("ram", agreeTnC, standingInstruction);
     let hasError = false;
     let firstInvalidInput = null;
     let dobErrorShown = false;
 
     if (!agreeTnC ) {
-          // Optional: Focus on the first missing field
           if (!agreeTnC) step3Form.setFocus("agreeTnC");
-    
           showError(
             "Please agree to Terms & Conditions and Standing Instruction to continue."
           );
@@ -250,12 +217,10 @@ const [newPincode, setNewPincode] = useState("");
         members.forEach((m, index) => {
           const checkKey = `${key}main${index + 1}`;
           const dateKey = `${checkKey}date`;
-
           const isChecked = data[checkKey];
           const dateValue = data[dateKey];
           const input = document.querySelector(`input[name="${dateKey}"]`);
           const trimmed = dateValue?.trim() || "";
-
           if (isChecked) {
             if (!trimmed) {
               if (input) {
@@ -265,11 +230,9 @@ const [newPincode, setNewPincode] = useState("");
               hasError = true;
               return;
             }
-
             const [mm, yyyy] = trimmed.split("/");
             const month = parseInt(mm, 10);
             const year = parseInt(yyyy, 10);
-
             if (!month || month < 1 || month > 12) {
               if (input) {
                 input.classList.add("border-red-500");
@@ -293,11 +256,9 @@ const [newPincode, setNewPincode] = useState("");
               const dobYear = dobDate.getFullYear();
               const inputMonth = inputDate.getMonth();
               const inputYear = inputDate.getFullYear();
-
               const today = new Date();
               const currentMonth = today.getMonth();
               const currentYear = today.getFullYear();
-
               const isBeforeDOB =
                 inputYear < dobYear ||
                 (inputYear === dobYear && inputMonth < dobMonth);
@@ -381,17 +342,12 @@ const [newPincode, setNewPincode] = useState("");
         result.push(memberData);
       }
     });
-
-    // console.log(result);
-
     try {
       const res = await CallApi(
         constant.API.HEALTH.CARESUPEREME.SAVESTEPTHREE,
         "POST",
         result
       );
-      console.log("Step 3 API Response", res);
-
       if (res === 1 || res?.status) {
         setStepThreeData(res);
         return true;
@@ -407,14 +363,12 @@ const [newPincode, setNewPincode] = useState("");
   };
 
 const GoToPayment = async () => {
-  console.log("hello")
   setLoading(true);
   try {
     const res = await CallApi(
       constant.API.HEALTH.CARESUPEREME.CREATEPOLICY,
       "POST"
     );
-    console.log("hello",res);
 const status = res?.status
     // Updated condition to check for string "1" or boolean true
    if (status === "1" || status === 1 || status === true) {
@@ -422,7 +376,6 @@ const status = res?.status
         constant.API.HEALTH.CARESUPEREME.GETPROPOSAL,
         "POST"
       );
-      console.log("proposal",response)
       if (response?.proposalNumber) {
         router.push(
           `/health/vendors/caresupereme/payment?proposalNumber=${response.proposalNumber}`
@@ -468,10 +421,7 @@ const status = res?.status
         : currentStep === 3
         ? step3Form
         : step4Form;
-
-    // console.log(`Step ${currentStep} Data:`, formToUse.getValues());
     goNext();
-    // setLoading(false);
   };
 
   const handleVerifyPan = async () => {
@@ -526,7 +476,6 @@ const status = res?.status
   };
   useEffect(() => {
   if (quoteData.totalpremium) {
-    // console.log("Updated Quote Data:", quoteData);
   }
 }, [quoteData])
 
@@ -542,7 +491,6 @@ const status = res?.status
           >
             <FaChevronLeft /> Go back to Previous
           </button>
-
           <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
             <div className="flex-1 bg-white rounded-[32px] shadow p-8">
               {/* Stepper */}
@@ -551,7 +499,6 @@ const status = res?.status
                   const sn = i + 1;
                   const active = sn === currentStep;
                   const done = sn < currentStep;
-
                   return (
                     <div
                       key={sn}

@@ -12,7 +12,6 @@ export default function StepThreeForm({
   inputClass,
   journeydata,
 }) {
-  console.log("step THREE data", journeydata);
   const [dates, setDates] = useState({});
   const [isMinor, setIsMinor] = useState(false);
   const handleDateChange = (key, fieldNameInForm) => (date) => {
@@ -70,7 +69,6 @@ export default function StepThreeForm({
         step3Form.setValue("nomineedob", nominee.nomineedob);
       }
       if (nominee.appointeename && nominee.appointeerelation) {
-        console.log("apointee data", nominee);
         setIsMinor(true);
         setTimeout(() => {
           step3Form.setValue("appointeename", nominee.appointeename);

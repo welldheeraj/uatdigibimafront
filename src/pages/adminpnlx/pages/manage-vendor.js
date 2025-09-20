@@ -43,8 +43,6 @@ const fetchVendorData = async () => {
   setLoading(true);
   try {
     const response = await CallApi(constant.API.ADMIN.MANAGEVENDOR, "GET");
-    console.log(response);
-
     if (response?.status && response?.data?.vendors) {
       const vendorArray = response.data.vendors; // already [{id, vendorname}, ...]
 
@@ -77,7 +75,6 @@ const fetchVendorData = async () => {
   }, [token]);
 
 const deleteVendor = async () => {
-  console.log(selectedVendor)
   if (!selectedVendor?.id) return;
   try {
     const response = await CallApi(
@@ -86,7 +83,6 @@ const deleteVendor = async () => {
       { id: selectedVendor.id }
     );
     if (response?.status) {
-      console.log(response)
       showSuccess(response?.message || "Vendor deleted successfully!");
       fetchVendorData();
       setShowEditModal(false);

@@ -136,9 +136,6 @@ const endPage = Math.min(pageCount, startPage + pageWindow - 1);
       `${constant.API.ADMIN.MANAGEPOLICY}?page=${pageNum}`,
       "GET"
     );
-
-    console.log("policy ka res", response);
-
     const tableData =
       response?.data?.policies?.data?.map((item) => ({
         proposerName: item.proposar_name,
@@ -168,13 +165,11 @@ const endPage = Math.min(pageCount, startPage + pageWindow - 1);
   }, []);
 
 const handleDownload = async (policy) => {
-    console.log("Download clicked row data:", policy);
-    // return false;
   try {
     setLoading(true);
 
-    const res = await CallApi(constant.API.USER.DOWNLOADPOLICY, "POST",policy.policy_pdf_path)
- console.log(res)
+    const res = await CallApi(constant.API.USER.DOWNLOADPOLICY, "POST",policy.policy_pdf_path);
+
 
   } catch (error) {
     console.error("Download failed:", error);

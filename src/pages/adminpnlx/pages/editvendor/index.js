@@ -4,7 +4,6 @@ import constant from "@/env";
 import { showSuccess, showError } from "@/layouts/toaster";
 const VendorEditForm = forwardRef(({ selectedVendor, closeModal, refreshData }, ref) => {
   const [formValues, setFormValues] = useState({ id: "", vendorname: "" });
-  console.log("selectedVendor", selectedVendor);
 useEffect(() => {
   if (selectedVendor) {
     setFormValues({
@@ -26,9 +25,6 @@ useEffect(() => {
   vendorname: formValues.vendorname,
   prevendor: selectedVendor?.vendorname || selectedVendor?.vendorName || selectedVendor?.name || "",
 };
-
-      console.log(payload);
-      // return false;
       const res = await CallApi(constant.API.ADMIN.EDITVENDOR, "POST", payload);
 
       if (res?.status) {

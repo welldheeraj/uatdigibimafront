@@ -11,22 +11,17 @@ export default async function validateKycStep(
   data,
   setKycVerified,
   kycVerified,
-   setIsPanVerified,
+  setIsPanVerified,
   setVerifiedData,
-  setIsPanKycHidden, 
-  setIsAadharKycHidden, 
-  setIsOtherKycHidden 
+  setIsPanKycHidden,
+  setIsAadharKycHidden,
+  setIsOtherKycHidden
 ) {
-  // if (kycVerified) return true;
   if (!kycType) return showError("Please select a KYC type."), false;
-
   try {
     let payload, res;
-
-    // PAN Verification
     if (kycType === "PAN Card") {
       const { customerpancardno, customerpancardDob } = values;
-      console.log(customerpancardno, customerpancardDob, values);
       if (!customerpancardno || !customerpancardDob)
         return showError("PAN Number and DOB are required."), false;
 
@@ -39,11 +34,9 @@ export default async function validateKycStep(
         customerpancardno,
         customerpancardDob,
       };
-
       res = await CallApi(constant.API.HEALTH.PANVERIFY, "POST", payload);
-      console.log("PAN API Response:", res);
 
-         if (res?.status && res?.kyc === "1") {
+      if (res?.status && res?.kyc === "1") {
         showSuccess("PAN verified");
         setKycVerified(true);
         setIsPanVerified?.(true);
@@ -93,11 +86,11 @@ export default async function validateKycStep(
       };
 
       res = await CallApi(constant.API.HEALTH.AADHARVERIFY, "POST", payload);
-     if (res?.status) {
+      if (res?.status) {
         showSuccess("Aadhar verified");
         setKycVerified(true);
         setVerifiedData?.({ kyctype: "a" });
-        setIsAadharKycHidden?.(true); 
+        setIsAadharKycHidden?.(true);
         return true;
       }
 
@@ -111,8 +104,6 @@ export default async function validateKycStep(
 
     // Others Verification
     else if (kycType === "Others") {
-      // console.log("Received KYC Data:", data);
-
       const {
         identity,
         address,
@@ -134,31 +125,30 @@ export default async function validateKycStep(
         showError("Missing fields or files.");
         return false;
       }
-        // 2 File type validation
-        const isPdf = (file) =>
-          file && file.type && file.type.toLowerCase() === "application/pdf";
+      // 2 File type validation
+      const isPdf = (file) =>
+        file && file.type && file.type.toLowerCase() === "application/pdf";
 
-        const isAllowedImage = (file) => {
-          if (!file || !file.type) return false;
-          const allowedTypes = ["image/jpeg", "image/png", "image/bmp"];
-          return allowedTypes.includes(file.type.toLowerCase());
-        };
+      const isAllowedImage = (file) => {
+        if (!file || !file.type) return false;
+        const allowedTypes = ["image/jpeg", "image/png", "image/bmp"];
+        return allowedTypes.includes(file.type.toLowerCase());
+      };
 
-        if (!isPdf(identityFile)) {
-          showError("Identity file must be a PDF.");
-          return false;
-        }
+      if (!isPdf(identityFile)) {
+        showError("Identity file must be a PDF.");
+        return false;
+      }
 
-        if (!isPdf(addressFile)) {
-          showError("Address file must be a PDF.");
-          return false;
-        }
+      if (!isPdf(addressFile)) {
+        showError("Address file must be a PDF.");
+        return false;
+      }
 
-       if (!isAllowedImage(insurePhoto)) {
-          showError("Insured photo must be a JPG, JPEG, PNG, or BMP image.");
-          return false;
-        }
-
+      if (!isAllowedImage(insurePhoto)) {
+        showError("Insured photo must be a JPG, JPEG, PNG, or BMP image.");
+        return false;
+      }
 
       const formData = new FormData();
       formData.append("identityfront", identityFile);
@@ -176,37 +166,36 @@ export default async function validateKycStep(
       formData.append(addressValueKey, addressValue);
 
       for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
       }
-      // return false;
-      console.log(constant.API.MOTOR.CAR.SHRIRAM.UPLOADDOCUMENT)
-      // return false
       try {
-      const res = await UploadDocument(constant.API.MOTOR.CAR.SHRIRAM.UPLOADDOCUMENT, "POST", formData);
-      console.log(res);
+        const res = await UploadDocument(
+          constant.API.MOTOR.CAR.SHRIRAM.UPLOADDOCUMENT,
+          "POST",
+          formData
+        );
 
-    if (res?.status) {
+        if (res?.status) {
           showSuccess("Documents verified");
           setKycVerified(true);
           setVerifiedData?.({ kyctype: "o" });
-          setIsOtherKycHidden?.(true); 
+          setIsOtherKycHidden?.(true);
           return true;
         }
 
-      showError(res?.message || "Document verification failed");
-    } catch (err) {
-      console.error("Upload error:", err);
-      showError("Something went wrong during upload");
-    }
+        showError(res?.message || "Document verification failed");
+      } catch (err) {
+        console.error("Upload error:", err);
+        showError("Something went wrong during upload");
+      }
 
       setKycVerified(false);
       return false;
     }
 
-  setKycVerified(false);
+    setKycVerified(false);
     return false;
   } catch (error) {
-     console.error(`${kycType} verification error:`, error);
+    console.error(`${kycType} verification error:`, error);
     showError(`Server error during ${kycType} verification`);
     setKycVerified(false);
     return false;

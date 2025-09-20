@@ -43,7 +43,6 @@ const ManagePlan = ({ token }) => {
     setLoading(true);
     try {
       const response = await CallApi(constant.API.ADMIN.MANAGEPLAN, "GET");
-      console.log(response)
       if (response?.status && Array.isArray(response?.data?.plan)) {
         setTotalRecords(response.data.plan.length);
         setData(response.data.plan);
@@ -72,7 +71,6 @@ const ManagePlan = ({ token }) => {
   };
 
   const deletePlan = async () => {
-  console.log(selectedPlan)
   if (!selectedPlan?.id) return;
   try {
     const response = await CallApi(
@@ -81,7 +79,6 @@ const ManagePlan = ({ token }) => {
       { id: selectedPlan.id }
     );
     if (response?.status) {
-      console.log(response)
       showSuccess(response?.message || "Plans deleted successfully!");
      fetchUserData();
       setShowEditModal(false);

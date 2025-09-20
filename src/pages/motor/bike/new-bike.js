@@ -129,7 +129,6 @@ function NewBike() {
         router.push(constant.ROUTES.MOTOR.BIKE.BIKEPLANS);
       }
     } catch (error) {
-      console.log(error);
     }
   };
 
