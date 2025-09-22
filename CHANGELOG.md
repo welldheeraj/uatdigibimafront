@@ -33,7 +33,6 @@
     -New api for kyc implementing
 
 ## [2025-09-11] -ultimatecare
-
     -Port implementing
     -Multiindividual(pending)
     -Multiindividual(care-supereme)-pending
@@ -46,3 +45,6 @@
     -Ultimate price mismatch fix
     -Meeting on 16sep with bajaj
     -Updating new update 
+
+ ## [2025-09-22] -Digibima
+    -Digibima and insurance.digibima connected

@@ -115,8 +115,11 @@ export default function Header({ token, username, setUsername }) {
 
       window.dispatchEvent(new Event("auth-change"));
 
-      router.push("/");
-      showSuccess(response.message);
+          const url = new URL("https://digibima.com/");
+        url.searchParams.set("logout", "1");
+        router.push(url.toString());
+
+        showSuccess(response.message);
     }
   };
   useEffect(() => {
@@ -127,7 +130,6 @@ export default function Header({ token, username, setUsername }) {
 
     window.addEventListener("auth-change", syncAuth);
 
-    // initial run
     syncAuth();
 
     return () => {
