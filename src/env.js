@@ -249,6 +249,30 @@ const constant = {
       // You can add more if needed
     },
   },
+   ULTIMATEPORTQUESTION: {
+    CAREDISEASE: {
+      105: "Joint Pain?",
+      114: "Cancer?",
+      122: "Congenital Disorder?",
+      129: "Kidney Disease?",
+      143: "Cardiac Disease?",
+      147: "HIV/AIDS?",
+      164: "Paralysis?",
+      205: "Diabetes?",
+      207: "Hypertension / High Blood Pressure",
+      210: "Any other diseases or ailments not mentioned above (description add)?",
+      222: "PEDillnessDetails?",
+      232: "Liver Disease?",
+      250: "Respiratory disorders inclusion?",
+      502: "PEDillnessDetails",
+      503: "PEDSurgeryDetails",
+      504: "PEDSmokeDetails",
+      H001: "Have any ... last 48 months?",
+      H002: "Have any ... filed a claim?",
+      H003: "Has any proposal ... declined/cancelled/higher premium?",
+      H004: "Already covered under any other policy?",
+    },
+  },
 };
 
 export default constant;

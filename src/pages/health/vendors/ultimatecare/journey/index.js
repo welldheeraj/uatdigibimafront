@@ -9,6 +9,8 @@ import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
 import StepFourForm from "./stepfour.js";
 import SummaryCard from "../checkout/rightsection.js";
+import PortQuestion from "./question/portquestion.js";
+import portquestionvalidation from "./question/portquestionvalidation.js";
 import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "@/styles/js/validation.js";
 import validateStepTwoData from "./validatesteptwoagedata.js";
@@ -38,6 +40,9 @@ export default function StepperForm({ usersData, kycData }) {
   const [isPanKycHidden, setIsPanKycHidden] = useState(false);
   const [isAadharKycHidden, setIsAadharKycHidden] = useState(false);
   const [isOtherKycHidden, setIsOtherKycHidden] = useState(false);
+  const [planType, setPlanType] = useState(); 
+  console.log(planType)
+
   const [quoteData, setQuoteData] = useState({
     totalpremium: "",
     basepremium: "",
@@ -407,17 +412,23 @@ export default function StepperForm({ usersData, kycData }) {
   const onSubmitStep = async () => {
     setSubmitStepLoader(true);
     try {
-      let isValid = false;
-      if (currentStep === 1) isValid = await validateFormStepOne();
-      else if (currentStep === 2) isValid = await validateFormStepTwo();
-      else if (currentStep === 3)
-        isValid = await validateFormStepThree(step3Form, steptwodata);
-      else if (currentStep === 4) isValid = await GoToPayment();
+let isValid = false;
+if (currentStep === 1) isValid = await validateFormStepOne();
+else if (currentStep === 2) isValid = await validateFormStepTwo();
+else if (currentStep === 3) {
+  if (planType === 1) {
+    isValid = await validateFormStepThree(step3Form, steptwodata);
+  } else {
+    isValid = await portquestionvalidation(step3Form, steptwodata, setStepThreeData);
+  }
+}
+else if (currentStep === 4) isValid = await GoToPayment();
 
-      if (!isValid) {
-        setSubmitStepLoader(false);
-        return;
-      }
+if (!isValid) {
+  setSubmitStepLoader(false);
+  return;
+}
+
       const formToUse =
         currentStep === 1
           ? step1Form
@@ -580,6 +591,7 @@ export default function StepperForm({ usersData, kycData }) {
                     setQuoteData={setQuoteData}
                     setNewPincode={setNewPincode}
                     setOldPincode={setOldPincode}
+                    setPlanType={setPlanType}
                   />
                 )}
                 {currentStep === 2 && (
@@ -591,14 +603,23 @@ export default function StepperForm({ usersData, kycData }) {
                     usersData={usersData}
                   />
                 )}
-                {currentStep === 3 && (
+             {currentStep === 3 && (
+                planType == 1 ? (
                   <StepThreeForm
                     step3Form={step3Form}
                     steptwodata={steptwodata}
                     inputClass={inputClass}
                     onSubmitStep={onSubmitStep}
                   />
-                )}
+                ) : (
+                   <PortQuestion
+                      step3Form={step3Form}
+                      steptwodata={steptwodata}
+                      inputClass={inputClass}
+                      onSubmitStep={onSubmitStep}
+                    />
+                )
+              )}
                 {currentStep === 4 && (
                   <StepFourForm
                     step4Form={step4Form}

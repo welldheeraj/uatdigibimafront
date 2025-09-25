@@ -23,26 +23,32 @@ export default function InsurePage() {
   const [planType, setPlanType] = useState("");
   const [tenure, setTenure] = useState("");
 
+  let insureDataFetched = false;
+
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (insureDataFetched) return; 
+    insureDataFetched = true;
+
     const getInsureData = async () => {
       try {
         const res = await CallApi(constant.API.HEALTH.GETINSURE);
         if (res.status && res.data) {
-          if (res.gender) {
-            setGender(res.gender.toLowerCase());
-          }
           const apiData = res.data;
+          const genderValue = res.gender?.toLowerCase() || "";
+          setGender(genderValue);
+
           const updatedMembers = [
             {
               name: "self",
-              age: apiData.find((item) => item.name === "self")?.age || "",
+              age: apiData.find((i) => i.name === "self")?.age || "",
             },
             {
-              name: gender === "male" ? "wife" : "husband",
+              name: genderValue === "male" ? "wife" : "husband",
               age:
                 apiData.find(
-                  (item) =>
-                    item.name === (gender === "male" ? "wife" : "husband")
+                  (i) =>
+                    i.name === (genderValue === "male" ? "wife" : "husband")
                 )?.age || "",
             },
             ...[
@@ -54,35 +60,30 @@ export default function InsurePage() {
               "motherinlaw",
             ].map((m) => ({
               name: m,
-              age: apiData.find((item) => item.name === m)?.age || "",
+              age: apiData.find((i) => i.name === m)?.age || "",
             })),
           ];
-
+          setMembers(updatedMembers);
           const childData = apiData
-            .filter((item) => item.name === "Son" || item.name === "Daughter")
-            .map((item) => ({
-              name: item.name,
-              age: item.age,
-            }));
+            .filter((i) => i.name === "Son" || i.name === "Daughter")
+            .map((i) => ({ name: i.name, age: i.age }));
           setChildrenList(childData);
           setIsChildChecked(childData.length > 0);
-          setMembers(updatedMembers);
 
           const selected = apiData
-            .filter((item) => item.name !== "Son" && item.name !== "Daughter")
-            .map((m) => m.name);
+            .filter((i) => i.name !== "Son" && i.name !== "Daughter")
+            .map((i) => i.name);
           setSelectedMembers(selected);
         } else {
-          showError("Failed to fetch data.");
+          console.error("Failed to fetch data.");
         }
       } catch (error) {
         console.error("Error fetching data:", error);
-        showError("Something went wrong while fetching data.");
       }
     };
 
     getInsureData();
-  }, [gender, reset]);
+  }, []);
 
   const addChild = () => {
     if (childrenList.length < maxChildren) {
@@ -217,8 +218,8 @@ export default function InsurePage() {
           return showError(`Child ${i + 1}: Please fill both name and age`);
         }
         const ageNum = parseInt(age, 10);
-        if (ageNum < 1 || ageNum > 18) {
-          return showError(`Child ${i + 1}: Age must be between 1 and 18`);
+        if (ageNum < 1 || ageNum > 24) {
+          return showError(`Child ${i + 1}: Age must be between 1 and 24`);
         }
       }
     }

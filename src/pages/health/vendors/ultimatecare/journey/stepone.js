@@ -40,6 +40,7 @@ export default function StepOneForm({
   setQuoteData,
   setOldPincode,
   setNewPincode,
+  setPlanType
 }) {
   const isPanAlreadyVerified = isPanVerified;
   const [priceChangeLoading, setPriceChangeLoading] = useState(false);
@@ -157,6 +158,7 @@ export default function StepOneForm({
     const contact = JSON.parse(user.contact_details || "{}");
     const permanent = JSON.parse(user.permanent_address || "{}");
     const comm = JSON.parse(user.comunication_address || "{}");
+    setPlanType(usersData.plantype)
     const typeMap = {
       p: "PAN Card",
       a: "Aadhar ( Last 4 Digits )",

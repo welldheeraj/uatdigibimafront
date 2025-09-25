@@ -95,7 +95,7 @@ export default function App({ Component, pageProps }) {
       try {
         localStorage.setItem("token", tokenFromQuery);
         localStorage.setItem("db_auth_token", tokenFromQuery);
-         localStorage.setItem("logintype", "user");
+        localStorage.setItem("logintype", "user");
         if (uidFromQuery) {
           localStorage.setItem(
             "db_auth_user",
@@ -126,29 +126,37 @@ export default function App({ Component, pageProps }) {
         : router.replace(router.pathname, undefined, { shallow: true });
 
       nav.finally(() => setIngestDone(true));
-      return; // important
+      return; 
     }
 
-    // no token in query -> mark ingest done
     setIngestDone(true);
   }, [router.isReady, router.query, router.pathname]);
 
   useEffect(() => {
+    if (!router.isReady) return; 
+
+    let ignore = false;
+
     const verifyAuth = async () => {
       const storedToken = localStorage.getItem("token");
       if (!storedToken) {
-        setToken(null);
-        setLoading(false);
-        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-          router.push(constant.ROUTES.HEALTH.INDEX);
-        }
-        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-          router.push(constant.ROUTES.MOTOR.INDEX);
+        if (!ignore) {
+          setToken(null);
+          setLoading(false);
+          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+            router.push(constant.ROUTES.HEALTH.INDEX);
+          }
+          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+            router.push(constant.ROUTES.MOTOR.INDEX);
+          }
         }
         return;
       }
+
       try {
         const res = await VerifyToken(storedToken);
+        if (ignore) return;
+
         const data = await res.json();
         if (data.status) {
           setToken(storedToken);
@@ -163,41 +171,52 @@ export default function App({ Component, pageProps }) {
           }
         }
       } catch (error) {
-        console.error("Token verification failed:", error);
-        localStorage.removeItem("token");
-        setAuthkey(null);
-        setToken(null);
-        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-          router.push(constant.ROUTES.HEALTH.INDEX);
-        }
-        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-          router.push(constant.ROUTES.MOTOR.INDEX);
+        if (!ignore) {
+          console.error("Token verification failed:", error);
+          localStorage.removeItem("token");
+          setAuthkey(null);
+          setToken(null);
+          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+            router.push(constant.ROUTES.HEALTH.INDEX);
+          }
+          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+            router.push(constant.ROUTES.MOTOR.INDEX);
+          }
         }
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
+
     verifyAuth();
+
     const handleAuthChange = () => {
-      const updatedToken = localStorage.getItem("token");
-      setToken(updatedToken);
+      if (!ignore) {
+        const updatedToken = localStorage.getItem("token");
+        setToken(updatedToken);
+      }
     };
+
     window.addEventListener("auth-change", handleAuthChange);
-    return () => window.removeEventListener("auth-change", handleAuthChange);
-  }, [router, splitRoute]);
+
+    return () => {
+      ignore = true;
+      window.removeEventListener("auth-change", handleAuthChange);
+    };
+  }, [router.isReady, splitRoute]); 
 
   useEffect(() => {
     if (!router.isReady || !ingestDone) return; // 👈 wait till query ingested
 
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
-      const pathWithQuery = router.asPath; // includes ?token=...
+      const pathWithQuery = router.asPath;
 
       const isPublicRoute = PUBLIC_ROUTES.includes(pathWithQuery);
 
       if (!token && !isPublicRoute) {
         showError("You must be logged in to access this page.");
-        router.push("/");
+        router.push("https://digibima.com/");
         return;
       }
 
