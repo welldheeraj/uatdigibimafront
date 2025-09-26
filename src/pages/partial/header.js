@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback,useRef } from "react";
 import Modal from "@/components/modal";
 import {
   FaEnvelope,
@@ -29,46 +29,46 @@ export default function Header({ token, username, setUsername }) {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Fetch notifications + username
-  let hasFetchedNotifications = false; 
+// keep track across renders
+const hasFetchedNotificationsRef = useRef(false);
 
-  const fetchData = useCallback(async () => {
-    if (hasFetchedNotifications) return; 
-    hasFetchedNotifications = true;
+const fetchData = useCallback(async () => {
+  if (hasFetchedNotificationsRef.current) return; 
+  hasFetchedNotificationsRef.current = true;
 
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    try {
-      const res = await CallApi(constant.API.USER.NOTIFICATION, "GET");
-      if (res?.status) {
-        const notifications = Array.isArray(res?.notification)
-          ? res.notification.map((n) => ({
-              id: n.notificationId ?? n.id,
-              message: n.message ?? "",
-              time: n.time ?? "",
-              vendor: n.vendor,
-              type: n.type,
-              read: Boolean(n.read ?? n.isRead ?? false),
-              isRead: Boolean(n.isRead ?? n.read ?? false),
-            }))
-          : [];
+  try {
+    const res = await CallApi(constant.API.USER.NOTIFICATION, "GET");
+    if (res?.status) {
+      const notifications = Array.isArray(res?.notification)
+        ? res.notification.map((n) => ({
+            id: n.notificationId ?? n.id,
+            message: n.message ?? "",
+            time: n.time ?? "",
+            vendor: n.vendor,
+            type: n.type,
+            read: Boolean(n.read ?? n.isRead ?? false),
+            isRead: Boolean(n.isRead ?? n.read ?? false),
+          }))
+        : [];
 
-        setData({
-          notifications,
-          userName:
-            typeof res?.user === "string" ? res.user : res?.user?.name ?? null,
-        });
-      } else {
-        setError("Failed to load notifications");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong");
-    } finally {
-      setLoading(false);
+      setData({
+        notifications,
+        userName:
+          typeof res?.user === "string" ? res.user : res?.user?.name ?? null,
+      });
+    } else {
+      setError("Failed to load notifications");
     }
-  }, []);
+  } catch (err) {
+    console.error(err);
+    setError("Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+}, []); 
 
   useEffect(() => {
     fetchData();

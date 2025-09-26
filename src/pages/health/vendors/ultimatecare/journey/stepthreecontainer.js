@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import StepThreeForm from "./StepThreeForm";
-import validateFormStepThree from "./validateFormStepThree"; // <- apne project ke hisaab se path sahi karo
+import StepThreeForm from "./stepthree";
+// import validateFormStepThree from "./validateFormStepThree";
 
 export default function StepThreeContainer({
   planType = 1,
@@ -11,14 +11,14 @@ export default function StepThreeContainer({
   onPrev,   // optional
 }) {
   const handleSubmitPlan1 = async () => {
-    const ok = await validateFormStepThree(step3Form, steptwodata);
+    // const ok = await validateFormStepThree(step3Form, steptwodata);
     if (ok && onNext) onNext();
   };
 
-  const handleSubmitPlan2 = async () => {
-    // Abhi ke liye Step 3 skip. Agar API ko kuch flag chahiye ho, yahan POST kar do.
-    if (onNext) onNext();
-  };
+  // const handleSubmitPlan2 = async () => {
+  //   // Abhi ke liye Step 3 skip. Agar API ko kuch flag chahiye ho, yahan POST kar do.
+  //   if (onNext) onNext();
+  // };
 
   if (planType === 1) {
     // ✅ PURANA Step 3 exactly same chalega (UI + validation + payload)

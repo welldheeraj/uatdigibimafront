@@ -151,7 +151,7 @@ export default function StepOneForm({
     fetchDataONE();
   }, [step1Form]);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!usersData || isUserPrefilled) return;
     const user = usersData.data || {};
     const userInfo = usersData.user?.[0] || {};
@@ -263,6 +263,7 @@ export default function StepOneForm({
     handlePincodeInput,
     handleDateChange,
     setSameAddress,
+    setPlanType
   ]);
 
   useEffect(() => {

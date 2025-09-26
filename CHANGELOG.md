@@ -48,3 +48,9 @@
 
  ## [2025-09-22] -Digibima
     -Digibima and insurance.digibima connected
+
+
+ ## [2025-09-26] -Zuno
+    - Motor insurance api(request sent on zuno dashboard)
+    - Bajaj(Sometimes not working)
+    -

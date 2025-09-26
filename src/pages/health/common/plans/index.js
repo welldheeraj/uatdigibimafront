@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { CallApi } from "../../../../api";
 import constant from "../../../../env";
+import Image from "next/image";
 
 import FilterForm from "./filter";
 import PlanCard from "./plancard";
@@ -364,7 +365,7 @@ export default function HealthPlan() {
                 >
                   <div className="h-10 w-10 bg-gray-50 rounded overflow-hidden flex items-center justify-center">
                     {p?.logo ? (
-                      <img
+                     <Image
                         src={`/images/health/vendorimage/${p.logo}`}
                         alt={p.productname || "logo"}
                         className="h-full w-full object-contain"

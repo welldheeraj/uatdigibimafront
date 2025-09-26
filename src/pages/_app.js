@@ -54,159 +54,167 @@ export default function App({ Component, pageProps }) {
     router.pathname.startsWith("/adminpnlx") ||
     router.pathname.startsWith("/dashboard");
 
+
   const splitRoute = route
     .trim()
     .split("/")
     .filter((segment) => segment !== "")[0];
 
-  useEffect(() => {
-    if (!router.isReady) return;
+const { isReady, query, pathname, replace } = router;
 
-    const {
-      token: qToken,
-      user_id,
-      userid,
-      id,
-      uid,
-      type: qType,
-    } = router.query || {};
+useEffect(() => {
+  if (!isReady) return;
 
-    const tokenFromQuery = Array.isArray(qToken) ? qToken[0] : qToken;
-    const uidFromQuery = Array.isArray(user_id)
-      ? user_id[0]
-      : Array.isArray(userid)
-      ? userid[0]
-      : Array.isArray(id)
-      ? id[0]
-      : Array.isArray(uid)
-      ? uid[0]
-      : user_id || userid || id || uid;
+  const {
+    token: qToken,
+    user_id,
+    userid,
+    id,
+    uid,
+    type: qType,
+    login_type,
+    user_name,
+  } = query || {};
+  console.log(query);
 
-    const typeFromQuery = Array.isArray(qType) ? qType[0] : qType;
+  const first = (v) => (Array.isArray(v) ? v[0] : v);
 
-    const norm = (s) =>
-      String(s || "")
-        .toLowerCase()
-        .trim()
-        .replace(/[_-]+/g, " ")
-        .replace(/\s+/g, " ");
+  const tokenFromQuery = first(qToken);
+  const uidFromQuery =
+    first(user_id) || first(userid) || first(id) || first(uid);
+  const typeFromQuery = first(qType);
+  const loginTypeFromQuery = first(login_type) || "user";
+  const userNameFromQuery = first(user_name) || "";
 
-    if (tokenFromQuery) {
-      try {
-        localStorage.setItem("token", tokenFromQuery);
-        localStorage.setItem("db_auth_token", tokenFromQuery);
-        localStorage.setItem("logintype", "user");
-        if (uidFromQuery) {
-          localStorage.setItem(
-            "db_auth_user",
-            JSON.stringify({
-              id: uidFromQuery,
-              type: typeFromQuery || "customer",
-            })
-          );
-        }
-      } catch {}
+  const norm = (s) =>
+    String(s || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[_-]+/g, " ")
+      .replace(/\s+/g, " ");
 
-      setToken(tokenFromQuery);
-      window.dispatchEvent(new Event("auth-change"));
+  if (tokenFromQuery) {
+    try {
+      localStorage.setItem("token", tokenFromQuery);
+      localStorage.setItem("logintype", loginTypeFromQuery);
+      localStorage.setItem("username", userNameFromQuery);
+      localStorage.setItem("userid", String(uidFromQuery || ""));
+      localStorage.setItem("type", typeFromQuery || "customer");
+    } catch {}
 
-      const t = norm(typeFromQuery);
-      let targetPath = null;
+    setToken(tokenFromQuery);
+    window.dispatchEvent(new Event("auth-change"));
 
-      if (t === "health") {
-        targetPath = "/health/common/insure";
-      } else if (t.includes("2 wheeler") || t.includes("two wheeler")) {
-        targetPath = "/motor/select-vehicle-type";
-      } else if (t.includes("4 wheeler") || t.includes("four wheeler")) {
-        targetPath = "/motor/select-vehicle-type";
-      }
+    const t = norm(typeFromQuery);
+    let targetPath = null;
 
-      const nav = targetPath
-        ? router.replace(targetPath, undefined, { shallow: false })
-        : router.replace(router.pathname, undefined, { shallow: true });
-
-      nav.finally(() => setIngestDone(true));
-      return; 
+    if (t === "health") {
+      targetPath = "/health/common/insure";
+    } else if (t.includes("2 wheeler") || t.includes("two wheeler")) {
+      targetPath = "/motor/select-vehicle-type";
+    } else if (t.includes("4 wheeler") || t.includes("four wheeler")) {
+      targetPath = "/motor/select-vehicle-type";
     }
 
-    setIngestDone(true);
-  }, [router.isReady, router.query, router.pathname]);
+    const nav = targetPath
+      ? replace(targetPath, undefined, { shallow: false })
+      : replace(pathname, undefined, { shallow: true });
 
-  useEffect(() => {
-    if (!router.isReady) return; 
+    nav.finally(() => setIngestDone(true));
 
-    let ignore = false;
+    console.log(localStorage.getItem("token"));
+    console.log(localStorage.getItem("logintype"));
+    console.log(localStorage.getItem("username"));
+    console.log(localStorage.getItem("userid"));
+    console.log(localStorage.getItem("type"));
+    return;
+  }
 
-    const verifyAuth = async () => {
-      const storedToken = localStorage.getItem("token");
-      if (!storedToken) {
-        if (!ignore) {
-          setToken(null);
-          setLoading(false);
-          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-            router.push(constant.ROUTES.HEALTH.INDEX);
-          }
-          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-            router.push(constant.ROUTES.MOTOR.INDEX);
-          }
-        }
-        return;
-      }
+  // no token in query -> mark ingest done
+  setIngestDone(true);
+}, [isReady, query, pathname, replace]);
 
-      try {
-        const res = await VerifyToken(storedToken);
-        if (ignore) return;
 
-        const data = await res.json();
-        if (data.status) {
-          setToken(storedToken);
-        } else {
-          localStorage.removeItem("token");
-          setToken(null);
-          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-            router.push(constant.ROUTES.HEALTH.INDEX);
-          }
-          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-            router.push(constant.ROUTES.MOTOR.INDEX);
-          }
-        }
-      } catch (error) {
-        if (!ignore) {
-          console.error("Token verification failed:", error);
-          localStorage.removeItem("token");
-          setAuthkey(null);
-          setToken(null);
-          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-            router.push(constant.ROUTES.HEALTH.INDEX);
-          }
-          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-            router.push(constant.ROUTES.MOTOR.INDEX);
-          }
-        }
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    };
 
-    verifyAuth();
 
-    const handleAuthChange = () => {
+
+useEffect(() => {
+  if (!isReady) return; 
+
+  let ignore = false;
+
+  const verifyAuth = async () => {
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) {
       if (!ignore) {
-        const updatedToken = localStorage.getItem("token");
-        setToken(updatedToken);
+        setToken(null);
+        setLoading(false);
+        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+          push(constant.ROUTES.HEALTH.INDEX);
+        }
+        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+          push(constant.ROUTES.MOTOR.INDEX);
+        }
       }
-    };
+      return;
+    }
 
-    window.addEventListener("auth-change", handleAuthChange);
+    try {
+      const res = await VerifyToken(storedToken);
+      if (ignore) return;
 
-    return () => {
-      ignore = true;
-      window.removeEventListener("auth-change", handleAuthChange);
-    };
-  }, [router.isReady, splitRoute]); 
+      const data = await res.json();
+      if (data.status) {
+        setToken(storedToken);
+      } else {
+        localStorage.removeItem("token");
+        setToken(null);
+        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+          push(constant.ROUTES.HEALTH.INDEX);
+        }
+        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+          push(constant.ROUTES.MOTOR.INDEX);
+        }
+      }
+    } catch (error) {
+      if (!ignore) {
+        console.error("Token verification failed:", error);
+        localStorage.removeItem("token");
+        setAuthkey(null);
+        setToken(null);
+        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+          push(constant.ROUTES.HEALTH.INDEX);
+        }
+        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+          push(constant.ROUTES.MOTOR.INDEX);
+        }
+      }
+    } finally {
+      if (!ignore) setLoading(false);
+    }
+  };
+
+  verifyAuth();
+
+  const handleAuthChange = () => {
+    if (!ignore) {
+      const updatedToken = localStorage.getItem("token");
+      setToken(updatedToken);
+    }
+  };
+
+  window.addEventListener("auth-change", handleAuthChange);
+
+  return () => {
+    ignore = true;
+    window.removeEventListener("auth-change", handleAuthChange);
+  };
+}, [isReady, splitRoute]); 
+
+
 
   useEffect(() => {
-    if (!router.isReady || !ingestDone) return; // 👈 wait till query ingested
+   if (!router.isReady || !ingestDone) return; 
 
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
@@ -214,9 +222,9 @@ export default function App({ Component, pageProps }) {
 
       const isPublicRoute = PUBLIC_ROUTES.includes(pathWithQuery);
 
-      if (!token && !isPublicRoute) {
+      if (!token ) {
         showError("You must be logged in to access this page.");
-        router.push("https://digibima.com/");
+        router.push(constant.WEBSITEURL);
         return;
       }
 
