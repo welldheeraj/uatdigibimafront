@@ -5,6 +5,7 @@ const constant = {
     HEADER: "@#$%^AZ##",
   },
   BASE_URL: "https://stage.digibima.com/public",
+  SERVERIMG_URL : "https://stage.digibima.com/public/front/logo",
   ROUTES: {
     INDEX: "/",
     LOGIN: {
@@ -29,11 +30,17 @@ const constant = {
             PROPOSAL: "/health/vendors/ultimatecare/journey",
             PAYMENT: "/health/payment",
           },
+          BAJAJ: {
+            CHECKOUT: "/health/vendors/bajaj/checkout",
+            PROPOSAL: "/health/vendors/bajaj/journey",
+            PAYMENT: "/health/payment",
+          },
     
           VENDOR: {
             100: "/health/vendors/caresupereme/checkout",
             102: "/health/vendors/ultimatecare/checkout",
             101: "/health/vendors/Godigits/checkout",
+            106: "/health/vendors/bajaj/checkout",
           },
         },
     MOTOR: {
@@ -126,6 +133,21 @@ const constant = {
         SAVESTEPONE: "/api/health-ultimatecare/proposalStepOne",
         SAVESTEPTWO: "/api/health-ultimatecare/proposalStepTwo",
         SAVESTEPTHREE: "/api/health-ultimatecare/proposalStepThree",
+        CREATEPOLICY: "/api/health-ultimatecare/createpolicy",
+        GETPROPOSAL: "/api/health-ultimatecare/payment",
+      },
+      BAJAJ: {
+        CHECKOUT: "/api/bajaj-myhealthcare/addon",
+        SETPREMIUM: "/api/bajaj-myhealthcare/setpremium",
+        PlANCHECKOUT: "api/bajaj-myhealthcare/plancheckout",
+        ADDADDONS: "/api/bajaj-myhealthcare/addaddon",
+        IDENTITYVERIFY: "/api/bajaj-myhealthcare/validateckycdetails",
+        PANVERIFY: "/api/health-ultimatecare/verifypan",
+        UPLOADDOCUMENT: "/api/health-ultimatecare/uploadfile",
+        AADHARVERIFY: "/api/verifyadhar",
+        SAVESTEPONE: "/api/bajaj-myhealthcare/proposalStepOne",
+        SAVESTEPTWO: "/api/bajaj-myhealthcare/proposalStepTwo",
+        SAVESTEPTHREE: "/api/bajaj-myhealthcare/proposalStepThree",
         CREATEPOLICY: "/api/health-ultimatecare/createpolicy",
         GETPROPOSAL: "/api/health-ultimatecare/payment",
       },
@@ -273,6 +295,37 @@ const constant = {
       H004: "Already covered under any other policy?",
     },
   },
+ BAJAJQUESTION: {
+  HEALTH: {
+    1: {
+      label: "Has any of the persons to be insured suffered from or been investigated for any of the following: Disorder of the heart or circulatory system, chest pain, high blood pressure, stroke, asthma or any respiratory condition, cancer or tumor lump of any kind, diabetes, hepatitis, disorder of urinary tract or kidneys, blood disorder, mental or psychiatric condition, brain/nervous system disease, fits (epilepsy), slipped disc, backache, congenital/birth defects/urinary diseases, AIDS or positive HIV?",
+      name: "mempreexistdisease"
+    },
+    2: {
+      label: "Do you or any of the family members to be covered have/had health complaints or met with any accident in the past 4 years and prior to 4 years and have been taking treatment, regular medication, or planned for any treatment/surgery/hospitalization?",
+      name: "memasthma"
+    },
+    3: {
+      label: "Do you smoke cigarettes or consume tobacco (chewing/smoking)/alcohol/narcotic or marijuana in any form? Please give duration and daily consumption.",
+      name: "memsmkertbco"
+    },
+    4: {
+      label: "Have you or any of your immediate family members (father, mother, brother, or sister) had cancer, heart attack, or stroke and at what age? Prior to age 60?",
+      name: "memcholstrldisordr"
+    },
+    5: {
+      label: "Has any proposal for life, critical illness, or health-related insurance on your life or lives ever been postponed, declined, or accepted on special terms? If yes, give details.",
+      name: "memheartdisease"
+    },
+  },
+  LIFESTYLE: {
+    31: {
+      label: "Personal habit of smoking / alcohol / gutkha / tobacco / paan?",
+      name: "memlifestyle"
+    }
+  }
+},
+
 };
 
 export default constant;

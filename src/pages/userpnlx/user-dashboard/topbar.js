@@ -80,17 +80,13 @@ export default function TopBar({ setActivePage, setIsMobileMenuOpen }) {
       window.dispatchEvent(new Event("auth-change"));
       setIsDropdownOpen(false);
       showSuccess(response.message);
-        const url = new URL("https://digibima.com/");
-        url.searchParams.set("logout", "1");
-        router.push(url.toString());
-
-        showSuccess(response.message);
+      router.push("/");
     }
   };
 
   const markNotificationsRead = async (notificationId = null) => {
     try {
-
+      // Optimistic UI
       setData((prev) => ({
         ...prev,
         notifications: prev.notifications.map((n) =>

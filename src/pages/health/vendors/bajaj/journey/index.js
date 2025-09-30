@@ -7,23 +7,20 @@ import { FaChevronLeft, FaCheck } from "react-icons/fa";
 import StepOneForm from "./stepone.js";
 import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
-import StepThreeFormPort  from "./question/portquestion.js";
-import portquestionvalidation  from "./question/portquestionvalidation.js";
 import StepFourForm from "./stepfour.js";
 import SummaryCard from "../checkout/rightsection.js";
 import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "@/styles/js/validation.js";
-import validateStepTwoData from "./validatesteptwoagedata.js";
+import validateStepTwoData  from "./validatesteptwoagedata.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
-import { HealthLoaderOne } from "@/components/loader";
+import {HealthLoaderOne} from "@/components/loader";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
 export default function StepperForm({ usersData, kycData }) {
   const [loading, setLoading] = useState(false);
-  const [submitStepLoader, setSubmitStepLoader] = useState(false);
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [kycType, setKycType] = useState("");
@@ -40,14 +37,9 @@ export default function StepperForm({ usersData, kycData }) {
   const [isPanKycHidden, setIsPanKycHidden] = useState(false);
   const [isAadharKycHidden, setIsAadharKycHidden] = useState(false);
   const [isOtherKycHidden, setIsOtherKycHidden] = useState(false);
-  const [planType, setPlanType] = useState("");
-  const [quoteData, setQuoteData] = useState({
-    totalpremium: "",
-    basepremium: "",
-    coverage: "",
-  });
-  const [oldPincode, setOldPincode] = useState("");
-  const [newPincode, setNewPincode] = useState("");
+   const [quoteData, setQuoteData] = useState({totalpremium: "",basepremium: "",coverage: "",});
+   const [oldPincode, setOldPincode] = useState("");
+const [newPincode, setNewPincode] = useState("");
   const searchParams = useSearchParams();
   const summaryData = useMemo(() => {
     const getParsed = (key) => {
@@ -87,12 +79,12 @@ export default function StepperForm({ usersData, kycData }) {
   const step4Form = useForm();
 
   const inputClass = "border border-gray-400 rounded px-3 py-2 text-sm w-full";
-  // const steps = ["Step", "Step", "Step", ""];
   const steps = ["", "", "", ""];
+  // const steps = ["Step", "Step", "Step", ""];
 
   const back = async () => {
     if (currentStep === 1) {
-      router.push(constant.ROUTES.HEALTH.ULTIMATECARE.CHECKOUT);
+      router.push(constant.ROUTES.HEALTH.BAJAJ.CHECKOUT);
     } else {
       setLoading(true);
       setCurrentStep((prev) => prev - 1);
@@ -102,16 +94,17 @@ export default function StepperForm({ usersData, kycData }) {
 
   const validateFormStepOne = async () => {
     const rawValues = step1Form.getValues();
-
-    const tp =
-      typeof totalPremium === "number"
-        ? totalPremium
-        : Number(String(totalPremium).replace(/[^\d.]/g, "")); // removes ₹ , spaces
-
-    if (tp > 50000 && kycType !== "PAN Card") {
-      showError("For policies above ₹50,000, PAN verification is mandatory.");
-      return false;
-    }
+    // const result = await validateKycStep(
+    //   step1Form,
+    //   kycType,
+    //   rawValues,
+    //   proofs,
+    //   setKycVerified,
+    //   kycVerified,
+    //   setIsPanVerified,
+    //   setVerifiedData
+    // );
+    // if (!result) return false;
     if (!kycVerified) {
       showError("Please complete KYC verification before proceeding.");
       return false;
@@ -129,7 +122,7 @@ export default function StepperForm({ usersData, kycData }) {
     try {
       setLoading(true);
       const res = await CallApi(
-        constant.API.HEALTH.ULTIMATECARE.SAVESTEPONE,
+        constant.API.HEALTH.BAJAJ.SAVESTEPONE,
         "POST",
         values
       );
@@ -150,19 +143,17 @@ export default function StepperForm({ usersData, kycData }) {
   };
 
   const validateFormStepTwo = async () => {
+    const values = step2Form.getValues();
     const fieldsValid = await validateFields(step2Form);
     if (!fieldsValid) return false;
-
     const rawValues = step2Form.getValues();
-
-    const values = step2Form.getValues();
+    const nomineeDob = values.nomineedob;
     const validAge = validateStepTwoData(values, steponedata);
     if (!validAge) return false;
-
     try {
       setLoading(true);
       const res = await CallApi(
-        constant.API.HEALTH.ULTIMATECARE.SAVESTEPTWO,
+        constant.API.HEALTH.BAJAJ.SAVESTEPTWO,
         "POST",
         values
       );
@@ -182,9 +173,6 @@ export default function StepperForm({ usersData, kycData }) {
   };
 
   const validateFormStepThree = async (step3Form, steptwodata) => {
-    // const isValid = await step3Form.trigger();
-    // if (!isValid) return false;
-
     const data = step3Form.getValues();
     const members = steptwodata?.member || [];
     const agreeTnC = data.agreeTnC;
@@ -193,17 +181,13 @@ export default function StepperForm({ usersData, kycData }) {
     let firstInvalidInput = null;
     let dobErrorShown = false;
 
-
-
-
-
-    if (!agreeTnC) {
-      if (!agreeTnC) step3Form.setFocus("agreeTnC");
-      showError(
-        "Please agree to Terms & Conditions and Standing Instruction to continue."
-      );
-      return false;
-    }
+    if (!agreeTnC ) {
+          if (!agreeTnC) step3Form.setFocus("agreeTnC");
+          showError(
+            "Please agree to Terms & Conditions and Standing Instruction to continue."
+          );
+          return false;
+        }
 
     const sectionMap = {
       1: [
@@ -233,12 +217,10 @@ export default function StepperForm({ usersData, kycData }) {
         members.forEach((m, index) => {
           const checkKey = `${key}main${index + 1}`;
           const dateKey = `${checkKey}date`;
-
           const isChecked = data[checkKey];
           const dateValue = data[dateKey];
           const input = document.querySelector(`input[name="${dateKey}"]`);
           const trimmed = dateValue?.trim() || "";
-
           if (isChecked) {
             if (!trimmed) {
               if (input) {
@@ -248,11 +230,9 @@ export default function StepperForm({ usersData, kycData }) {
               hasError = true;
               return;
             }
-
             const [mm, yyyy] = trimmed.split("/");
             const month = parseInt(mm, 10);
             const year = parseInt(yyyy, 10);
-
             if (!month || month < 1 || month > 12) {
               if (input) {
                 input.classList.add("border-red-500");
@@ -276,11 +256,9 @@ export default function StepperForm({ usersData, kycData }) {
               const dobYear = dobDate.getFullYear();
               const inputMonth = inputDate.getMonth();
               const inputYear = inputDate.getFullYear();
-
               const today = new Date();
               const currentMonth = today.getMonth();
               const currentYear = today.getFullYear();
-
               const isBeforeDOB =
                 inputYear < dobYear ||
                 (inputYear === dobYear && inputMonth < dobMonth);
@@ -364,10 +342,9 @@ export default function StepperForm({ usersData, kycData }) {
         result.push(memberData);
       }
     });
-    console.log(result)
     try {
       const res = await CallApi(
-        constant.API.HEALTH.ULTIMATECARE.SAVESTEPTHREE,
+        constant.API.HEALTH.BAJAJ.SAVESTEPTHREE,
         "POST",
         result
       );
@@ -385,82 +362,77 @@ export default function StepperForm({ usersData, kycData }) {
     return result;
   };
 
-  const GoToPayment = async () => {
-    setLoading(true);
-    try {
-      const res = await CallApi(
-        constant.API.HEALTH.ULTIMATECARE.CREATEPOLICY,
+const GoToPayment = async () => {
+  setLoading(true);
+  try {
+    const res = await CallApi(
+      constant.API.HEALTH.BAJAJ.CREATEPOLICY,
+      "POST"
+    );
+const status = res?.status
+    // Updated condition to check for string "1" or boolean true
+   if (status === "1" || status === 1 || status === true) {
+      const response = await CallApi(
+        constant.API.HEALTH.BAJAJ.GETPROPOSAL,
         "POST"
       );
-      if (res === 1 || res?.status) {
-        const response = await CallApi(
-          constant.API.HEALTH.ULTIMATECARE.GETPROPOSAL,
-          "POST"
+      if (response?.proposalNumber) {
+        router.push(
+          `/health/vendors/bajaj/payment?proposalNumber=${response.proposalNumber}`
         );
-        if (response.proposalNumber) {
-          router.push(
-            `/health/vendors/ultimatecare/payment?proposalNumber=${response.proposalNumber}`
-          );
-        }
       }
-    } catch (error) {
-      console.error("API Error", error);
-    } finally {
-      setLoading(false);
+    } else {
+      const fallbackMsg = "Something went wrong while creating policy.";
+      const backendMsg =
+        res?.error?.[0]?.errDescription || res?.message || fallbackMsg;
+      showError(backendMsg);
     }
-  };
+  } catch (error) {
+    console.error("API Error", error);
+    showError("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
 
   const goNext = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
 
   const onSubmitStep = async () => {
-    setSubmitStepLoader(true);
-    try {
-      let isValid = false;
-      if (currentStep === 1) isValid = await validateFormStepOne();
-      else if (currentStep === 2) isValid = await validateFormStepTwo();
-      else if (currentStep === 3) {
-  if (planType == "1") {
-    isValid = await validateFormStepThree(step3Form, steptwodata);
-  } else if (planType == "2") {
-    isValid = await portquestionvalidation(step3Form, steptwodata, setStepThreeData);
-  }
-}
-      else if (currentStep === 4) isValid = await GoToPayment();
+    let isValid = false;
+    // setLoading(true);
+    if (currentStep === 1) isValid = await validateFormStepOne();
+    else if (currentStep === 2) isValid = await validateFormStepTwo();
+    else if (currentStep === 3)
+      isValid = await validateFormStepThree(step3Form, steptwodata);
+    else if (currentStep === 4) isValid = await GoToPayment();
 
-      if (!isValid) {
-        setSubmitStepLoader(false);
-        return;
-      }
-      const formToUse =
-        currentStep === 1
-          ? step1Form
-          : currentStep === 2
-          ? step2Form
-          : currentStep === 3
-          ? step3Form
-          : step4Form;
-      goNext();
-    } catch (e) {
-    } finally {
-      setSubmitStepLoader(false);
+    if (!isValid) {
+      setLoading(false);
+      return;
     }
+    const formToUse =
+      currentStep === 1
+        ? step1Form
+        : currentStep === 2
+        ? step2Form
+        : currentStep === 3
+        ? step3Form
+        : step4Form;
+    goNext();
   };
 
-  const handleVerifyPan = async () => {
+  const handleVerifyIdentity = async () => {
     const values = step1Form.getValues();
+    
+    console.log(values)
+    // return false;
     await validateKycStep(
       step1Form,
-      "PAN Card",
-      values,
-      totalPremium,
-      proofs,
-      setKycVerified,
-      kycVerified,
-      setIsPanVerified,
-      setVerifiedData,
-      setIsPanKycHidden,
-      setIsAadharKycHidden,
-      setIsOtherKycHidden
+      "CKYC",
+     values
     );
   };
 
@@ -470,7 +442,6 @@ export default function StepperForm({ usersData, kycData }) {
       step1Form,
       "Aadhar ( Last 4 Digits )",
       values,
-      totalPremium,
       proofs,
       setKycVerified,
       kycVerified,
@@ -488,7 +459,6 @@ export default function StepperForm({ usersData, kycData }) {
       step1Form,
       "Others",
       values,
-      totalPremium,
       proofs,
       setKycVerified,
       kycVerified,
@@ -500,13 +470,10 @@ export default function StepperForm({ usersData, kycData }) {
     );
   };
   useEffect(() => {
-    if (quoteData.totalpremium) {
-    }
-  }, [quoteData]);
+  if (quoteData.totalpremium) {
+  }
+}, [quoteData])
 
-    useEffect(() => {
-  console.log("plane type kya aaya",planType)
-  }, [setPlanType]);
   return (
     <>
       {loading ? (
@@ -519,7 +486,6 @@ export default function StepperForm({ usersData, kycData }) {
           >
             <FaChevronLeft /> Go back to Previous
           </button>
-
           <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
             <div className="flex-1 bg-white rounded-[32px] shadow p-8">
               {/* Stepper */}
@@ -528,7 +494,6 @@ export default function StepperForm({ usersData, kycData }) {
                   const sn = i + 1;
                   const active = sn === currentStep;
                   const done = sn < currentStep;
-
                   return (
                     <div
                       key={sn}
@@ -569,7 +534,7 @@ export default function StepperForm({ usersData, kycData }) {
                     step1Form={step1Form}
                     kycType={kycType}
                     setKycType={setKycType}
-                    handleVerifyPan={handleVerifyPan}
+                    handleVerifyIdentity={handleVerifyIdentity}
                     handleVerifyAadhar={handleVerifyAadhar}
                     handleVerifyOther={handleVerifyOther}
                     loading={loading}
@@ -594,10 +559,9 @@ export default function StepperForm({ usersData, kycData }) {
                     setIsAadharKycHidden={setIsAadharKycHidden}
                     isOtherKycHidden={isOtherKycHidden}
                     setIsOtherKycHidden={setIsOtherKycHidden}
-                    setQuoteData={setQuoteData}
-                    setNewPincode={setNewPincode}
-                    setOldPincode={setOldPincode}
-                    setPlanType={setPlanType}
+                      setQuoteData={setQuoteData}
+                      setNewPincode={setNewPincode}
+                      setOldPincode={setOldPincode}
                   />
                 )}
                 {currentStep === 2 && (
@@ -609,33 +573,25 @@ export default function StepperForm({ usersData, kycData }) {
                     usersData={usersData}
                   />
                 )}
-               {currentStep === 3 && (
-                  planType === "1" ? (
-                    <StepThreeForm
-                      step3Form={step3Form}
-                      steptwodata={steptwodata}
-                      inputClass={inputClass}
-                      onSubmitStep={onSubmitStep}
-                    />
-                  ) : (
-                    <StepThreeFormPort
-                      step3Form={step3Form}
-                      steptwodata={steptwodata}
-                      inputClass={inputClass}
-                      onSubmitStep={onSubmitStep}
-                    />
-                  )
+                {currentStep === 3 && (
+                  <StepThreeForm
+                    step3Form={step3Form}
+                    steptwodata={steptwodata}
+                    inputClass={inputClass}
+                    onSubmitStep={onSubmitStep}
+                  />
                 )}
-
                 {currentStep === 4 && (
                   <StepFourForm
                     step4Form={step4Form}
                     stepthreedata={stepthreedata}
                     onSubmitStep={onSubmitStep}
                     currentStep={currentStep}
-                    totalPremium={totalPremium}
+                    totalPremium={quoteData.totalpremium || summaryData.totalPremium}
+                     basePremium={quoteData.basepremium || summaryData.basepremium}
+                coverage={quoteData.coverage || summaryData.coverage}
                     onGoToPayment={GoToPayment}
-                    planType={planType}
+                    
                   />
                 )}
               </div>
@@ -643,21 +599,22 @@ export default function StepperForm({ usersData, kycData }) {
 
             {/* Summary Card */}
             <SummaryCard
-              tenure={summaryData.tenure}
-              coverAmount={summaryData.coverAmount}
-              totalPremium={quoteData.totalpremium || summaryData.totalPremium}
-              basePremium={quoteData.basepremium || summaryData.basepremium}
-              coverage={quoteData.coverage || summaryData.coverage}
-              selectedAddons={summaryData.selectedAddons}
-              compulsoryAddons={summaryData.compulsoryAddons}
-              tenurePrices={summaryData.tenurePrices}
-              addons={summaryData.addons}
-              fullAddonsName={summaryData.fullAddonsName}
-              currentStep={currentStep}
-              onGoToPayment={GoToPayment}
-              newPincode={newPincode}
-              oldPincode={oldPincode}
-            />
+                tenure={summaryData.tenure}
+                coverAmount={summaryData.coverAmount}
+                totalPremium={quoteData.totalpremium || summaryData.totalPremium}
+                basePremium={quoteData.basepremium || summaryData.basepremium}
+                coverage={quoteData.coverage || summaryData.coverage}
+                selectedAddons={summaryData.selectedAddons}
+                compulsoryAddons={summaryData.compulsoryAddons}
+                tenurePrices={summaryData.tenurePrices}
+                addons={summaryData.addons}
+                fullAddonsName={summaryData.fullAddonsName}
+                currentStep={currentStep}
+                onGoToPayment={GoToPayment}
+                newPincode={newPincode}
+                oldPincode={oldPincode}
+              />
+
           </div>
         </div>
       )}

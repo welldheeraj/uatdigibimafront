@@ -3,7 +3,8 @@ import constant from "@/env";
 import { CallApi } from "@/api";
 
 const P2_SECTION1_KEYS = [
-  "105","114","122","129","143","147","164","205","207","232","250","222","502","503","210"
+  "105","114","122","129","143","147","164",
+  "205","207","232","250","222","502","503","210"
 ];
 const P2_SECTION2_KEYS = ["H001","H002","H003","504"];
 const P2_SECTION3_KEYS = ["H004"];
@@ -12,6 +13,7 @@ const P2_DESC_KEYS = new Set(["210","222","502","503","504"]);
 
 export default async function portquestionvalidation(step3Form, steptwodata, setStepThreeData) {
   const data = step3Form.getValues();
+  console.log(data)
   const members = steptwodata?.member || [];
 
   if (!data.agreeTnC) {
@@ -30,10 +32,10 @@ export default async function portquestionvalidation(step3Form, steptwodata, set
   let firstInvalidInput = null;
   let dobErrorShown = false;
 
-  // Validate selected member-date fields
+  // ---------------- VALIDATION ----------------
   Object.values(sectionMap).flat().forEach((key) => {
     members.forEach((m, idx) => {
-      const base = `p2_${key}main${idx + 1}`;
+      const base = `${key}main${idx + 1}`;   // ✅ correct
       const dateName = `${base}date`;
       const checked = data[base];
       const dateVal = data[dateName];
@@ -41,15 +43,19 @@ export default async function portquestionvalidation(step3Form, steptwodata, set
       const trimmed = (dateVal || "").trim();
 
       if (checked) {
+        // Empty check
         if (!trimmed) {
           input?.classList.add("border-red-500");
           if (!firstInvalidInput) firstInvalidInput = input;
           hasError = true;
           return;
         }
+
+        // MM/YYYY format check
         const [mm, yyyy] = trimmed.split("/");
         const month = parseInt(mm, 10);
         const year = parseInt(yyyy, 10);
+
         if (!month || month < 1 || month > 12) {
           input?.classList.add("border-red-500");
           if (!firstInvalidInput) firstInvalidInput = input;
@@ -57,7 +63,7 @@ export default async function portquestionvalidation(step3Form, steptwodata, set
           return;
         }
 
-        // DOB + future guard (expects data-dob="DD-MM-YYYY"; keep consistent with your data)
+        // DOB + future validation
         const dobStr = input?.getAttribute("data-dob");
         if (dobStr) {
           const [day, dobMM, dobYYYY] = dobStr.split("-");
@@ -79,6 +85,7 @@ export default async function portquestionvalidation(step3Form, steptwodata, set
             input?.classList.add("border-red-500");
             if (!firstInvalidInput) firstInvalidInput = input;
             hasError = true;
+
             if (!dobErrorShown) {
               showError(
                 isBeforeDOB
@@ -107,37 +114,41 @@ export default async function portquestionvalidation(step3Form, steptwodata, set
     return false;
   }
 
-  // Build payload
+  // ---------------- BUILD PAYLOAD ----------------
   const result = [];
 
-  members.forEach((m, idx) => {
-    const memberData = { id: m.id, age: m.age, dob: m.dob, data: [] };
+members.forEach((m, idx) => {
+  const memberData = { id: m.id, age: m.age, dob: m.dob, data: [] };
 
-    Object.entries(sectionMap).forEach(([section, keys]) => {
-      keys.forEach((key, keyIdx) => {
-        const base = `p2_${key}main${idx + 1}`;
-        const dateName = `${base}date`;
-        const descName = `${base}desc`;
+  Object.entries(sectionMap).forEach(([section, keys]) => {
+    keys.forEach((key, keyIdx) => {
+      const base = `${key}main${idx + 1}`;
+      const dateName = `${base}date`;
+      const descName = `${base}desc`;
+      const qtyName = `${base}qty`;
 
-        if (data[base] && data[dateName]) {
-          memberData.data.push({
-            did: `${section}.${keyIdx + 1}`,
-            date: data[dateName],
-            des: P2_DESC_KEYS.has(key) ? (data[descName] || "") : "",
-            quantity: 0,
-            code: key, // optional: keep original question code
-          });
-        }
-      });
+      if (data[base] && data[dateName]) {
+        memberData.data.push({
+          did: `${section}.${keyIdx + 1}`,
+          date: data[dateName],
+          des: P2_DESC_KEYS.has(key) ? (data[descName] || "") : "",
+          quantity: key === "504" ? (data[qtyName] || 0) : 0,
+          code: key
+        });
+      }
     });
-
-    if (memberData.data.length > 0) result.push(memberData);
   });
-    console.log(result);
-    // return false;
+
+  if (memberData.data.length > 0) result.push(memberData);
+});
+
+
+  console.log("🚀 Payload sending:", result);
+
+
   try {
     const res = await CallApi(
-      constant.API.HEALTH.ULTIMATECARE.SAVESTEPTHREE, 
+      constant.API.HEALTH.ULTIMATECARE.SAVESTEPTHREE,
       "POST",
       result
     );

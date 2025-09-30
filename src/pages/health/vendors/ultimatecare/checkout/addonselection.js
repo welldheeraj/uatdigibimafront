@@ -97,7 +97,7 @@ export default function AddOnSelection({
       pedaddonvalue: nextPedVal,
       opdaddonvalue: nextOpdVal,
     });
-  }, [reset, addons, selectedAddons,normalizedAddons]);
+  }, [reset, addons, selectedAddons]);
 
   useEffect(() => {
     if (opdToken) {

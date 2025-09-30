@@ -10,29 +10,27 @@ export default function StepFourForm({
   step4Form,
   onSubmitStep,
   totalPremium,
-  planType,
 }) {
-  console.log("PlanType:", planType);
-
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const handleEditStep = (stepNo) => {
     const currentParams = new URLSearchParams(searchParams.toString());
     currentParams.set("step", stepNo);
-    router.push(
-      `/health/vendors/ultimatecare/journey?${currentParams.toString()}`
-    );
+    router.push(`/health/vendors/bajaj/journey?${currentParams.toString()}`);
   };
 
   const proposer = stepthreedata?.proposar || {};
   const members = stepthreedata?.insures || [];
   const nominee = stepthreedata?.nominee || {};
+  const ped = stepthreedata?.ped || [];
+  const lifestyle = stepthreedata?.lifestyle || [];
 
   let parsedPed = [];
+
   try {
     stepthreedata?.insures?.forEach((member) => {
       const raw = member?.ped || "[]";
-      console.log("ped:", raw);
       let individualPed = [];
 
       if (typeof raw === "string") {
@@ -40,7 +38,6 @@ export default function StepFourForm({
       } else if (Array.isArray(raw)) {
         individualPed = raw;
       }
-
       individualPed.forEach((item) => {
         parsedPed.push({
           ...item,
@@ -52,21 +49,16 @@ export default function StepFourForm({
     console.error("Invalid PED JSON:", err);
   }
 
-
   const medicalHistory = parsedPed.filter(
-    (item) =>
-      (item.did?.startsWith("1.") || item.did?.startsWith("2.")) &&
-      !(planType == 2 && item.code == "504") // 🚫 Exclude 504 from medical in planType2
+    (item) => item.did?.startsWith("1.") || item.did?.startsWith("2.")
   );
-
-  const lifestyleHistory = parsedPed.filter(
-    (item) => (planType == 1 ? item.did?.startsWith("3.") : item.code === "504")
+  const lifestyleHistory = parsedPed.filter((item) =>
+    item.did?.startsWith("3.")
   );
-
   return (
     <form
       onSubmit={(e) => e.preventDefault()}
-      className="space-y-8 bg-[#f9fafb] p-6 min-h-screen"
+      className="space-y-8 bg-[#f9fafb] p-4 sm:p-6 min-h-screen w-full"
     >
       <div className="max-w-5xl mx-auto space-y-10">
         <h2 className="text-3xl font-bold text-gray-800">
@@ -75,7 +67,7 @@ export default function StepFourForm({
 
         {/* Product Details */}
         <SectionCard title="Products Details" onEdit={() => handleEditStep(1)}>
-          <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <Image
               src={`/images/health/vendorimage/Care_logo.png`}
               alt="carelogo"
@@ -85,7 +77,7 @@ export default function StepFourForm({
             />
             <div className="flex-1">
               <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
-                Ultimate Care —{" "}
+                Care Supreme —{" "}
                 <span className="text-green-600 font-bold">
                   ₹{totalPremium}
                 </span>{" "}
@@ -120,9 +112,15 @@ export default function StepFourForm({
         {/* Address */}
         <SectionCard title="Address" onEdit={() => handleEditStep(1)}>
           <p className="text-sm text-gray-600 mb-2">Permanent Address</p>
-          <div className="bg-gray-50 p-3 rounded-md border text-sm">
-            {proposer.address || "-"}
+         <div className="bg-gray-50 p-3 rounded-md border text-sm break-words whitespace-pre-wrap">
+            {(() => {
+              const addr = proposer.address || {};
+              const {address1,address2,landmark,city,state,pincode} = addr;
+              return [address1,address2,landmark,city,state,pincode && `- ${pincode}`]
+                .filter(Boolean).join(", ") || "-";}
+            )()}
           </div>
+
         </SectionCard>
 
         {/* Insured Members */}
@@ -142,7 +140,7 @@ export default function StepFourForm({
         </SectionCard>
 
         {/* Nominee */}
-        <SectionCard title="Nominee Details" onEdit={() => handleEditStep(1)}>
+        <SectionCard title="Nominee Details" onEdit={() => handleEditStep(2)}>
           <Table
             headers={["Name", "Relation", "Nominee DOB"]}
             rows={[
@@ -162,25 +160,16 @@ export default function StepFourForm({
             <h4 className="font-semibold text-gray-800">Medical History</h4>
             {medicalHistory.length > 0 ? (
               medicalHistory.map((item, i) => {
-                let questionText = "Unknown Question";
-
-                if (planType == 1) {
-                  const questionId = item.did?.replace(".", "");
-                  questionText =
-                    constant.QUESTION.CAREDISEASE[questionId] ||
-                    "Unknown Question";
-                } else if (planType == 2) {
-                  questionText =
-                    constant.ULTIMATEPORTQUESTION.CAREDISEASE[item.code] ||
-                    "Unknown Question";
-                }
-
+                const questionId = item.did?.replace(".", "");
+                const questionText =
+                  constant.QUESTION.CAREDISEASE[questionId] ||
+                  "Unknown Question";
                 return (
-                  <div key={i} className="mb-4">
+                  <div key={i} className="mb-4 overflow-x-auto">
                     <p className="font-medium text-sm text-gray-700">
                       {questionText}
                     </p>
-                    <table className="w-full text-sm mt-2 border border-gray-200">
+                    <table className="w-full text-sm mt-2 border border-gray-200 min-w-[500px]">
                       <thead className="bg-gray-100">
                         <tr>
                           <th className="p-2 border">Patient Name</th>
@@ -194,9 +183,7 @@ export default function StepFourForm({
                             {item.name || proposer.name || "N/A"}
                           </td>
                           <td className="p-2 border">{item.date || "N/A"}</td>
-                          <td className="p-2 border">
-                            {item.des?.trim() ? item.des : "N/A"}
-                          </td>
+                          <td className="p-2 border">{item.des || "N/A"}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -213,24 +200,16 @@ export default function StepFourForm({
             <h4 className="font-semibold text-gray-800">Lifestyle History</h4>
             {lifestyleHistory.length > 0 ? (
               lifestyleHistory.map((item, i) => {
-                let questionText = "Unknown Lifestyle Question";
-
-                if (planType == 1) {
-                  questionText =
-                    constant.QUESTION.LIFESTYLE["31"] ||
-                    "Unknown Lifestyle Question";
-                } else if (planType == 2) {
-                  questionText =
-                    constant.ULTIMATEPORTQUESTION.CAREDISEASE["504"] ||
-                    "Unknown Lifestyle Question";
-                }
-
+                const questionId = item.did?.replace(".", "");
+                const questionText =
+                  constant.QUESTION.LIFESTYLE[questionId] ||
+                  "Unknown Lifestyle Question";
                 return (
-                  <div key={i} className="mb-4">
+                  <div key={i} className="mb-4 overflow-x-auto">
                     <p className="font-medium text-sm text-gray-700">
                       {questionText}
                     </p>
-                    <table className="w-full text-sm mt-2 border border-gray-200">
+                    <table className="w-full text-sm mt-2 border border-gray-200 min-w-[500px]">
                       <thead className="bg-gray-100">
                         <tr>
                           <th className="p-2 border">Patient Name</th>
@@ -244,9 +223,7 @@ export default function StepFourForm({
                             {item.name || proposer.name || "N/A"}
                           </td>
                           <td className="p-2 border">
-                            {item.quantity?.toString().trim()
-                              ? item.quantity
-                              : "N/A"}
+                            {item.quantity || "N/A"}
                           </td>
                           <td className="p-2 border">{item.date || "N/A"}</td>
                         </tr>
@@ -267,7 +244,7 @@ export default function StepFourForm({
 
 function SectionCard({ title, children, onEdit }) {
   return (
-    <div className="relative bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition">
+    <div className="relative bg-white shadow-md rounded-xl p-4 sm:p-6 hover:shadow-lg transition w-full overflow-x-auto">
       {onEdit && (
         <button
           onClick={onEdit}
@@ -277,7 +254,9 @@ function SectionCard({ title, children, onEdit }) {
           Edit
         </button>
       )}
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
+      <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 break-words">
+        {title}
+      </h3>
       {children}
     </div>
   );

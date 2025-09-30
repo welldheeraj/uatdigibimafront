@@ -162,8 +162,8 @@ export default function InsureSidebarComponent({ onClose }) {
         const { name, age } = children[i];
         if (!name || !age) return showError(`Child ${i + 1}: Please fill both name and age`);
         const ageNum = parseInt(age, 10);
-        if (ageNum < 1 || ageNum > 18)
-          return showError(`Child ${i + 1}: Age must be between 1 and 18`);
+        if (ageNum < 1 || ageNum > 24)
+          return showError(`Child ${i + 1}: Age must be between 1 and 24`);
       }
     }
 

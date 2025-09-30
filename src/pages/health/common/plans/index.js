@@ -56,6 +56,8 @@ export default function HealthPlan() {
   useEffect(() => {
     CallApi(constant.API.HEALTH.PLANDATA)
       .then((res) => {
+        console.log(res)
+        console.log(res.vendor)
         setVendorData(res.vendor || []);
         setCoveragelist(res.coveragelist || []);
         setTenurelist(res.tenurelist || []);
@@ -183,6 +185,7 @@ export default function HealthPlan() {
               "POST",
               vendorWithRoute
             );
+            console.log(res)
             return res.status && res.data ? res.data : null;
           } catch {
             return null;

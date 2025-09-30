@@ -8,11 +8,12 @@ import { CallApi } from "@/api";
 import constant from "@/env";
 import { format, parse } from "date-fns";
 import { Controller } from "react-hook-form";
+
 export default function StepOneForm({
   step1Form,
   kycType,
   setKycType,
-  handleVerifyPan,
+  handleVerifyIdentity,
   handleVerifyAadhar,
   handleVerifyOther,
   loading,
@@ -40,9 +41,13 @@ export default function StepOneForm({
   setQuoteData,
   setOldPincode,
   setNewPincode,
-  setPlanType
 }) {
   const isPanAlreadyVerified = isPanVerified;
+  const [dates, setDates] = useState({
+    customerpancardno: "",
+    aadhar: "",
+    proposal: "",
+  });
   const [priceChangeLoading, setPriceChangeLoading] = useState(false);
   const [usersData, setUsersData] = useState(false);
   const [isUserPrefilled, setIsUserPrefilled] = useState(false);
@@ -52,24 +57,24 @@ export default function StepOneForm({
   const [fetchedPincode, setFetchedPincode] = useState("");
   const [hasUserChangedPin, setHasUserChangedPin] = useState(false);
 
-  const [dates, setDates] = useState({
-    customerpancardno: "",
-    aadhar: "",
-    proposal: "",
-  });
+  // STATES TO HIDE KYC SECTIONS
 
   const handleDateChange = useCallback(
     (key, field) => (date) => {
-      const formatted = format(date, "dd-MM-yyyy");
-      setDates((prev) => ({ ...prev, [key]: date }));
-      step1Form.setValue(field, formatted, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
+      if (date instanceof Date && !isNaN(date)) {
+        const formatted = format(date, "dd-MM-yyyy");
+        // field.onChange(formatted);
+
+        // const formatted = format(date, "dd-MM-yyyy");
+        setDates((prev) => ({ ...prev, [key]: date }));
+        step1Form.setValue(field, formatted, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
     },
     [step1Form]
   );
-
   const handlePincodeInput = useCallback(
     async (e) => {
       const value = e.target.value.trim();
@@ -100,7 +105,7 @@ export default function StepOneForm({
 
               try {
                 const quoteResponse = await CallApi(
-                  constant.API.HEALTH.ULTIMATECARE.CHANGEPINCODE,
+                  constant.API.HEALTH.BAJAJ.CHANGEPINCODE,
                   "POST",
                   { newpincode: value }
                 );
@@ -139,10 +144,9 @@ export default function StepOneForm({
     const fetchDataONE = async () => {
       try {
         const res = await CallApi(
-          constant.API.HEALTH.ULTIMATECARE.SAVESTEPONE,
+          constant.API.HEALTH.BAJAJ.SAVESTEPONE,
           "GET"
         );
-        console.log(res)
         setUsersData(res);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -153,12 +157,13 @@ export default function StepOneForm({
 
   useEffect(() => {
     if (!usersData || isUserPrefilled) return;
+
     const user = usersData.data || {};
     const userInfo = usersData.user?.[0] || {};
     const contact = JSON.parse(user.contact_details || "{}");
     const permanent = JSON.parse(user.permanent_address || "{}");
     const comm = JSON.parse(user.comunication_address || "{}");
-    setPlanType(usersData.plantype);
+
     const typeMap = {
       p: "PAN Card",
       a: "Aadhar ( Last 4 Digits )",
@@ -178,11 +183,11 @@ export default function StepOneForm({
         setIsPanKycHidden(true);
       }
       if (kycCode === "a") {
-        // setIsPanVerified(true);
+        setIsPanVerified(true);
         setIsAadharKycHidden(true);
       }
       if (kycCode === "o") {
-        // setIsPanVerified(true);
+        setIsPanVerified(true);
         setIsOtherKycHidden(true);
       }
     }
@@ -263,7 +268,6 @@ export default function StepOneForm({
     handlePincodeInput,
     handleDateChange,
     setSameAddress,
-    setPlanType,
   ]);
 
   useEffect(() => {
@@ -324,44 +328,6 @@ export default function StepOneForm({
     setIsOtherKycHidden,
   ]);
 
-  useEffect(() => {
-    if (!sameAddress || userInteracted) return;
-
-    const get = step1Form.getValues;
-    const set = step1Form.setValue;
-
-    const syncFields = () => {
-      [
-        ["house", "commcurrenthouse"],
-        ["colony", "commcurrentcolony"],
-        ["Landmark", "commcurrentLandmark"],
-        ["City", "commcurrentCity"],
-        ["State", "commcurrentState"],
-        ["Pincode", "commcurrentPincode"],
-      ].forEach(([permanent, communication]) => {
-        set(communication, get(permanent), { shouldValidate: true });
-      });
-    };
-
-    syncFields();
-
-    const subscription = step1Form.watch((values, { name }) => {
-      const permKeys = [
-        "house",
-        "colony",
-        "Landmark",
-        "City",
-        "State",
-        "Pincode",
-      ];
-      if (permKeys.includes(name)) {
-        syncFields();
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [sameAddress, userInteracted, step1Form]);
-
   const fields = {
     identity: [
       "AADHAR",
@@ -375,23 +341,28 @@ export default function StepOneForm({
   };
 
   useEffect(() => {
-    const unregister = step1Form.unregister;
-    if (kycType !== "PAN Card") {
-      unregister("customerpancardno");
-      unregister("customerpancardDob");
-    }
-    if (kycType !== "Aadhar ( Last 4 Digits )") {
-      unregister("aadharLast4");
-      unregister("aadharName");
-      unregister("aadharDob");
-      unregister("aadharGender");
-    }
-    if (kycType !== "Others") {
-      unregister("identityProof");
-      unregister("addressProof");
-      // optional: unregister file upload fields too
-    }
-  }, [kycType, step1Form.unregister]);
+  const unregister = step1Form.unregister;
+  if (kycType !== "PAN Card") {
+    unregister("customerpancardno");
+    unregister("customerpancardDob");
+  }
+  if (kycType !== "Aadhar ( Last 4 Digits )") {
+    unregister("aadharLast4");
+    unregister("aadharName");
+    unregister("aadharDob");
+    unregister("aadharGender");
+  }
+  if (kycType !== "Others") {
+    unregister("identityProof");
+    unregister("addressProof");
+    // optional: unregister file upload fields too
+  }
+}, [kycType, step1Form.unregister]);
+
+
+
+
+
 
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -413,188 +384,128 @@ export default function StepOneForm({
           <option value="SELF">SELF</option>
         </select>
       </div>
+      <input type="hidden" {...step1Form.register("oldpincode")} />
+      <input
+        type="hidden"
+        {...step1Form.register("newpincode")}
+        value="000000"
+      />
+    {/* Step 1: KYC Type Chooser */}
+<label className="block font-semibold cursor-pointer">Proposer KYC</label>
+<div className="flex flex-col sm:flex-row gap-3">
+  {["CKYC", "Others"].map((type) => (
+    <label
+      key={type}
+      className={`relative flex items-center px-4 py-3 rounded-md border text-sm cursor-pointer w-full transition-all duration-200 ${
+        kycType === type ? "border-pink-500 bg-pink-50" : "border-gray-400 bg-white"
+      }`}
+    >
+      <input
+        {...step1Form.register("kycType")}
+        type="checkbox"
+        value={type}
+        checked={kycType === type}
+        onChange={() => setKycType(type)}
+        className="mr-2 accent-pink-500 h-4 w-4"
+      />
+      {type}
+    </label>
+  ))}
+</div>
 
-      <label className="block font-semibold cursor-pointer">Proposer KYC</label>
-      <div className="flex flex-col sm:flex-row gap-3">
-        {["PAN Card", "Aadhar ( Last 4 Digits )", "Others"].map((type) => (
-          <label
-            key={type}
-            className={`relative flex items-center px-4 py-3 rounded-md border text-sm cursor-pointer w-full transition-all duration-200 ${
-              kycType === type
-                ? "border-gray-400 bg-white"
-                : "border-gray-400 bg-white"
-            }`}
-          >
-            {kycType === type && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping opacity-70"></span>
-            )}
-            <input
-              {...step1Form.register("kycType")}
-              type="checkbox"
-              value={type}
-              checked={kycType === type}
-              // disabled={kycVerified}
-              onChange={() => setKycType(type)}
-              // onChange={() => !kycVerified && setKycType(type)}
-              className="mr-2 accent-pink-500 h-4 w-4"
-            />
+{/* Step 2: If CKYC selected → Show Dropdown */}
+{kycType === "CKYC" && (
+  <div className="mt-3">
+    <label className="block font-semibold">Select Identity Type</label>
+    <select
+      {...step1Form.register("ckycSubType", { required: "Please select identity type" })}
+      value={step1Form.watch("ckycSubType") || ""}
+      onChange={(e) => step1Form.setValue("ckycSubType", e.target.value, { shouldValidate: true })}
+      className={inputClass}
+    >
+      <option value="">-- Select Identity --</option>
+      <option value="A">Passport</option>
+      <option value="B">Voter ID</option>
+      <option value="C">PAN</option>
+      <option value="D">Driving License</option>
+      <option value="E">UID (Aadhar)</option>
+      <option value="F">NREGA Job Card</option>
+      <option value="G">GSTIN (Corporate)</option>
+      <option value="Z">CKYC Number</option>
+    </select>
+  </div>
+)}
 
-            {type}
-          </label>
-        ))}
-      </div>
+{/* Step 3: If CKYC + Dropdown Value Selected → Show Fields */}
+{kycType === "CKYC" && step1Form.watch("ckycSubType") && (
+  <div className="space-y-2 mt-3">
+    <label className="block font-semibold">Provide Identity Info</label>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <input
+        {...step1Form.register("docNumber", { required: "Document number required" })}
+        placeholder="Document Number"
+        className={inputClass}
+      />
 
-      {/* PAN Card Section - Hidden if already verified via PAN */}
-      {kycType === "PAN Card" && !isPanKycHidden && (
-        <div className="space-y-2">
-          <label className="block font-semibold cursor-pointer">
-            Please Provide PAN Card Info
-          </label>
+      <Controller
+        control={step1Form.control}
+        name="docDob"
+        rules={{ required: "DOB is required" }}
+        render={({ field, fieldState }) => (
+          <UniversalDatePicker
+            id="docDob"
+            name="docDob"
+            value={field.value ? parse(field.value, "dd-MM-yyyy", new Date()) : null}
+            onChange={(date) => {
+              if (date instanceof Date && !isNaN(date)) {
+                field.onChange(format(date, "dd-MM-yyyy"));
+              }
+            }}
+            placeholder="Pick DOB"
+            error={!!fieldState.error}
+            errorText={fieldState.error?.message}
+          />
+        )}
+      />
 
-          <div className="flex flex-col md:flex-row gap-4">
-            <input
-              {...step1Form.register("customerpancardno")}
-              maxLength={10}
-              placeholder="PAN No."
-              className="h-[40px] px-4 border border-gray-300 rounded-md text-sm w-full md:w-[220px]"
-              onChange={(e) => {
-                const upper = e.target.value
-                  .toUpperCase()
-                  .replace(/[^A-Z0-9]/g, "");
-                step1Form.setValue("customerpancardno", upper);
-              }}
-            />
+      <select
+        {...step1Form.register("docGender", { required: "Gender required" })}
+        className={inputClass}
+      >
+        <option value="">Gender</option>
+        <option value="M">Male</option>
+        <option value="F">Female</option>
+      </select>
+    </div>
 
-            <Controller
-              control={step1Form.control}
-              name="customerpancardDob"
-              rules={{ required: "Please select a valid date" }}
-              render={({ field, fieldState }) => (
-                <UniversalDatePicker
-                  id="customerpancardDob"
-                  name="customerpancardDob"
-                  className={inputClass}
-                  value={
-                    field.value
-                      ? parse(field.value, "dd-MM-yyyy", new Date())
-                      : null
-                  }
-                  onChange={(date) => {
-                    if (date instanceof Date && !isNaN(date)) {
-                      const formatted = format(date, "dd-MM-yyyy");
-                      field.onChange(formatted);
-                    }
-                    //  const formatted = format(date, "dd-MM-yyyy");
-                    //  setDates((prev) => ({ ...prev, customerpancardno: date }));
-                    //  field.onChange(formatted);
-                  }}
-                  placeholder="Pick a date"
-                  error={!!fieldState.error}
-                  errorText={fieldState.error?.message}
-                />
-              )}
-            />
+   <button
+  type="button"
+  onClick={() => {
+    const ckycValues = step1Form.getValues([
+      "ckycSubType",
+      "docNumber",
+      "docDob",
+      "docGender",
+    ]);
+    handleVerifyIdentity(ckycValues);
+  }}
+  className="px-4 py-2 thmbtn"
+  disabled={loading}
+>
+  {loading ? (
+    <>
+      <FiLoader className="animate-spin" /> Verifying...
+    </>
+  ) : (
+    "VERIFY"
+  )}
+</button>
 
-            <button
-              type="button"
-              onClick={handleVerifyPan}
-              disabled={isPanAlreadyVerified || loading}
-              className={`px-4 py-2 thmbtn cursor-pointer flex items-center justify-center gap-2
-                  ${
-                    isPanAlreadyVerified
-                      ? "bg-green-600 cursor-not-allowed"
-                      : ""
-                  }
-                  ${loading ? "opacity-70 cursor-not-allowed" : ""}
-                `}
-            >
-              {isPanAlreadyVerified ? (
-                "VERIFIED"
-              ) : loading ? (
-                <>
-                  <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  Verifying...
-                </>
-              ) : (
-                "VERIFY"
-              )}
-            </button>
-          </div>
-        </div>
-      )}
+  </div>
+)}
 
-      {kycType === "Aadhar ( Last 4 Digits )" && (
-        <div className="space-y-2">
-          <label className="block font-medium">
-            Please Provide Aadhar Card Info
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 mb-4">
-            <select
-              {...step1Form.register("aadharGender")}
-              className="border border-gray-300 px-3 py-2 rounded w-full text-sm sm:col-span-2"
-            >
-              <option value="">Mr/Ms</option>
-              <option value="Mr">Mr</option>
-              <option value="Ms">Ms</option>
-              <option value="Mrs">Mrs</option>
-            </select>
 
-            <input
-              type="text"
-              {...step1Form.register("aadharLast4")}
-              maxLength={4}
-              onChange={(e) => isNumber(e, step1Form.setValue, "aadharLast4")}
-              placeholder="AADHAR NO. (LAST 4 DIGIT)"
-              className="border border-gray-300 px-3 py-2 rounded w-full text-sm sm:col-span-5"
-            />
-
-            <input
-              type="text"
-              {...step1Form.register("aadharName")}
-              onChange={(e) => isAlpha(e, step1Form.setValue, "aadharName")}
-              placeholder="FULL NAME AS PER AADHAR"
-              className="border border-gray-300 px-3 py-2 rounded w-full text-sm sm:col-span-5"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-            <div className="sm:col-span-5">
-              <UniversalDatePicker
-                id="aadharDob"
-                name="aadharDob"
-                value={dates.aadhar}
-                onChange={(date) => {
-                  if (date instanceof Date && !isNaN(date)) {
-                    const formatted = format(date, "dd-MM-yyyy");
-                    handleDateChange("aadhar", "aadharDob");
-                  }
-                }}
-                placeholder="Pick a start date"
-                error={!dates.aadhar}
-                errorText="Please select a valid date"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <button
-                type="button"
-                onClick={handleVerifyAadhar}
-                className="w-full px-1 py-2 thmbtn flex items-center justify-center gap-2"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <FiLoader className="animate-spin" /> Verifying...
-                    <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  </>
-                ) : (
-                  "VERIFY"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+     
 
       {kycType === "Others" && !isOtherKycHidden && (
         <div className="space-y-2">
@@ -660,7 +571,6 @@ export default function StepOneForm({
             {loading ? (
               <>
                 <FiLoader className="animate-spin" /> Verifying...
-                <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
               </>
             ) : (
               "VERIFY"
@@ -762,6 +672,7 @@ export default function StepOneForm({
           onChange={(e) => {
             const same = e.target.checked;
             setSameAddress(same);
+            if (same) setUserInteracted(false);
 
             const get = step1Form.getValues;
             const set = step1Form.setValue;
@@ -816,18 +727,14 @@ export default function StepOneForm({
             <input
               key={field}
               {...step1Form.register(field, {
-                onChange:
-                  field === "commcurrentPincode"
-                    ? (e) =>
-                        isNumber(e, step1Form.setValue, "commcurrentPincode")
-                    : undefined,
+                onChange: (e) => {
+                  if (field === "commcurrentPincode") {
+                    isNumber(e, step1Form.setValue, field);
+                    handlePincodeInput(e);
+                  }
+                  setUserInteracted(true);
+                },
               })}
-              onInput={
-                field === "commcurrentPincode" ? handlePincodeInput : undefined
-              }
-              onBlur={
-                field === "commcurrentPincode" ? handlePincodeInput : undefined
-              }
               placeholder={field
                 .replace("comm", "")
                 .replace(/([A-Z])/g, " $1")

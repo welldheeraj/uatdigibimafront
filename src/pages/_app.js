@@ -7,11 +7,7 @@ import Footer from "./partial/footer";
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect, React } from "react";
 import { Poppins } from "next/font/google";
-import CarInsuranceLoader, {
-  BikeInsuranceLoader,
-  HealthLoaderOne,
-  DashboardLoader,
-} from "@/components/loader";
+import CarInsuranceLoader, { BikeInsuranceLoader, HealthLoaderOne, DashboardLoader } from "@/components/loader";
 import { useRouter } from "next/router";
 import { VerifyToken } from "../api";
 import constant from "../env";
@@ -22,18 +18,12 @@ import { showError } from "@/layouts/toaster";
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600"], 
   variable: "--font-poppins",
 });
 
 // Hoisted so it’s a stable reference (fixes the missing dependency warning)
-const PUBLIC_ROUTES = [
-  "/",
-  "/login?type=health",
-  "/login?type=motor",
-  "/login/mainlogin",
-  "/adminpnlx",
-];
+  const PUBLIC_ROUTES = ["/","/login?type=health","/login?type=motor","/login/mainlogin","/adminpnlx"];
 
 export default function App({ Component, pageProps }) {
   const [token, setToken] = useState(null);
@@ -45,8 +35,6 @@ export default function App({ Component, pageProps }) {
   const [userData, setUserData] = useState(null);
   const [kycData, setKycData] = useState({ status: null, kyctype: null });
   const [isLoading, setIsLoading] = useState(false);
-  const [ingestDone, setIngestDone] = useState(false);
-
   const router = useRouter();
   const route = router.pathname;
   const isDashboard =
@@ -54,177 +42,73 @@ export default function App({ Component, pageProps }) {
     router.pathname.startsWith("/adminpnlx") ||
     router.pathname.startsWith("/dashboard");
 
-
   const splitRoute = route
     .trim()
     .split("/")
     .filter((segment) => segment !== "")[0];
-
-const { isReady, query, pathname, replace } = router;
-
-useEffect(() => {
-  if (!isReady) return;
-
-  const {
-    token: qToken,
-    user_id,
-    userid,
-    id,
-    uid,
-    type: qType,
-    login_type,
-    user_name,
-  } = query || {};
-  console.log(query);
-
-  const first = (v) => (Array.isArray(v) ? v[0] : v);
-
-  const tokenFromQuery = first(qToken);
-  const uidFromQuery =
-    first(user_id) || first(userid) || first(id) || first(uid);
-  const typeFromQuery = first(qType);
-  const loginTypeFromQuery = first(login_type) || "user";
-  const userNameFromQuery = first(user_name) || "";
-
-  const norm = (s) =>
-    String(s || "")
-      .toLowerCase()
-      .trim()
-      .replace(/[_-]+/g, " ")
-      .replace(/\s+/g, " ");
-
-  if (tokenFromQuery) {
-    try {
-      localStorage.setItem("token", tokenFromQuery);
-      localStorage.setItem("logintype", loginTypeFromQuery);
-      localStorage.setItem("username", userNameFromQuery);
-      localStorage.setItem("userid", String(uidFromQuery || ""));
-      localStorage.setItem("type", typeFromQuery || "customer");
-    } catch {}
-
-    setToken(tokenFromQuery);
-    window.dispatchEvent(new Event("auth-change"));
-
-    const t = norm(typeFromQuery);
-    let targetPath = null;
-
-    if (t === "health") {
-      targetPath = "/health/common/insure";
-    } else if (t.includes("2 wheeler") || t.includes("two wheeler")) {
-      targetPath = "/motor/select-vehicle-type";
-    } else if (t.includes("4 wheeler") || t.includes("four wheeler")) {
-      targetPath = "/motor/select-vehicle-type";
-    }
-
-    const nav = targetPath
-      ? replace(targetPath, undefined, { shallow: false })
-      : replace(pathname, undefined, { shallow: true });
-
-    nav.finally(() => setIngestDone(true));
-
-    console.log(localStorage.getItem("token"));
-    console.log(localStorage.getItem("logintype"));
-    console.log(localStorage.getItem("username"));
-    console.log(localStorage.getItem("userid"));
-    console.log(localStorage.getItem("type"));
-    return;
-  }
-
-  // no token in query -> mark ingest done
-  setIngestDone(true);
-}, [isReady, query, pathname, replace]);
-
-
-
-
-
-useEffect(() => {
-  if (!isReady) return; 
-
-  let ignore = false;
-
-  const verifyAuth = async () => {
-    const storedToken = localStorage.getItem("token");
-    if (!storedToken) {
-      if (!ignore) {
+  useEffect(() => {
+    const verifyAuth = async () => {
+      const storedToken = localStorage.getItem("token");
+      if (!storedToken) {
         setToken(null);
         setLoading(false);
         if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-          push(constant.ROUTES.HEALTH.INDEX);
+          router.push(constant.ROUTES.HEALTH.INDEX);
         }
         if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-          push(constant.ROUTES.MOTOR.INDEX);
+          router.push(constant.ROUTES.MOTOR.INDEX);
         }
+        return;
       }
-      return;
-    }
-
-    try {
-      const res = await VerifyToken(storedToken);
-      if (ignore) return;
-
-      const data = await res.json();
-      if (data.status) {
-        setToken(storedToken);
-      } else {
-        localStorage.removeItem("token");
-        setToken(null);
-        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-          push(constant.ROUTES.HEALTH.INDEX);
+      try {
+        const res = await VerifyToken(storedToken);
+        const data = await res.json();
+        if (data.status) {
+          setToken(storedToken);
+        } else {
+          localStorage.removeItem("token");
+          setToken(null);
+          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
+            router.push(constant.ROUTES.HEALTH.INDEX);
+          }
+          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
+            router.push(constant.ROUTES.MOTOR.INDEX);
+          }
         }
-        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-          push(constant.ROUTES.MOTOR.INDEX);
-        }
-      }
-    } catch (error) {
-      if (!ignore) {
+      } catch (error) {
         console.error("Token verification failed:", error);
         localStorage.removeItem("token");
         setAuthkey(null);
         setToken(null);
         if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-          push(constant.ROUTES.HEALTH.INDEX);
+          router.push(constant.ROUTES.HEALTH.INDEX);
         }
         if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-          push(constant.ROUTES.MOTOR.INDEX);
+          router.push(constant.ROUTES.MOTOR.INDEX);
         }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      if (!ignore) setLoading(false);
-    }
-  };
-
-  verifyAuth();
-
-  const handleAuthChange = () => {
-    if (!ignore) {
+    };
+    verifyAuth();
+    const handleAuthChange = () => {
       const updatedToken = localStorage.getItem("token");
       setToken(updatedToken);
-    }
-  };
-
-  window.addEventListener("auth-change", handleAuthChange);
-
-  return () => {
-    ignore = true;
-    window.removeEventListener("auth-change", handleAuthChange);
-  };
-}, [isReady, splitRoute]); 
-
-
+    };
+    window.addEventListener("auth-change", handleAuthChange);
+    return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, [router, splitRoute]);
 
   useEffect(() => {
-   if (!router.isReady || !ingestDone) return; 
-
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
-      const pathWithQuery = router.asPath;
+      const pathWithQuery = router.asPath; // this includes query params
 
       const isPublicRoute = PUBLIC_ROUTES.includes(pathWithQuery);
 
-      if (!token ) {
+      if (!token && !isPublicRoute) {
         showError("You must be logged in to access this page.");
-        router.push(constant.WEBSITEURL);
+        router.push("/");
         return;
       }
 
@@ -232,7 +116,7 @@ useEffect(() => {
     };
 
     checkAuth();
-  }, [router, router.isReady, ingestDone, router.asPath]);
+  }, [router, router.asPath]);
 
   useEffect(() => {
     if (token) {
@@ -281,7 +165,7 @@ useEffect(() => {
 
   const renderLoader = () => {
     if (route.startsWith("/health")) return <HealthLoaderOne />;
-    if (route.startsWith("/compare?type=health")) return <HealthLoaderOne />;
+      if (route.startsWith("/compare?type=health")) return <HealthLoaderOne />;
     if (route.startsWith("/motor")) return <CarInsuranceLoader />;
     if (route.startsWith("/compare?type=motor")) return <CarInsuranceLoader />;
     if (route.startsWith("/motor/bike")) return <BikeInsuranceLoader />;
@@ -305,12 +189,7 @@ useEffect(() => {
           <PrimeReactProvider />
           <Toaster />
           <UserContext.Provider value={{ userData, kycData, token }}>
-            <Component
-              {...pageProps}
-              usersData={userData}
-              kycData={kycData}
-              token={token}
-            />
+            <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
           </UserContext.Provider>
           {!isDashboard && <Footer />}
         </>
