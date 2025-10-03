@@ -176,6 +176,8 @@ const [newPincode, setNewPincode] = useState("");
     const data = step3Form.getValues();
     const members = steptwodata?.member || [];
     const agreeTnC = data.agreeTnC;
+    console.log(data);
+    // return false;
     const standingInstruction = data.standingInstruction;
     let hasError = false;
     let firstInvalidInput = null;
@@ -189,159 +191,161 @@ const [newPincode, setNewPincode] = useState("");
           return false;
         }
 
-    const sectionMap = {
-      1: [
-        "cancer",
-        "heart",
-        "hypertension",
-        "breathing",
-        "endocrine",
-        "diabetes",
-        "muscles",
-        "liver",
-        "kidney",
-        "auto",
-        "congenital",
-        "hivaids",
-        "any",
-        "has",
-        "hasany",
-      ],
-      2: ["insurer", "premium", "insurance", "diagnosed"],
-      3: ["cigarettes"],
-    };
+    // const sectionMap = {
+    //   1: [
+    //     "cancer",
+    //     "heart",
+    //     "hypertension",
+    //     "breathing",
+    //     "endocrine",
+    //     "diabetes",
+    //     "muscles",
+    //     "liver",
+    //     "kidney",
+    //     "auto",
+    //     "congenital",
+    //     "hivaids",
+    //     "any",
+    //     "has",
+    //     "hasany",
+    //   ],
+    //   2: ["insurer", "premium", "insurance", "diagnosed"],
+    //   3: ["cigarettes"],
+    // };
 
-    Object.values(sectionMap)
-      .flat()
-      .forEach((key) => {
-        members.forEach((m, index) => {
-          const checkKey = `${key}main${index + 1}`;
-          const dateKey = `${checkKey}date`;
-          const isChecked = data[checkKey];
-          const dateValue = data[dateKey];
-          const input = document.querySelector(`input[name="${dateKey}"]`);
-          const trimmed = dateValue?.trim() || "";
-          if (isChecked) {
-            if (!trimmed) {
-              if (input) {
-                input.classList.add("border-red-500");
-                if (!firstInvalidInput) firstInvalidInput = input;
-              }
-              hasError = true;
-              return;
-            }
-            const [mm, yyyy] = trimmed.split("/");
-            const month = parseInt(mm, 10);
-            const year = parseInt(yyyy, 10);
-            if (!month || month < 1 || month > 12) {
-              if (input) {
-                input.classList.add("border-red-500");
-                if (!firstInvalidInput) firstInvalidInput = input;
-              }
-              hasError = true;
-              return;
-            }
+    // Object.values(sectionMap)
+    //   .flat()
+    //   .forEach((key) => {
+    //     members.forEach((m, index) => {
+    //       const checkKey = `${key}main${index + 1}`;
+    //       const dateKey = `${checkKey}date`;
+    //       const isChecked = data[checkKey];
+    //       const dateValue = data[dateKey];
+    //       const input = document.querySelector(`input[name="${dateKey}"]`);
+    //       const trimmed = dateValue?.trim() || "";
+    //       if (isChecked) {
+    //         if (!trimmed) {
+    //           if (input) {
+    //             input.classList.add("border-red-500");
+    //             if (!firstInvalidInput) firstInvalidInput = input;
+    //           }
+    //           hasError = true;
+    //           return;
+    //         }
+    //         const [mm, yyyy] = trimmed.split("/");
+    //         const month = parseInt(mm, 10);
+    //         const year = parseInt(yyyy, 10);
+    //         if (!month || month < 1 || month > 12) {
+    //           if (input) {
+    //             input.classList.add("border-red-500");
+    //             if (!firstInvalidInput) firstInvalidInput = input;
+    //           }
+    //           hasError = true;
+    //           return;
+    //         }
 
-            const inputDOB = input?.getAttribute("data-dob");
-            if (inputDOB) {
-              const [day, dobMM, dobYYYY] = inputDOB.split("-");
-              const dobDate = new Date(
-                Number(dobYYYY),
-                Number(dobMM) - 1,
-                Number(day)
-              );
-              const inputDate = new Date(year, month - 1);
+    //         const inputDOB = input?.getAttribute("data-dob");
+    //         if (inputDOB) {
+    //           const [day, dobMM, dobYYYY] = inputDOB.split("-");
+    //           const dobDate = new Date(
+    //             Number(dobYYYY),
+    //             Number(dobMM) - 1,
+    //             Number(day)
+    //           );
+    //           const inputDate = new Date(year, month - 1);
 
-              const dobMonth = dobDate.getMonth();
-              const dobYear = dobDate.getFullYear();
-              const inputMonth = inputDate.getMonth();
-              const inputYear = inputDate.getFullYear();
-              const today = new Date();
-              const currentMonth = today.getMonth();
-              const currentYear = today.getFullYear();
-              const isBeforeDOB =
-                inputYear < dobYear ||
-                (inputYear === dobYear && inputMonth < dobMonth);
+    //           const dobMonth = dobDate.getMonth();
+    //           const dobYear = dobDate.getFullYear();
+    //           const inputMonth = inputDate.getMonth();
+    //           const inputYear = inputDate.getFullYear();
+    //           const today = new Date();
+    //           const currentMonth = today.getMonth();
+    //           const currentYear = today.getFullYear();
+    //           const isBeforeDOB =
+    //             inputYear < dobYear ||
+    //             (inputYear === dobYear && inputMonth < dobMonth);
 
-              const isInFuture =
-                inputYear > currentYear ||
-                (inputYear === currentYear && inputMonth > currentMonth);
+    //           const isInFuture =
+    //             inputYear > currentYear ||
+    //             (inputYear === currentYear && inputMonth > currentMonth);
 
-              if (isBeforeDOB || isInFuture) {
-                input.classList.add("border-red-500");
-                if (!firstInvalidInput) firstInvalidInput = input;
-                hasError = true;
+    //           if (isBeforeDOB || isInFuture) {
+    //             input.classList.add("border-red-500");
+    //             if (!firstInvalidInput) firstInvalidInput = input;
+    //             hasError = true;
 
-                if (!dobErrorShown) {
-                  showError(
-                    isBeforeDOB
-                      ? "Date cannot be before member's Date of Birth (MM/YYYY)."
-                      : "Date cannot be in the future (MM/YYYY)."
-                  );
-                  dobErrorShown = true;
-                }
-                return;
-              }
-            }
+    //             if (!dobErrorShown) {
+    //               showError(
+    //                 isBeforeDOB
+    //                   ? "Date cannot be before member's Date of Birth (MM/YYYY)."
+    //                   : "Date cannot be in the future (MM/YYYY)."
+    //               );
+    //               dobErrorShown = true;
+    //             }
+    //             return;
+    //           }
+    //         }
 
-            input?.classList.remove("border-red-500");
-          } else {
-            input?.classList.remove("border-red-500");
-          }
-        });
-      });
+    //         input?.classList.remove("border-red-500");
+    //       } else {
+    //         input?.classList.remove("border-red-500");
+    //       }
+    //     });
+    //   });
 
-    if (hasError) {
-      if (firstInvalidInput) {
-        firstInvalidInput.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-        firstInvalidInput.focus();
-      }
-      showError(
-        "Please fill valid MM/YYYY (month ≤ 12, not before DOB or future) for all selected members."
-      );
-      return false;
-    }
+    // if (hasError) {
+    //   if (firstInvalidInput) {
+    //     firstInvalidInput.scrollIntoView({
+    //       behavior: "smooth",
+    //       block: "center",
+    //     });
+    //     firstInvalidInput.focus();
+    //   }
+    //   showError(
+    //     "Please fill valid MM/YYYY (month ≤ 12, not before DOB or future) for all selected members."
+    //   );
+    //   return false;
+    // }
 
-    const getExtraFields = (keyPrefix) => ({
-      des: data[`${keyPrefix}desc`] || "",
-      quantity: data[`${keyPrefix}qty`] || 0,
-    });
+    // const getExtraFields = (keyPrefix) => ({
+    //   des: data[`${keyPrefix}desc`] || "",
+    //   quantity: data[`${keyPrefix}qty`] || 0,
+    // });
 
-    const result = [];
+    // const result = [];
 
-    members.forEach((m, index) => {
-      const memberData = {
-        id: m.id,
-        age: m.age,
-        dob: m.dob,
-        data: [],
-      };
+    // members.forEach((m, index) => {
+    //   const memberData = {
+    //     id: m.id,
+    //     age: m.age,
+    //     dob: m.dob,
+    //     data: [],
+    //   };
 
-      Object.entries(sectionMap).forEach(([section, keys]) => {
-        keys.forEach((key, keyIndex) => {
-          const checkKey = `${key}main${index + 1}`;
-          const dateKey = `${checkKey}date`;
+    //   Object.entries(sectionMap).forEach(([section, keys]) => {
+    //     keys.forEach((key, keyIndex) => {
+    //       const checkKey = `${key}main${index + 1}`;
+    //       const dateKey = `${checkKey}date`;
 
-          if (data[checkKey] && data[dateKey]) {
-            const extra = getExtraFields(checkKey);
+    //       if (data[checkKey] && data[dateKey]) {
+    //         const extra = getExtraFields(checkKey);
 
-            memberData.data.push({
-              did: `${section}.${keyIndex + 1}`,
-              date: data[dateKey],
-              des: extra.des,
-              quantity: section === "3" ? extra.quantity : 0,
-            });
-          }
-        });
-      });
+    //         memberData.data.push({
+    //           did: `${section}.${keyIndex + 1}`,
+    //           date: data[dateKey],
+    //           des: extra.des,
+    //           quantity: section === "3" ? extra.quantity : 0,
+    //         });
+    //       }
+    //     });
+    //   });
 
-      if (memberData.data.length > 0) {
-        result.push(memberData);
-      }
-    });
+    //   if (memberData.data.length > 0) {
+    //     result.push(memberData);
+    //   }
+    // });
+    const result = [data];
+     console.log("Payload to API:", result);
     try {
       const res = await CallApi(
         constant.API.HEALTH.BAJAJ.SAVESTEPTHREE,

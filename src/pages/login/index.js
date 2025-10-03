@@ -268,6 +268,7 @@ export default function FormPage({ usersData }) {
     } else if (type === "health") {
       try {
         const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
+        console.log(res);
         if (res.status) {
           localStorage.setItem("token", res.token);
           localStorage.setItem("logintype", "user");
@@ -280,7 +281,7 @@ export default function FormPage({ usersData }) {
             })
           );
         }
-
+        console.log(localStorage.getItem("token"))
         showSuccess(res.message);
         router.push(constant.ROUTES.HEALTH.INSURE);
       } catch (error) {
