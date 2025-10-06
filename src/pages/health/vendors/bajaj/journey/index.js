@@ -11,11 +11,11 @@ import StepFourForm from "./stepfour.js";
 import SummaryCard from "../checkout/rightsection.js";
 import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "@/styles/js/validation.js";
-import validateStepTwoData  from "./validatesteptwoagedata.js";
+import validateStepTwoData from "./validatesteptwoagedata.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
-import {HealthLoaderOne} from "@/components/loader";
+import { HealthLoaderOne } from "@/components/loader";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -35,9 +35,13 @@ export default function StepperForm({ usersData, kycData }) {
   const [totalPremium, setTotalPremium] = useState("");
   const [isCKYCHidden, setIsCKYCHidden] = useState(false);
   const [isOtherKycHidden, setIsOtherKycHidden] = useState(false);
-   const [quoteData, setQuoteData] = useState({totalpremium: "",basepremium: "",coverage: "",});
-   const [oldPincode, setOldPincode] = useState("");
-const [newPincode, setNewPincode] = useState("");
+  const [quoteData, setQuoteData] = useState({
+    totalpremium: "",
+    basepremium: "",
+    coverage: "",
+  });
+  const [oldPincode, setOldPincode] = useState("");
+  const [newPincode, setNewPincode] = useState("");
   const searchParams = useSearchParams();
   const summaryData = useMemo(() => {
     const getParsed = (key) => {
@@ -79,7 +83,6 @@ const [newPincode, setNewPincode] = useState("");
   const inputClass = "border border-gray-400 rounded px-3 py-2 text-sm w-full";
   const steps = ["", "", "", ""];
   // const steps = ["Step", "Step", "Step", ""];
-
 
   const back = async () => {
     if (currentStep === 1) {
@@ -165,181 +168,48 @@ const [newPincode, setNewPincode] = useState("");
     const data = step3Form.getValues();
     const members = steptwodata?.member || [];
     const agreeTnC = data.agreeTnC;
-    console.log(data);
+    console.log("hello");
+
+
+    if (!agreeTnC) {
+      step3Form.setFocus("agreeTnC");
+      showError(
+        "Please agree to Terms & Conditions and Standing Instruction to continue."
+      );
+      return false;
+    }
+
+    const transformed = members.map((m) => {
+      const memberData = {};
+
+      const processQuestions = (questions) => {
+        Object.values(questions).forEach((q) => {
+          const toggle = data[q.name]?.toggle;
+          const selectedMembers = data[q.name]?.members || [];
+
+          if (toggle && selectedMembers.includes(m.id)) {
+            memberData[q.name] = "Y"; 
+          }
+        });
+      };
+
+      processQuestions(constant.BAJAJQUESTION.HEALTH);
+      processQuestions(constant.BAJAJQUESTION.LIFESTYLE);
+
+      return {
+        id: m.id,
+        name: m.name,
+        data: memberData,
+      };
+    });
+
+    console.log("Payload:", transformed);
     // return false;
-    const standingInstruction = data.standingInstruction;
-    let hasError = false;
-    let firstInvalidInput = null;
-    let dobErrorShown = false;
-
-    if (!agreeTnC ) {
-          if (!agreeTnC) step3Form.setFocus("agreeTnC");
-          showError(
-            "Please agree to Terms & Conditions and Standing Instruction to continue."
-          );
-          return false;
-        }
-
-    // const sectionMap = {
-    //   1: [
-    //     "cancer",
-    //     "heart",
-    //     "hypertension",
-    //     "breathing",
-    //     "endocrine",
-    //     "diabetes",
-    //     "muscles",
-    //     "liver",
-    //     "kidney",
-    //     "auto",
-    //     "congenital",
-    //     "hivaids",
-    //     "any",
-    //     "has",
-    //     "hasany",
-    //   ],
-    //   2: ["insurer", "premium", "insurance", "diagnosed"],
-    //   3: ["cigarettes"],
-    // };
-
-    // Object.values(sectionMap)
-    //   .flat()
-    //   .forEach((key) => {
-    //     members.forEach((m, index) => {
-    //       const checkKey = `${key}main${index + 1}`;
-    //       const dateKey = `${checkKey}date`;
-    //       const isChecked = data[checkKey];
-    //       const dateValue = data[dateKey];
-    //       const input = document.querySelector(`input[name="${dateKey}"]`);
-    //       const trimmed = dateValue?.trim() || "";
-    //       if (isChecked) {
-    //         if (!trimmed) {
-    //           if (input) {
-    //             input.classList.add("border-red-500");
-    //             if (!firstInvalidInput) firstInvalidInput = input;
-    //           }
-    //           hasError = true;
-    //           return;
-    //         }
-    //         const [mm, yyyy] = trimmed.split("/");
-    //         const month = parseInt(mm, 10);
-    //         const year = parseInt(yyyy, 10);
-    //         if (!month || month < 1 || month > 12) {
-    //           if (input) {
-    //             input.classList.add("border-red-500");
-    //             if (!firstInvalidInput) firstInvalidInput = input;
-    //           }
-    //           hasError = true;
-    //           return;
-    //         }
-
-    //         const inputDOB = input?.getAttribute("data-dob");
-    //         if (inputDOB) {
-    //           const [day, dobMM, dobYYYY] = inputDOB.split("-");
-    //           const dobDate = new Date(
-    //             Number(dobYYYY),
-    //             Number(dobMM) - 1,
-    //             Number(day)
-    //           );
-    //           const inputDate = new Date(year, month - 1);
-
-    //           const dobMonth = dobDate.getMonth();
-    //           const dobYear = dobDate.getFullYear();
-    //           const inputMonth = inputDate.getMonth();
-    //           const inputYear = inputDate.getFullYear();
-    //           const today = new Date();
-    //           const currentMonth = today.getMonth();
-    //           const currentYear = today.getFullYear();
-    //           const isBeforeDOB =
-    //             inputYear < dobYear ||
-    //             (inputYear === dobYear && inputMonth < dobMonth);
-
-    //           const isInFuture =
-    //             inputYear > currentYear ||
-    //             (inputYear === currentYear && inputMonth > currentMonth);
-
-    //           if (isBeforeDOB || isInFuture) {
-    //             input.classList.add("border-red-500");
-    //             if (!firstInvalidInput) firstInvalidInput = input;
-    //             hasError = true;
-
-    //             if (!dobErrorShown) {
-    //               showError(
-    //                 isBeforeDOB
-    //                   ? "Date cannot be before member's Date of Birth (MM/YYYY)."
-    //                   : "Date cannot be in the future (MM/YYYY)."
-    //               );
-    //               dobErrorShown = true;
-    //             }
-    //             return;
-    //           }
-    //         }
-
-    //         input?.classList.remove("border-red-500");
-    //       } else {
-    //         input?.classList.remove("border-red-500");
-    //       }
-    //     });
-    //   });
-
-    // if (hasError) {
-    //   if (firstInvalidInput) {
-    //     firstInvalidInput.scrollIntoView({
-    //       behavior: "smooth",
-    //       block: "center",
-    //     });
-    //     firstInvalidInput.focus();
-    //   }
-    //   showError(
-    //     "Please fill valid MM/YYYY (month ≤ 12, not before DOB or future) for all selected members."
-    //   );
-    //   return false;
-    // }
-
-    // const getExtraFields = (keyPrefix) => ({
-    //   des: data[`${keyPrefix}desc`] || "",
-    //   quantity: data[`${keyPrefix}qty`] || 0,
-    // });
-
-    // const result = [];
-
-    // members.forEach((m, index) => {
-    //   const memberData = {
-    //     id: m.id,
-    //     age: m.age,
-    //     dob: m.dob,
-    //     data: [],
-    //   };
-
-    //   Object.entries(sectionMap).forEach(([section, keys]) => {
-    //     keys.forEach((key, keyIndex) => {
-    //       const checkKey = `${key}main${index + 1}`;
-    //       const dateKey = `${checkKey}date`;
-
-    //       if (data[checkKey] && data[dateKey]) {
-    //         const extra = getExtraFields(checkKey);
-
-    //         memberData.data.push({
-    //           did: `${section}.${keyIndex + 1}`,
-    //           date: data[dateKey],
-    //           des: extra.des,
-    //           quantity: section === "3" ? extra.quantity : 0,
-    //         });
-    //       }
-    //     });
-    //   });
-
-    //   if (memberData.data.length > 0) {
-    //     result.push(memberData);
-    //   }
-    // });
-    const result = [data];
-     console.log("Payload to API:", result);
     try {
       const res = await CallApi(
         constant.API.HEALTH.BAJAJ.SAVESTEPTHREE,
         "POST",
-        result
+        transformed
       );
       if (res === 1 || res?.status) {
         setStepThreeData(res);
@@ -352,47 +222,41 @@ const [newPincode, setNewPincode] = useState("");
       console.error("Step 3 API call error:", error);
       return false;
     }
-    return result;
   };
 
-const GoToPayment = async () => {
-  setLoading(true);
-  try {
-    const res = await CallApi(constant.API.HEALTH.BAJAJ.CREATEPOLICY, "POST");
-    console.log("API Response:", res);
+  const GoToPayment = async () => {
+    setLoading(true);
+    try {
+      const res = await CallApi(constant.API.HEALTH.BAJAJ.CREATEPOLICY, "POST");
+      console.log("API Response:", res);
 
-    const status = res?.status;
+      const status = res?.status;
 
-    if (status === "1" || status === 1 || status === true) {
-      const paymentLink = res?.data?.paymentlink;
+      if (status === "1" || status === 1 || status === true) {
+        const paymentLink = res?.data?.paymentlink;
 
-      if (paymentLink) {
-        router.push(
-          `/health/vendors/bajaj/payment?paymentLink=${paymentLink}`
-        );
+        if (paymentLink) {
+          router.push(
+            `/health/vendors/bajaj/payment?paymentLink=${paymentLink}`
+          );
+        } else {
+          const backendMsg =
+            res?.data?.msg || "Payment link not received from server.";
+          showError(backendMsg);
+        }
       } else {
-
+        const fallbackMsg = "Something went wrong while creating policy.";
         const backendMsg =
-          res?.data?.msg || "Payment link not received from server.";
+          res?.error?.[0]?.errDescription || res?.message || fallbackMsg;
         showError(backendMsg);
       }
-    } else {
-      const fallbackMsg = "Something went wrong while creating policy.";
-      const backendMsg =
-        res?.error?.[0]?.errDescription || res?.message || fallbackMsg;
-      showError(backendMsg);
+    } catch (error) {
+      console.error("API Error", error);
+      showError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("API Error", error);
-    showError("Something went wrong. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-
+  };
 
   const goNext = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
 
@@ -422,40 +286,40 @@ const GoToPayment = async () => {
 
   const handleVerifyIdentity = async () => {
     const values = step1Form.getValues();
-    
-    console.log(values)
+
+    console.log(values);
     // return false;
-   await validateKycStep(
-    step1Form,
-    "CKYC",
-    values,
-    proofs,
-    setKycVerified,
-    kycVerified,
-    setVerifiedData,
-    setIsCKYCHidden,
-    setIsOtherKycHidden
-  );
+    await validateKycStep(
+      step1Form,
+      "CKYC",
+      values,
+      proofs,
+      setKycVerified,
+      kycVerified,
+      setVerifiedData,
+      setIsCKYCHidden,
+      setIsOtherKycHidden
+    );
   };
 
   const handleVerifyOther = async () => {
     const values = step1Form.getValues();
     await validateKycStep(
-     step1Form,
-    "Others",
-    values,
-    proofs,
-    setKycVerified,
-    kycVerified,
-    setVerifiedData,
-    setIsCKYCHidden,
-    setIsOtherKycHidden
+      step1Form,
+      "Others",
+      values,
+      proofs,
+      setKycVerified,
+      kycVerified,
+      setVerifiedData,
+      setIsCKYCHidden,
+      setIsOtherKycHidden
     );
   };
   useEffect(() => {
-  if (quoteData.totalpremium) {
-  }
-}, [quoteData])
+    if (quoteData.totalpremium) {
+    }
+  }, [quoteData]);
 
   return (
     <>
@@ -517,8 +381,8 @@ const GoToPayment = async () => {
                     step1Form={step1Form}
                     kycType={kycType}
                     setKycType={setKycType}
-                    handleVerifyIdentity={handleVerifyIdentity}   
-                    handleVerifyOther={handleVerifyOther}       
+                    handleVerifyIdentity={handleVerifyIdentity}
+                    handleVerifyOther={handleVerifyOther}
                     loading={loading}
                     sameAddress={sameAddress}
                     setSameAddress={setSameAddress}
@@ -533,15 +397,14 @@ const GoToPayment = async () => {
                     verifiedData={verifiedData}
                     usersData={usersData}
                     kycData={kycData}
-                    isCKYCHidden={isCKYCHidden}        
+                    isCKYCHidden={isCKYCHidden}
                     setIsCKYCHidden={setIsCKYCHidden}
-                    isOtherKycHidden={isOtherKycHidden} 
+                    isOtherKycHidden={isOtherKycHidden}
                     setIsOtherKycHidden={setIsOtherKycHidden}
                     setQuoteData={setQuoteData}
                     setNewPincode={setNewPincode}
                     setOldPincode={setOldPincode}
                   />
-
                 )}
                 {currentStep === 2 && (
                   <StepTwoForm
@@ -566,11 +429,14 @@ const GoToPayment = async () => {
                     stepthreedata={stepthreedata}
                     onSubmitStep={onSubmitStep}
                     currentStep={currentStep}
-                    totalPremium={quoteData.totalpremium || summaryData.totalPremium}
-                     basePremium={quoteData.basepremium || summaryData.basepremium}
-                coverage={quoteData.coverage || summaryData.coverage}
+                    totalPremium={
+                      quoteData.totalpremium || summaryData.totalPremium
+                    }
+                    basePremium={
+                      quoteData.basepremium || summaryData.basepremium
+                    }
+                    coverage={quoteData.coverage || summaryData.coverage}
                     onGoToPayment={GoToPayment}
-                    
                   />
                 )}
               </div>
@@ -578,22 +444,21 @@ const GoToPayment = async () => {
 
             {/* Summary Card */}
             <SummaryCard
-                tenure={summaryData.tenure}
-                coverAmount={summaryData.coverAmount}
-                totalPremium={quoteData.totalpremium || summaryData.totalPremium}
-                basePremium={quoteData.basepremium || summaryData.basepremium}
-                coverage={quoteData.coverage || summaryData.coverage}
-                selectedAddons={summaryData.selectedAddons}
-                compulsoryAddons={summaryData.compulsoryAddons}
-                tenurePrices={summaryData.tenurePrices}
-                addons={summaryData.addons}
-                fullAddonsName={summaryData.fullAddonsName}
-                currentStep={currentStep}
-                onGoToPayment={GoToPayment}
-                newPincode={newPincode}
-                oldPincode={oldPincode}
-              />
-
+              tenure={summaryData.tenure}
+              coverAmount={summaryData.coverAmount}
+              totalPremium={quoteData.totalpremium || summaryData.totalPremium}
+              basePremium={quoteData.basepremium || summaryData.basepremium}
+              coverage={quoteData.coverage || summaryData.coverage}
+              selectedAddons={summaryData.selectedAddons}
+              compulsoryAddons={summaryData.compulsoryAddons}
+              tenurePrices={summaryData.tenurePrices}
+              addons={summaryData.addons}
+              fullAddonsName={summaryData.fullAddonsName}
+              currentStep={currentStep}
+              onGoToPayment={GoToPayment}
+              newPincode={newPincode}
+              oldPincode={oldPincode}
+            />
           </div>
         </div>
       )}

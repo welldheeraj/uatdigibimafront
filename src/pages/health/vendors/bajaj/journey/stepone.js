@@ -37,7 +37,7 @@ export default function StepOneForm({
   onSubmitStep 
 }) 
 {
-   console.log(kycType)
+   console.log(kycType,isOtherKycHidden)
   const [dates, setDates] = useState({
     customerpancardno: "",
     aadhar: "",
@@ -48,6 +48,7 @@ export default function StepOneForm({
   const [isUserPrefilled, setIsUserPrefilled] = useState(false);
   const [isVerifiedPrefilled, setIsVerifiedPrefilled] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const [fetchedPincode, setFetchedPincode] = useState("");
   const [hasUserChangedPin, setHasUserChangedPin] = useState(false);
@@ -169,13 +170,13 @@ const kycCode = usersData.cacheData?.toLowerCase();
 const kycLabel = typeMap[kycCode];
 
 if (kycLabel) {
-  // setKycType(kycLabel);
+  setKycType(kycLabel);
   step1Form.setValue("kycType", kycLabel, { shouldValidate: true });
-  // setKycVerified(true);
+  setKycVerified(true);
 
-  // if (kycCode === "c") {
-  //   setIsCKYCHidden(true);
-  // }
+  if (kycCode === "c") {
+    setIsCKYCHidden(true);
+  }
   if (kycCode === "o") {
     setIsOtherKycHidden(true);
   }
@@ -345,8 +346,15 @@ useEffect(() => {
 }, [kycType, step1Form.unregister]);
 
 
+//  if kyc alrdy then reselect kyc apply function 
 
-
+// useEffect(() => {
+//   if (kycType === "CKYC") {
+//     setIsCKYCHidden(false);   
+//   } else if (kycType === "Others") {
+//     setIsOtherKycHidden(false); 
+//   }
+// }, [kycType]);
 
 
 
@@ -464,28 +472,31 @@ useEffect(() => {
       </select>
     </div>
 
-   <button
+<button
   type="button"
-  onClick={() => {
+  onClick={async () => {
+    setIsVerifying(true);  
     const ckycValues = step1Form.getValues([
       "ckycSubType",
       "docNumber",
       "docDob",
       "docGender",
     ]);
-    handleVerifyIdentity(ckycValues);
+    await handleVerifyIdentity(ckycValues);
+    setIsVerifying(false);  
   }}
-  className="px-4 py-2 thmbtn"
-  disabled={loading}
+  className="px-6 py-2 thmbtn"
+  disabled={isVerifying}
 >
-  {loading ? (
+  {isVerifying ? (
     <>
-      <FiLoader className="animate-spin" /> Verifying...
+       Verifying<FiLoader className="animate-spin " />
     </>
   ) : (
     "VERIFY"
   )}
 </button>
+
 
   </div>
 )}
@@ -548,20 +559,25 @@ useEffect(() => {
               </div>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={handleVerifyOther}
-            className="px-4 py-2 thmbtn flex items-center gap-2"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <FiLoader className="animate-spin" /> Verifying...
-              </>
-            ) : (
-              "VERIFY"
-            )}
-          </button>
+        <button
+      type="button"
+      onClick={async () => {
+        setIsVerifying(true);
+        await handleVerifyOther();
+        setIsVerifying(false);
+      }}
+      className="px-4 py-2 thmbtn flex items-center gap-2"
+      disabled={isVerifying}
+    >
+      {isVerifying ? (
+        <>
+           Verifying<FiLoader className="animate-spin mr-2" />
+        </>
+      ) : (
+        "VERIFY"
+      )}
+    </button>
+
         </div>
       )}
 

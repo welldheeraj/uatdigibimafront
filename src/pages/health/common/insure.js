@@ -250,6 +250,7 @@ export default function InsurePage() {
   useEffect(() => {
     const handleLoad = () => {
       const saved = localStorage.getItem("planType");
+      console.log("saved")
 
       if (saved === "1" || saved === "2") {
         setPlanType(saved);
@@ -289,6 +290,29 @@ export default function InsurePage() {
       showError("Something went wrong. Please try again.");
     }
   };
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const response = await CallApi(constant.API.HEALTH.GETPLANTYPE, "GET");
+      if(response?.status){
+        const saved = response?.plantype
+        const tenure = response?.porttenure
+         setPlanType(saved);
+         setTenure(tenure);
+      }
+       else {
+          setPlanType("1");
+        }
+      console.log(response);
+    } catch (error) {
+      console.error("Error fetching plan type:", error);
+    }
+  };
+
+  fetchData();
+}, []);
+
+
 
   return (
     <>

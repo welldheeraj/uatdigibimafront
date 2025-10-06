@@ -12,9 +12,13 @@ import SlidePanel from "../../../sidebar/index";
 import { CallApi } from "../../../../../api";
 import constant from "../../../../../env";
 
+// react-query
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 export default function ProposalUI() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [addons, setAddons] = useState({});
   const [addonsDes, setAddonsDes] = useState({});
   const [selectedAddons, setSelectedAddons] = useState([]);
@@ -36,41 +40,40 @@ export default function ProposalUI() {
   const [applyClicked, setApplyClicked] = useState(false);
   const [isAddOnsModified, setIsAddOnsModified] = useState(false);
 
+  // 1. Checkout initial data
+  const { data: checkoutData, isLoading: loadingCheckout } = useQuery({
+    queryKey: ["checkoutData"],
+    queryFn: () => CallApi(constant.API.HEALTH.CARESUPEREME.CHECKOUT),
+  });
+
+  // set state when checkoutData comes
   useEffect(() => {
-    fetchCheckoutData();
-  }, []);
+    if (checkoutData) {
+      setSelectedAddons(checkoutData.selected_addon || []);
+      setAddons(checkoutData["addon value"] || {});
+      setFullAddonsName(checkoutData.addonname || {});
+      setAddonsDes(checkoutData.addondes || {});
+      setCompulsoryAddons(checkoutData.compulsoryaddon || []);
+      setCoverageOptions(checkoutData.coveragelist || []);
+      setCoverAmount(checkoutData.coverage || "");
+      setPincode(checkoutData.pincode || "");
+      setTotalPremium(checkoutData.totalamount || "");
+      setTenureOptions(checkoutData.tenureList || []);
+      setTenure(checkoutData.tenure || "");
+      setInsurers(checkoutData.aInsureData || []);
+      setChildList(checkoutData.child || []);
+      setGender(checkoutData.gender || "");
+      setKycRequired(checkoutData.kyc === "1");
 
-  const fetchCheckoutData = () => {
-    setLoading(true);
-    CallApi(constant.API.HEALTH.CARESUPEREME.CHECKOUT)
-      .then((res) => {
-        setSelectedAddons(res.selected_addon || []);
-        setAddons(res["addon value"] || {});
-        setFullAddonsName(res.addonname || {});
-        setAddonsDes(res.addondes || {});
-        setCompulsoryAddons(res.compulsoryaddon || []);
-        setCoverageOptions(res.coveragelist || []);
-        setCoverAmount(res.coverage || "");
-        setPincode(res.pincode || "");
-        setTotalPremium(res.totalamount || "");
-        setTenureOptions(res.tenureList || []);
-        setTenure(res.tenure || "");
-        setInsurers(res.aInsureData || []);
-        setChildList(res.child || []);
-        setGender(res.gender || "");
-        setKycRequired(res.kyc === "1");
-        const allMembers = res.aInsureData || [];
-        const memberCount = allMembers.length;
-        setMemberName(`Self(${memberCount})`);
-      })
-      .catch((err) => console.error("Checkout error:", err))
-      .finally(() => setLoading(false));
-  };
+      const allMembers = checkoutData.aInsureData || [];
+      setMemberName(`Self(${allMembers.length})`);
+    }
+  }, [checkoutData]);
 
-  useEffect(() => {
-    if (!coverAmount || tenureOptions.length === 0) return;
-
-    const fetchPrices = async () => {
+  // 2. Tenure wise prices (dependent query)
+  const { data: pricesData } = useQuery({
+    queryKey: ["tenurePrices", coverAmount, tenureOptions],
+    queryFn: async () => {
       const newPrices = {};
       for (const t of tenureOptions) {
         try {
@@ -84,19 +87,25 @@ export default function ProposalUI() {
           console.error("Price error:", err);
         }
       }
-      setTenurePrices(newPrices);
-    };
+      return newPrices;
+    },
+    enabled: !!coverAmount && tenureOptions.length > 0,
+  });
 
-    fetchPrices();
-  }, [coverAmount, tenureOptions]);
+  // set tenurePrices when pricesData comes
+  useEffect(() => {
+    if (pricesData) setTenurePrices(pricesData);
+  }, [pricesData]);
 
-  const basePremium = tenurePrices[tenure] || 0;
-  // const totalPremium =
-  //   basePremium
-  //  +
-  // Object.entries(addons)
-  //   .filter(([key]) => compulsoryAddons.includes(key))
-  // .reduce((sum, [, price]) => sum + (Number(price) || 0), 0);
+  // 3. Filter API (on coverage/tenure change)
+  const filterMutation = useMutation({
+    mutationFn: (payload) =>
+      CallApi(constant.API.HEALTH.FILTERPLAN, "POST", payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["checkoutData"]);
+      queryClient.invalidateQueries(["tenurePrices"]);
+    },
+  });
 
   const handleCoverageOrTenureChange = (type, value) => {
     const updatedPayload =
@@ -107,12 +116,10 @@ export default function ProposalUI() {
     if (type === "coverage") setCoverAmount(value);
     else setTenure(value);
 
-    setLoading(true);
-    CallApi(constant.API.HEALTH.FILTERPLAN, "POST", updatedPayload)
-      .then(() => fetchCheckoutData())
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    filterMutation.mutate(updatedPayload);
   };
+
+  const basePremium = tenurePrices[tenure] || 0;
 
   return (
     <div className="bgcolor min-h-screen px-3 sm:px-10 lg:px-20 py-6">
@@ -149,7 +156,9 @@ export default function ProposalUI() {
             compulsoryAddons={compulsoryAddons}
             fullAddonsName={fullAddonsName}
             selectedAddons={selectedAddons}
-            getCheckoutData={fetchCheckoutData}
+            getCheckoutData={() =>
+              queryClient.invalidateQueries(["checkoutData"])
+            }
             setApplyClicked={setApplyClicked}
             setIsAddOnsModified={setIsAddOnsModified}
           />

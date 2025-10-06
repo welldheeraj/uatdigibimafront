@@ -1,37 +1,82 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import PersonIcon from "@mui/icons-material/Person";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CloseIcon from "@mui/icons-material/Close";
-import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
+import {
+  ChevronRight as ChevronRightIcon,
+  LocationOn as LocationOnIcon,
+  Person as PersonIcon,
+  ArrowBack as ArrowBackIcon,
+  Close as CloseIcon,
+  HealthAndSafety as HealthAndSafetyIcon,
+} from "@mui/icons-material";
 import { showSuccess, showError } from "@/layouts/toaster";
 import InsureSidebarComponent from "./editmember";
 import EditIllnessComponent from "./editillness";
 import { CallApi } from "@/api";
 import constant from "@/env";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-const SlidePanel = ({
-  isSlideOpen,
-  setIsSlideOpen,
-  pincode,
-  memberName,
-  setPincode,
-  setMemberName,
-}) => {
+const SlidePanel = ({ isSlideOpen, setIsSlideOpen, pincode, memberName, setPincode, setMemberName }) => {
   const [showPincodePanel, setShowPincodePanel] = useState(false);
   const [showMemberPanel, setShowMemberPanel] = useState(false);
   const [showIllnessPanel, setShowIllnessPanel] = useState(false);
-
   const [cities, setCities] = useState({});
   const [error, setError] = useState("");
   const [displayedPincode, setDisplayedPincode] = useState(pincode);
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
-  const [loading, setLoading] = useState(false);
-
   const pincodeRef = useRef();
+  const queryClient = useQueryClient();
+
+  useEffect(() => setDisplayedPincode(pincode), [pincode]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (pincodeRef.current && !pincodeRef.current.contains(e.target)) setCities({});
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchCities = async (cleaned) => {
+    if (!/^\d{5,6}$/.test(cleaned)) return setCities({});
+    try {
+      const res = await CallApi(constant.API.HEALTH.PINCODE, "POST", { pincode: cleaned });
+      setCities(res);
+      setError("");
+    } catch {
+      setCities({});
+      setError("Error fetching city list. Try again.");
+      setIsButtonEnabled(false);
+    }
+  };
+
+  const updatePincodeMutation = useMutation({
+    mutationFn: (payload) => CallApi(constant.API.HEALTH.UPDATEPINCODE, "POST", payload),
+    onSuccess: (res) => {
+      if (res?.status) {
+        showSuccess("Pincode updated successfully!");
+        queryClient.invalidateQueries(["checkoutData"]);
+      } else showError(res?.message || "Failed to update pincode. Try again.");
+      handleCloseAll();
+    },
+    onError: (err) => {
+      console.error("UPDATEPINCODE Error:", err);
+      showError("Something went wrong while updating pincode.");
+    },
+  });
+
+  const handleCityClick = (pin) => {
+    setDisplayedPincode(pin);
+    setPincode(pin);
+    setCities({});
+    setIsButtonEnabled(true);
+  };
+
+  const updatePincode = () => {
+    if (!isButtonEnabled || updatePincodeMutation.isLoading) return;
+    updatePincodeMutation.mutate({ findpincode: displayedPincode });
+  };
+
   const handleCloseAll = () => {
     setShowPincodePanel(false);
     setShowMemberPanel(false);
@@ -40,65 +85,7 @@ const SlidePanel = ({
     setCities({});
     setError("");
   };
-  useEffect(() => {
-    setDisplayedPincode(pincode);
-  }, [pincode]);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (pincodeRef.current && !pincodeRef.current.contains(e.target)) {
-        setCities({});
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const fetchCities = async (cleaned) => {
-    if (/^\d{5,6}$/.test(cleaned)) {
-      try {
-        const res = await CallApi(constant.API.HEALTH.PINCODE, "POST", {
-          pincode: cleaned,
-        });
-        setCities(res);
-        setError("");
-      } catch (err) {
-        setCities({});
-        setError("Error fetching city list. Try again.");
-        setIsButtonEnabled(false);
-      }
-    } else {
-      setCities({});
-    }
-  };
-
-  const handleCityClick = (pin) => {
-    setDisplayedPincode(pin);
-    setPincode(pin);
-    setCities({});
-    setIsButtonEnabled(true);
-  };
-  const updatePincode = async () => {
-    if (!isButtonEnabled) return;
-
-    setLoading(true);
-    try {
-      const res = await CallApi(constant.API.HEALTH.UPDATEPINCODE, "POST", {
-        findpincode: displayedPincode,
-      });
-      if (res?.status) {
-        showSuccess("Pincode updated successfully!");
-      } else {
-        showError(res?.message || "Failed to update pincode. Try again.");
-      }
-    } catch (error) {
-      console.error("UPDATEPINCODE Error:", error);
-      showError("Something went wrong while updating pincode.");
-    } finally {
-      setLoading(false);
-      handleCloseAll();
-    }
-  };
   return (
     <div className="md:col-span-3">
       <div className="bg-white border rounded-[30px] shadow-md p-4">
@@ -227,9 +214,7 @@ const SlidePanel = ({
                     }}
                     className="w-full border rounded-md px-4 py-2 text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                   />
-                  {error && (
-                    <p className="text-red-600 text-xs mt-1">{error}</p>
-                  )}
+                  {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
                 </div>
 
                 {/* Suggestions */}
@@ -250,14 +235,16 @@ const SlidePanel = ({
                 <div className="mt-8">
                   <button
                     onClick={updatePincode}
-                    disabled={!isButtonEnabled || loading}
+                    disabled={!isButtonEnabled || updatePincodeMutation.isLoading}
                     className={`w-full px-6 py-2 thmbtn ${
-                      !isButtonEnabled || loading
+                      !isButtonEnabled || updatePincodeMutation.isLoading
                         ? "opacity-50 cursor-not-allowed"
                         : ""
                     }`}
                   >
-                    {loading ? "Processing..." : "Continue"}
+                    {updatePincodeMutation.isLoading
+                      ? "Processing..."
+                      : "Continue"}
                   </button>
                 </div>
               </div>

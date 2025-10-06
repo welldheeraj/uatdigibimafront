@@ -342,6 +342,7 @@ const [newPincode, setNewPincode] = useState("");
         result.push(memberData);
       }
     });
+    console.log(result)
     try {
       const res = await CallApi(
         constant.API.HEALTH.CARESUPEREME.SAVESTEPTHREE,

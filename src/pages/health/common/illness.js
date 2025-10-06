@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -22,9 +23,12 @@ export default function IllnessForm() {
 
   const router = useRouter();
   const selected = watch("data") || [];
+
+  // disable logic
   const isNoDiseaseSelected = selected.includes("No Existing Disease");
   const isAnyOtherSelected = selected.some((d) => d !== "No Existing Disease");
 
+  // auth check
   useEffect(() => {
     async function getAuth() {
       const isauth = await isAuth();
@@ -35,29 +39,42 @@ export default function IllnessForm() {
     getAuth();
   }, [router]);
 
-  useEffect(() => {
-    const getToken = localStorage.getItem("token");
-    if (getToken) {
-      const fetchData = async () => {
-        try {
-          const res = await getUserinfo(getToken);
-          const data = await res.json();
 
-          let pedList = [];
-          if (data.user?.ped) {
-            const parsedPED = JSON.parse(data.user.ped || "{}");
-            pedList = parsedPED.data || [];
-          }
-          if (data.status) {
-            reset({ data: pedList });
-          }
-        } catch (error) {
-          console.error("Error parsing PED:", error);
+// prefill user data
+useEffect(() => {
+  const getToken = localStorage.getItem("token");
+  if (getToken) {
+    const fetchData = async () => {
+      try {
+        const res = await getUserinfo(getToken);
+        const data = await res.json();
+        console.log(" data :", data);
+        console.log("pre ped data :", data.user?.ped);
+
+        let pedList = [];
+        if (data.user?.ped) {
+          const parsedPED = JSON.parse(data.user.ped || "{}");
+          pedList = parsedPED.data || [];
         }
-      };
-      fetchData();
-    }
-  }, [reset]);
+
+        console.log("Final PED list:", pedList);
+
+        // prefill checkboxes if data exists
+        if (pedList.length > 0) {
+          setValue("data", pedList);
+        }
+
+      } catch (error) {
+        console.error("Error parsing PED:", error);
+      }
+    };
+    fetchData();
+  }
+}, [reset, setValue]);
+
+
+
+  // toggle selection
   const toggleSelection = (value) => {
     let newValues = new Set(selected);
     if (newValues.has(value)) {
@@ -72,6 +89,8 @@ export default function IllnessForm() {
     }
     setValue("data", Array.from(newValues));
   };
+
+  // submit
   const onSubmit = async (formData) => {
     if (formData.data.length === 0) {
       showError("Please select at least one illness.");
@@ -83,6 +102,8 @@ export default function IllnessForm() {
         "POST",
         formData
       );
+      console.log("Server Response:", response);
+      showSuccess("Data saved successfully!");
       router.push(constant.ROUTES.HEALTH.PLANS);
     } catch (err) {
       console.error("API error:", err);
@@ -90,6 +111,7 @@ export default function IllnessForm() {
     }
   };
 
+  // render
   return (
     <div className="bgcolor px-2 sm:px-4 py-6 sm:py-10">
       <form
@@ -97,25 +119,20 @@ export default function IllnessForm() {
         className="max-w-[1100px] mx-auto mt-5 mb-10 px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 py-8 rounded-[64px] bg-[#FFFF] text-white text-center"
       >
         <h2 className="text-[20px] sm:text-[24px] md:text-[28px] text-[#426D98] font-bold sm:leading-snug md:leading-relaxed mb-10">
-          Do any member(s) have any existing data for which they take{" "}
+          Do any member(s) have any existing condition for which they take{" "}
           <br className="hidden sm:inline" />
           regular medication?
         </h2>
 
+        {/* Illness Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4 justify-items-center mb-6">
           {illnesses.map((illness) => {
             const isChecked = selected.includes(illness);
             return (
               <label
                 key={illness}
-                className={`relative flex justify-between items-center w-[280px] px-4 py-3 bg-white text-black rounded-xl font-medium border ${
-                  isChecked
-                    ? "border border-gray-400"
-                    : "border border-gray-400"
-                } ${
-                  isNoDiseaseSelected
-                    ? "opacity-50 cursor-not-allowed"
-                    : "cursor-pointer"
+                className={`relative flex justify-between items-center w-[280px] px-4 py-3 bg-white text-black rounded-xl font-medium border border-gray-400 ${
+                  isNoDiseaseSelected ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                 }`}
               >
                 {illness}
@@ -135,16 +152,12 @@ export default function IllnessForm() {
             );
           })}
         </div>
+
+        {/* No Existing Disease */}
         <div className="flex justify-center mb-6">
           <label
-            className={`relative flex justify-between items-center w-[280px] px-4 py-3 bg-white text-black rounded-xl font-medium border ${
-              selected.includes("No Existing Disease")
-                ? "border border-gray-400"
-                : "border border-gray-400"
-            } ${
-              isAnyOtherSelected
-                ? "opacity-50 cursor-not-allowed"
-                : "cursor-pointer"
+            className={`relative flex justify-between items-center w-[280px] px-4 py-3 bg-white text-black rounded-xl font-medium border border-gray-400 ${
+              isAnyOtherSelected ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
             No Existing Disease
@@ -162,6 +175,8 @@ export default function IllnessForm() {
             )}
           </label>
         </div>
+
+        {/* Buttons */}
         <div className="flex justify-center gap-4 flex-wrap">
           <button
             type="button"

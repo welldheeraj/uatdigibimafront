@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useMemo, useCallback } from "react";
 
 const FilterForm = ({
   filterData,
@@ -9,12 +10,14 @@ const FilterForm = ({
   onFilterChange,
   loadingPlans,
 }) => {
-  return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-wrap items-center gap-3 text-sm mb-8"
-    >
-      {filterData.map((item, i) => {
+  const handleChange = useCallback(
+    (e) => onFilterChange(e),
+    [onFilterChange]
+  );
+
+  const filterOptions = useMemo(
+    () =>
+      filterData.map((item, i) => {
         const isDisabled = ["insurers", "features"].includes(item.name);
 
         return (
@@ -32,7 +35,7 @@ const FilterForm = ({
               disabled={isDisabled}
               name={item.name}
               value={filters[item.name] || ""}
-              onChange={onFilterChange}
+              onChange={handleChange}
               className={`bg-white text-gray-800 font-medium text-xs px-2 py-1 rounded-md focus:outline-none transition ${
                 isDisabled ? "bg-gray-100 text-gray-500" : "cursor-pointer"
               }`}
@@ -40,19 +43,11 @@ const FilterForm = ({
               {item.options.map((opt, idx) => {
                 const isObj = typeof opt === "object" && opt !== null;
                 const displayText = isObj ? opt.label : opt;
-
                 let optionValue;
-                if (isObj) {
-                  optionValue = opt.value;
-                } else if (item.name === "plantype") {
-                  if (opt === "Base") optionValue = "1";
-                  else if (opt === "Port") optionValue = "2";
-                  else optionValue = "";
-                } else if (item.name === "tenure") {
-                  optionValue = opt.replace(/\s*Years?$/, "");
-                } else {
-                  optionValue = opt === "1 Cr" ? "100" : opt.replace(" Lac", "");
-                }
+                if (isObj) optionValue = opt.value;
+                else if (item.name === "plantype") optionValue = opt === "Base" ? "1" : opt === "Port" ? "2" : "";
+                else if (item.name === "tenure") optionValue = opt.replace(/\s*Years?$/, "");
+                else optionValue = opt === "1 Cr" ? "100" : opt.replace(" Lac", "");
 
                 return (
                   <option
@@ -60,7 +55,7 @@ const FilterForm = ({
                     value={optionValue}
                     disabled={
                       displayText === "Select" &&
-                      !(item.name === "insurers" || item.name === "coverage")
+                      !(item.name === "insurers" )
                     }
                   >
                     {displayText}
@@ -70,8 +65,16 @@ const FilterForm = ({
             </select>
           </div>
         );
-      })}
+      }),
+    [filterData, filters, register, handleChange]
+  );
 
+  return (
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-wrap items-center gap-3 text-sm mb-8"
+    >
+      {filterOptions}
       <button
         type="submit"
         className="px-6 py-1 thmbtn flex items-center justify-center gap-2"

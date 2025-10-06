@@ -53,6 +53,11 @@ export default function StepOneForm({
   const [isUserPrefilled, setIsUserPrefilled] = useState(false);
   const [isVerifiedPrefilled, setIsVerifiedPrefilled] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
+  
+
+  const [isVerifyingPan, setIsVerifyingPan] = useState(false);
+const [isVerifyingAadhar, setIsVerifyingAadhar] = useState(false);
+const [isVerifyingOther, setIsVerifyingOther] = useState(false);
 
   const [fetchedPincode, setFetchedPincode] = useState("");
   const [hasUserChangedPin, setHasUserChangedPin] = useState(false);
@@ -479,22 +484,27 @@ export default function StepOneForm({
               )}
             />
 
-            <input
-              type="button"
-              onClick={handleVerifyPan}
-              disabled={isPanAlreadyVerified || loading}
-              value={
-                isPanAlreadyVerified
-                  ? "VERIFIED"
-                  : loading
-                  ? "Verifying..."
-                  : "VERIFY"
-              }
-              className={`px-4 py-2 thmbtn cursor-pointer
+      <input
+  type="button"
+  onClick={async () => {
+    setIsVerifyingPan(true);
+    await handleVerifyPan();
+    setIsVerifyingPan(false);
+  }}
+  disabled={isPanAlreadyVerified || isVerifyingPan}
+  value={
+    isPanAlreadyVerified
+      ? "VERIFIED"
+      : isVerifyingPan
+      ? "Verifying..."
+      : "VERIFY"
+  }
+  className={`px-4 py-2 thmbtn cursor-pointer
     ${isPanAlreadyVerified ? "bg-green-600 cursor-not-allowed" : ""}
-    ${loading ? "opacity-70 cursor-not-allowed" : ""}
+    ${isVerifyingPan ? "opacity-70 cursor-not-allowed" : ""}
   `}
-            />
+/>
+
           </div>
         </div>
       )}
@@ -552,20 +562,25 @@ export default function StepOneForm({
             </div>
 
             <div className="sm:col-span-2">
-              <button
-                type="button"
-                onClick={handleVerifyAadhar}
-                className="w-full px-1 py-2 thmbtn flex items-center justify-center gap-2"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <FiLoader className="animate-spin" /> Verifying...
-                  </>
-                ) : (
-                  "VERIFY"
-                )}
-              </button>
+            <button
+  type="button"
+  onClick={async () => {
+    setIsVerifyingAadhar(true);
+    await handleVerifyAadhar();
+    setIsVerifyingAadhar(false);
+  }}
+  className="w-full px-1 py-2 thmbtn flex items-center justify-center gap-2"
+  disabled={isVerifyingAadhar}
+>
+  {isVerifyingAadhar ? (
+    <>
+       Verifying<FiLoader className="animate-spin" />
+    </>
+  ) : (
+    "VERIFY"
+  )}
+</button>
+
             </div>
           </div>
         </div>
@@ -626,20 +641,25 @@ export default function StepOneForm({
               </div>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={handleVerifyOther}
-            className="px-4 py-2 thmbtn flex items-center gap-2"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <FiLoader className="animate-spin" /> Verifying...
-              </>
-            ) : (
-              "VERIFY"
-            )}
-          </button>
+         <button
+  type="button"
+  onClick={async () => {
+    setIsVerifyingOther(true);
+    await handleVerifyOther();
+    setIsVerifyingOther(false);
+  }}
+  className="px-4 py-2 thmbtn flex items-center gap-2"
+  disabled={isVerifyingOther}
+>
+  {isVerifyingOther ? (
+    <>
+      Verifying<FiLoader className="animate-spin" /> 
+    </>
+  ) : (
+    "VERIFY"
+  )}
+</button>
+
         </div>
       )}
 

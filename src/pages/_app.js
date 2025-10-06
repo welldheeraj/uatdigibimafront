@@ -1,5 +1,4 @@
 // pages/_app.js
-// import '@mui/x-data-grid/index.css';
 import "@/styles/globals.css";
 import "@/styles/css/digibima.css";
 import Header from "./partial/header";
@@ -11,30 +10,47 @@ import CarInsuranceLoader, { BikeInsuranceLoader, HealthLoaderOne, DashboardLoad
 import { useRouter } from "next/router";
 import { VerifyToken } from "../api";
 import constant from "../env";
-import { CallApi, getUserinfo } from "../api";
+import { getUserinfo } from "../api";
 import { PrimeReactProvider } from "primereact/api";
 import { UserContext } from "@/context/UserContext";
 import { showError } from "@/layouts/toaster";
+import ErrorBoundary from "@/components/errorboundary";
+// react-query
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
+// font
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "500", "600"], 
+  weight: ["400", "500", "600"],
   variable: "--font-poppins",
 });
 
-// Hoisted so it’s a stable reference (fixes the missing dependency warning)
-  const PUBLIC_ROUTES = ["/","/login?type=health","/login?type=motor","/login/mainlogin","/adminpnlx"];
+// ✅ updated stable query client with best-practice defaults
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2,        // 2 minutes fresh
+      cacheTime: 1000 * 60 * 30,       // 30 minutes cache
+      refetchOnWindowFocus: false,     // tab switch pe automatic refetch mat karo
+      refetchOnMount: false,           // component mount pe automatic refetch mat karo
+      retry: 1,                        // ek hi retry agar fail ho
+      keepPreviousData: true,          // purana data dikhe jab tak naya load ho
+    },
+  },
+});
+
+// public routes
+const PUBLIC_ROUTES = ["/", "/login?type=health", "/login?type=motor", "/login/mainlogin", "/adminpnlx"];
 
 export default function App({ Component, pageProps }) {
   const [token, setToken] = useState(null);
-  const [authkey, setAuthkey] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
-  const [Username, setUsername] = useState(null);
-  const [userMobile, setUserMobile] = useState(null);
   const [userData, setUserData] = useState(null);
   const [kycData, setKycData] = useState({ status: null, kyctype: null });
   const [isLoading, setIsLoading] = useState(false);
+
   const router = useRouter();
   const route = router.pathname;
   const isDashboard =
@@ -42,22 +58,17 @@ export default function App({ Component, pageProps }) {
     router.pathname.startsWith("/adminpnlx") ||
     router.pathname.startsWith("/dashboard");
 
-  const splitRoute = route
-    .trim()
-    .split("/")
-    .filter((segment) => segment !== "")[0];
+  const splitRoute = route.trim().split("/").filter((segment) => segment !== "")[0];
+
+  // verify token
   useEffect(() => {
     const verifyAuth = async () => {
       const storedToken = localStorage.getItem("token");
       if (!storedToken) {
         setToken(null);
         setLoading(false);
-        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-          router.push(constant.ROUTES.HEALTH.INDEX);
-        }
-        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-          router.push(constant.ROUTES.MOTOR.INDEX);
-        }
+        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) router.push(constant.ROUTES.HEALTH.INDEX);
+        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) router.push(constant.ROUTES.MOTOR.INDEX);
         return;
       }
       try {
@@ -68,29 +79,21 @@ export default function App({ Component, pageProps }) {
         } else {
           localStorage.removeItem("token");
           setToken(null);
-          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-            router.push(constant.ROUTES.HEALTH.INDEX);
-          }
-          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-            router.push(constant.ROUTES.MOTOR.INDEX);
-          }
+          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) router.push(constant.ROUTES.HEALTH.INDEX);
+          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) router.push(constant.ROUTES.MOTOR.INDEX);
         }
       } catch (error) {
         console.error("Token verification failed:", error);
         localStorage.removeItem("token");
-        setAuthkey(null);
         setToken(null);
-        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) {
-          router.push(constant.ROUTES.HEALTH.INDEX);
-        }
-        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) {
-          router.push(constant.ROUTES.MOTOR.INDEX);
-        }
+        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) router.push(constant.ROUTES.HEALTH.INDEX);
+        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) router.push(constant.ROUTES.MOTOR.INDEX);
       } finally {
         setLoading(false);
       }
     };
     verifyAuth();
+
     const handleAuthChange = () => {
       const updatedToken = localStorage.getItem("token");
       setToken(updatedToken);
@@ -99,25 +102,23 @@ export default function App({ Component, pageProps }) {
     return () => window.removeEventListener("auth-change", handleAuthChange);
   }, [router, splitRoute]);
 
+  // check auth for public routes
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
-      const pathWithQuery = router.asPath; // this includes query params
-
+      const pathWithQuery = router.asPath;
       const isPublicRoute = PUBLIC_ROUTES.includes(pathWithQuery);
-
       if (!token && !isPublicRoute) {
         showError("You must be logged in to access this page.");
         router.push("/");
         return;
       }
-
       setLoading(false);
     };
-
     checkAuth();
   }, [router, router.asPath]);
 
+  // fetch user info
   useEffect(() => {
     if (token) {
       const fetchData = async () => {
@@ -125,12 +126,11 @@ export default function App({ Component, pageProps }) {
           setIsLoading(true);
           const response = await getUserinfo(token);
           const data = await response.json();
-          setKycData(data.kyctype, data.status);
           if (data.status && data.user?.name) {
             setUserData(data.user);
             setKycData({
               status: data.status,
-              kyctype: data.kyctype, // example: 'p' or 'a'
+              kyctype: data.kyctype,
             });
           } else {
             setUserData(null);
@@ -147,6 +147,7 @@ export default function App({ Component, pageProps }) {
     }
   }, [token]);
 
+  // loader during route change
   useEffect(() => {
     const handleStart = () => setPageLoading(true);
     const handleComplete = () => setPageLoading(false);
@@ -165,57 +166,34 @@ export default function App({ Component, pageProps }) {
 
   const renderLoader = () => {
     if (route.startsWith("/health")) return <HealthLoaderOne />;
-      if (route.startsWith("/compare?type=health")) return <HealthLoaderOne />;
+    if (route.startsWith("/compare?type=health")) return <HealthLoaderOne />;
     if (route.startsWith("/motor")) return <CarInsuranceLoader />;
     if (route.startsWith("/compare?type=motor")) return <CarInsuranceLoader />;
     if (route.startsWith("/motor/bike")) return <BikeInsuranceLoader />;
     if (route.startsWith("/motor/car")) return <CarInsuranceLoader />;
     return <DashboardLoader />;
   };
+
   return (
     <div className={poppins.className}>
-      {!isDashboard && (
-        <Header
-          token={token}
-          username={userData?.name}
-          setUsername={setUserData}
-        />
-      )}
-
+      {!isDashboard && <Header token={token} username={userData?.name} setUsername={setUserData} />}
       {loading || pageLoading ? (
         renderLoader()
       ) : (
-        <>
-          <PrimeReactProvider />
-          <Toaster />
-          <UserContext.Provider value={{ userData, kycData, token }}>
-            <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
-          </UserContext.Provider>
-          {!isDashboard && <Footer />}
-        </>
+        <QueryClientProvider client={queryClient}>
+          <PrimeReactProvider>
+            <Toaster />
+            <UserContext.Provider value={{ userData, kycData, token }}>
+              <ErrorBoundary>
+                <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
+              </ErrorBoundary>
+              
+            </UserContext.Provider>
+            {!isDashboard && <Footer />}
+          </PrimeReactProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
       )}
     </div>
   );
 }
-
-// const responseSession = await fetch("/api/setsession", {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify({ token: "456" }),
-//         });
-//         const sessionData = await responseSession.json();
-//         console.log("Session Data:", sessionData);
-
-//         // Fetch token data
-//         const responseToken = await fetch("/api/getsession");
-//         const tokenData = await responseToken.json();
-//         console.log("Token Data:", tokenData);
-// export async function getServerSideProps(context) {
-//   return {
-//     props: {
-//       abc:'ffgfg'
-//     },
-//   };
-// }

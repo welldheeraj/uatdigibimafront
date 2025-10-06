@@ -5,17 +5,15 @@ import constant from "@/env";
 import { showSuccess, showError } from "@/layouts/toaster";
 
 export default async function validateKycStep(
-  step1Form,             // 1
-  kycType,               // 2  <-- expects string, but you passed setKycVerified (function)
-  values,                // 3  <-- expects object, but you passed kycVerified (boolean)
-  proofs,                // 4  <-- expects proofs, but you passed setIsPanVerified (function)
-  setKycVerified,        // 5  <-- expects setter, but you passed "CKYC" (string)
-  kycVerified,           // 6  <-- expects boolean, but you passed values (object)
-  setIsPanVerified,      // 7  <-- never reached properly
-  setVerifiedData,       // 8
-  setIsPanKycHidden,     // 9
-  setIsAadharKycHidden,  // 10
-  setIsOtherKycHidden    // 11
+  step1Form,
+  kycType,
+  values,
+  proofs,
+  setKycVerified,
+  kycVerified,
+  setVerifiedData,
+  setIsCKYCHidden,
+  setIsOtherKycHidden
 ) {
  
   if (!kycType) return showError("Please select a KYC type."), false;
@@ -51,7 +49,7 @@ try {
       showSuccess("CKYC verified");
       setKycVerified(true);
       setVerifiedData?.({ kyctype: "c", ...payload });
-      setIsPanKycHidden?.(true);
+      setIsCKYCHidden?.(true);
       return true;
     } else {
      
@@ -145,8 +143,9 @@ try {
         if (res?.status) {
           showSuccess("Documents verified");
           setKycVerified(true);
+          setIsOtherKycHidden(true);
           setVerifiedData?.({ kyctype: "o" });
-          setIsOtherKycHidden?.(true); 
+          
           return true;
         }
 

@@ -504,9 +504,7 @@ export default function StepperForm({ usersData, kycData }) {
     }
   }, [quoteData]);
 
-    useEffect(() => {
-  console.log("plane type kya aaya",planType)
-  }, [setPlanType]);
+
   return (
     <>
       {loading ? (
