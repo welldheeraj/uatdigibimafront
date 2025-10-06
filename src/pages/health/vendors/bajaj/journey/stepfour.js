@@ -11,6 +11,7 @@ export default function StepFourForm({
   onSubmitStep,
   totalPremium,
 }) {
+  console.log(stepthreedata)
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -69,7 +70,7 @@ export default function StepFourForm({
         <SectionCard title="Products Details" onEdit={() => handleEditStep(1)}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <Image
-              src={`/images/health/vendorimage/Care_logo.png`}
+              src={`${constant.BASE_URL}/front/logo/${stepthreedata?.logo}`}
               alt="carelogo"
               width={80}
               height={40}
@@ -77,7 +78,7 @@ export default function StepFourForm({
             />
             <div className="flex-1">
               <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
-                Care Supreme —{" "}
+                My Health Care —{" "}
                 <span className="text-green-600 font-bold">
                   ₹{totalPremium}
                 </span>{" "}
@@ -116,8 +117,9 @@ export default function StepFourForm({
             {(() => {
               const addr = proposer.address || {};
               const {address1,address2,landmark,city,state,pincode} = addr;
-              return [address1,address2,landmark,city,state,pincode && `- ${pincode}`]
-                .filter(Boolean).join(", ") || "-";}
+              // return [address1,address2,landmark,city,state,pincode && `- ${pincode}`]
+              //   .filter(Boolean).join(", ") || "-";}
+              return addr}
             )()}
           </div>
 

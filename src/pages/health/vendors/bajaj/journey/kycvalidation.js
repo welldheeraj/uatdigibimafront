@@ -5,17 +5,17 @@ import constant from "@/env";
 import { showSuccess, showError } from "@/layouts/toaster";
 
 export default async function validateKycStep(
- step1Form,
-  kycType,
-  values,
-  proofs,
-  setKycVerified,
-  kycVerified,
-  setIsPanVerified,
-  setVerifiedData,
-  setIsPanKycHidden,
-  setIsAadharKycHidden,
-  setIsOtherKycHidden
+  step1Form,             // 1
+  kycType,               // 2  <-- expects string, but you passed setKycVerified (function)
+  values,                // 3  <-- expects object, but you passed kycVerified (boolean)
+  proofs,                // 4  <-- expects proofs, but you passed setIsPanVerified (function)
+  setKycVerified,        // 5  <-- expects setter, but you passed "CKYC" (string)
+  kycVerified,           // 6  <-- expects boolean, but you passed values (object)
+  setIsPanVerified,      // 7  <-- never reached properly
+  setVerifiedData,       // 8
+  setIsPanKycHidden,     // 9
+  setIsAadharKycHidden,  // 10
+  setIsOtherKycHidden    // 11
 ) {
  
   if (!kycType) return showError("Please select a KYC type."), false;
@@ -23,46 +23,50 @@ try {
   let payload, res;
 
  
-  if (kycType === "CKYC") {
-    const type = values.ckycType || values.ckycSubType; 
-    const number = values.number || values.docNumber;
-    const dob = values.dob || values.docDob;
-    const gender = values.gender || values.docGender;
+ if (kycType === "CKYC") {
+  const type = values.ckycType || values.ckycSubType; 
+  const number = values.number || values.docNumber;
+  const dob = values.dob || values.docDob;
+  const gender = values.gender || values.docGender;
 
-    if (!type || !number || !dob || !gender) {
-      return showError("All CKYC fields are required."), false;
-    }
+  if (!type || !number || !dob || !gender) {
+    showError("All CKYC fields are required.");
+    return false;
+  }
 
-    payload = {
-     type,
-    number,
-    dob,
-    gender,
-    };
+  payload = { type, number, dob, gender };
 
-    console.log("CKYC payload:", payload);
-    
+  console.log("CKYC payload:", payload);
 
- 
+  try {
     res = await CallApi(
       constant.API.HEALTH.BAJAJ.IDENTITYVERIFY, 
       "POST",
       payload
     );
     console.log("response:", res);
-    return false;
 
-    if (res?.status) {
+    if (res?.status === "1" || res?.status === 1 || res?.status === true) {
+    
       showSuccess("CKYC verified");
       setKycVerified(true);
       setVerifiedData?.({ kyctype: "c", ...payload });
       setIsPanKycHidden?.(true);
       return true;
+    } else {
+     
+      const fallbackMsg = "CKYC verification failed.";
+      const backendMsg = res?.responseData?.message || res?.message || fallbackMsg;
+      showError(backendMsg);
+      return false;
     }
-
-    showError(res?.responseData?.message || res?.message || "CKYC verification failed");
+  } catch (error) {
+    console.error("CKYC API Error:", error);
+    showError("Something went wrong during CKYC verification.");
     return false;
   }
+}
+
 
   
   else if (kycType === "Aadhar ( Last 4 Digits )") {
@@ -158,7 +162,7 @@ try {
   } catch (error) {
     console.error(`${kycType} verification error:`, error);
     showError(`Server error during ${kycType} verification`);
-    setKycVerified(false);
+    // setKycVerified(false);
     return false;
   }
 }

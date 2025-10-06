@@ -136,7 +136,7 @@ const constant = {
         CREATEPOLICY: "/api/health-ultimatecare/createpolicy",
         GETPROPOSAL: "/api/health-ultimatecare/payment",
       },
-      BAJAJ: {
+       BAJAJ: {
         CHECKOUT: "/api/bajaj-myhealthcare/addon",
         SETPREMIUM: "/api/bajaj-myhealthcare/setpremium",
         PlANCHECKOUT: "api/bajaj-myhealthcare/plancheckout",
@@ -148,8 +148,8 @@ const constant = {
         SAVESTEPONE: "/api/bajaj-myhealthcare/proposalStepOne",
         SAVESTEPTWO: "/api/bajaj-myhealthcare/proposalStepTwo",
         SAVESTEPTHREE: "/api/bajaj-myhealthcare/proposalStepThree",
-        CREATEPOLICY: "/api/health-ultimatecare/createpolicy",
-        GETPROPOSAL: "/api/health-ultimatecare/payment",
+        CREATEPOLICY: "/api/bajaj-myhealthcare/createpolicy",
+        GETPROPOSAL: "/api/bajaj-myhealthcare/payment",
       },
     },
 

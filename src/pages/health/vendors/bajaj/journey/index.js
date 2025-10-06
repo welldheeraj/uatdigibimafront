@@ -28,14 +28,12 @@ export default function StepperForm({ usersData, kycData }) {
   const [proofs, setProofs] = useState({ identity: "", address: "" });
   const [fileNames, setFileNames] = useState({});
   const [kycVerified, setKycVerified] = useState(false);
-  const [isPanVerified, setIsPanVerified] = useState(false);
   const [verifiedData, setVerifiedData] = useState([]);
   const [steponedata, setStepOneData] = useState([]);
   const [steptwodata, setStepTwoData] = useState([]);
   const [stepthreedata, setStepThreeData] = useState([]);
   const [totalPremium, setTotalPremium] = useState("");
-  const [isPanKycHidden, setIsPanKycHidden] = useState(false);
-  const [isAadharKycHidden, setIsAadharKycHidden] = useState(false);
+  const [isCKYCHidden, setIsCKYCHidden] = useState(false);
   const [isOtherKycHidden, setIsOtherKycHidden] = useState(false);
    const [quoteData, setQuoteData] = useState({totalpremium: "",basepremium: "",coverage: "",});
    const [oldPincode, setOldPincode] = useState("");
@@ -82,6 +80,7 @@ const [newPincode, setNewPincode] = useState("");
   const steps = ["", "", "", ""];
   // const steps = ["Step", "Step", "Step", ""];
 
+
   const back = async () => {
     if (currentStep === 1) {
       router.push(constant.ROUTES.HEALTH.BAJAJ.CHECKOUT);
@@ -94,17 +93,7 @@ const [newPincode, setNewPincode] = useState("");
 
   const validateFormStepOne = async () => {
     const rawValues = step1Form.getValues();
-    // const result = await validateKycStep(
-    //   step1Form,
-    //   kycType,
-    //   rawValues,
-    //   proofs,
-    //   setKycVerified,
-    //   kycVerified,
-    //   setIsPanVerified,
-    //   setVerifiedData
-    // );
-    // if (!result) return false;
+
     if (!kycVerified) {
       showError("Please complete KYC verification before proceeding.");
       return false;
@@ -369,21 +358,23 @@ const [newPincode, setNewPincode] = useState("");
 const GoToPayment = async () => {
   setLoading(true);
   try {
-    const res = await CallApi(
-      constant.API.HEALTH.BAJAJ.CREATEPOLICY,
-      "POST"
-    );
-const status = res?.status
-    // Updated condition to check for string "1" or boolean true
-   if (status === "1" || status === 1 || status === true) {
-      const response = await CallApi(
-        constant.API.HEALTH.BAJAJ.GETPROPOSAL,
-        "POST"
-      );
-      if (response?.proposalNumber) {
+    const res = await CallApi(constant.API.HEALTH.BAJAJ.CREATEPOLICY, "POST");
+    console.log("API Response:", res);
+
+    const status = res?.status;
+
+    if (status === "1" || status === 1 || status === true) {
+      const paymentLink = res?.data?.paymentlink;
+
+      if (paymentLink) {
         router.push(
-          `/health/vendors/bajaj/payment?proposalNumber=${response.proposalNumber}`
+          `/health/vendors/bajaj/payment?paymentLink=${paymentLink}`
         );
+      } else {
+
+        const backendMsg =
+          res?.data?.msg || "Payment link not received from server.";
+        showError(backendMsg);
       }
     } else {
       const fallbackMsg = "Something went wrong while creating policy.";
@@ -398,6 +389,7 @@ const status = res?.status
     setLoading(false);
   }
 };
+
 
 
 
@@ -433,44 +425,31 @@ const status = res?.status
     
     console.log(values)
     // return false;
-    await validateKycStep(
-      step1Form,
-      "CKYC",
-     values
-    );
-  };
-
-  const handleVerifyAadhar = async () => {
-    const values = step1Form.getValues();
-    await validateKycStep(
-      step1Form,
-      "Aadhar ( Last 4 Digits )",
-      values,
-      proofs,
-      setKycVerified,
-      kycVerified,
-      undefined,
-      setVerifiedData,
-      setIsPanKycHidden,
-      setIsAadharKycHidden,
-      setIsOtherKycHidden
-    );
+   await validateKycStep(
+    step1Form,
+    "CKYC",
+    values,
+    proofs,
+    setKycVerified,
+    kycVerified,
+    setVerifiedData,
+    setIsCKYCHidden,
+    setIsOtherKycHidden
+  );
   };
 
   const handleVerifyOther = async () => {
     const values = step1Form.getValues();
     await validateKycStep(
-      step1Form,
-      "Others",
-      values,
-      proofs,
-      setKycVerified,
-      kycVerified,
-      undefined,
-      setVerifiedData,
-      setIsPanKycHidden,
-      setIsAadharKycHidden,
-      setIsOtherKycHidden
+     step1Form,
+    "Others",
+    values,
+    proofs,
+    setKycVerified,
+    kycVerified,
+    setVerifiedData,
+    setIsCKYCHidden,
+    setIsOtherKycHidden
     );
   };
   useEffect(() => {
@@ -538,9 +517,8 @@ const status = res?.status
                     step1Form={step1Form}
                     kycType={kycType}
                     setKycType={setKycType}
-                    handleVerifyIdentity={handleVerifyIdentity}
-                    handleVerifyAadhar={handleVerifyAadhar}
-                    handleVerifyOther={handleVerifyOther}
+                    handleVerifyIdentity={handleVerifyIdentity}   
+                    handleVerifyOther={handleVerifyOther}       
                     loading={loading}
                     sameAddress={sameAddress}
                     setSameAddress={setSameAddress}
@@ -552,21 +530,18 @@ const status = res?.status
                     onSubmitStep={onSubmitStep}
                     kycVerified={kycVerified}
                     setKycVerified={setKycVerified}
-                    setIsPanVerified={setIsPanVerified}
-                    isPanVerified={isPanVerified}
                     verifiedData={verifiedData}
                     usersData={usersData}
                     kycData={kycData}
-                    isPanKycHidden={isPanKycHidden}
-                    setIsPanKycHidden={setIsPanKycHidden}
-                    isAadharKycHidden={isAadharKycHidden}
-                    setIsAadharKycHidden={setIsAadharKycHidden}
-                    isOtherKycHidden={isOtherKycHidden}
+                    isCKYCHidden={isCKYCHidden}        
+                    setIsCKYCHidden={setIsCKYCHidden}
+                    isOtherKycHidden={isOtherKycHidden} 
                     setIsOtherKycHidden={setIsOtherKycHidden}
-                      setQuoteData={setQuoteData}
-                      setNewPincode={setNewPincode}
-                      setOldPincode={setOldPincode}
+                    setQuoteData={setQuoteData}
+                    setNewPincode={setNewPincode}
+                    setOldPincode={setOldPincode}
                   />
+
                 )}
                 {currentStep === 2 && (
                   <StepTwoForm

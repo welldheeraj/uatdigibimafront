@@ -10,12 +10,11 @@ import { format, parse } from "date-fns";
 import { Controller } from "react-hook-form";
 
 export default function StepOneForm({
-  step1Form,
+ step1Form,
   kycType,
   setKycType,
   handleVerifyIdentity,
-  handleVerifyAadhar,
-  handleVerifyOther,
+  handleVerifyOther,   
   loading,
   sameAddress,
   setSameAddress,
@@ -26,23 +25,19 @@ export default function StepOneForm({
   inputClass,
   kycVerified,
   setKycVerified,
-  setIsPanVerified,
-  onSubmitStep,
-  isPanVerified,
   verifiedData,
-  setStepOneData,
-  kycData,
-  isPanKycHidden,
-  setIsPanKycHidden,
-  isAadharKycHidden,
-  setIsAadharKycHidden,
-  isOtherKycHidden,
+  // usersData,          
+  isCKYCHidden,      
+  setIsCKYCHidden,
+  isOtherKycHidden,  
   setIsOtherKycHidden,
   setQuoteData,
-  setOldPincode,
   setNewPincode,
-}) {
-  const isPanAlreadyVerified = isPanVerified;
+  setOldPincode,
+  onSubmitStep 
+}) 
+{
+   console.log(kycType)
   const [dates, setDates] = useState({
     customerpancardno: "",
     aadhar: "",
@@ -147,6 +142,7 @@ export default function StepOneForm({
           constant.API.HEALTH.BAJAJ.SAVESTEPONE,
           "GET"
         );
+        console.log(res)
         setUsersData(res);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -164,33 +160,27 @@ export default function StepOneForm({
     const permanent = JSON.parse(user.permanent_address || "{}");
     const comm = JSON.parse(user.comunication_address || "{}");
 
-    const typeMap = {
-      p: "PAN Card",
-      a: "Aadhar ( Last 4 Digits )",
-      o: "Others",
-    };
+const typeMap = {
+  c: "CKYC",
+  o: "Others",
+};
 
-    const kycCode = usersData.cacheData?.toLowerCase();
-    const kycLabel = typeMap[kycCode];
+const kycCode = usersData.cacheData?.toLowerCase();
+const kycLabel = typeMap[kycCode];
 
-    if (kycLabel) {
-      setKycType(kycLabel);
-      step1Form.setValue("kycType", kycLabel, { shouldValidate: true });
-      setKycVerified(true);
+if (kycLabel) {
+  // setKycType(kycLabel);
+  step1Form.setValue("kycType", kycLabel, { shouldValidate: true });
+  // setKycVerified(true);
 
-      if (kycCode === "p") {
-        setIsPanVerified(true);
-        setIsPanKycHidden(true);
-      }
-      if (kycCode === "a") {
-        setIsPanVerified(true);
-        setIsAadharKycHidden(true);
-      }
-      if (kycCode === "o") {
-        setIsPanVerified(true);
-        setIsOtherKycHidden(true);
-      }
-    }
+  // if (kycCode === "c") {
+  //   setIsCKYCHidden(true);
+  // }
+  if (kycCode === "o") {
+    setIsOtherKycHidden(true);
+  }
+}
+
 
     const set = step1Form.setValue;
     const directFields = {
@@ -260,9 +250,7 @@ export default function StepOneForm({
     isUserPrefilled,
     setKycType,
     setKycVerified,
-    setIsPanVerified,
-    setIsPanKycHidden,
-    setIsAadharKycHidden,
+    setIsCKYCHidden,
     setIsOtherKycHidden,
     step1Form,
     handlePincodeInput,
@@ -313,8 +301,7 @@ export default function StepOneForm({
       }
     });
 
-    if (verifiedData.kyctype === "p") setIsPanKycHidden(true);
-    if (verifiedData.kyctype === "a") setIsAadharKycHidden(true);
+    if (setIsCKYCHidden.kyctype === "c") setIsCKYCHidden(true);
     if (verifiedData.kyctype === "o") setIsOtherKycHidden(true);
 
     setIsVerifiedPrefilled(true);
@@ -323,8 +310,7 @@ export default function StepOneForm({
     isVerifiedPrefilled,
     step1Form,
     handleDateChange,
-    setIsPanKycHidden,
-    setIsAadharKycHidden,
+    setIsCKYCHidden,
     setIsOtherKycHidden,
   ]);
 
@@ -339,25 +325,25 @@ export default function StepOneForm({
     ],
     address: ["AADHAR", "PASSPORT", "VOTER ID", "DRIVING LICENSE", "FORM 60"],
   };
-
-  useEffect(() => {
+useEffect(() => {
   const unregister = step1Form.unregister;
-  if (kycType !== "PAN Card") {
-    unregister("customerpancardno");
-    unregister("customerpancardDob");
+
+
+  if (kycType !== "CKYC") {
+    unregister("ckycSubType");
+    unregister("docNumber");
+    unregister("docDob");
+    unregister("docGender");
   }
-  if (kycType !== "Aadhar ( Last 4 Digits )") {
-    unregister("aadharLast4");
-    unregister("aadharName");
-    unregister("aadharDob");
-    unregister("aadharGender");
-  }
+
+
   if (kycType !== "Others") {
     unregister("identityProof");
     unregister("addressProof");
     // optional: unregister file upload fields too
   }
 }, [kycType, step1Form.unregister]);
+
 
 
 
@@ -414,7 +400,7 @@ export default function StepOneForm({
 </div>
 
 {/* Step 2: If CKYC selected → Show Dropdown */}
-{kycType === "CKYC" && (
+{kycType === "CKYC" && !isCKYCHidden && (
   <div className="mt-3">
     <label className="block font-semibold">Select Identity Type</label>
     <select
@@ -437,7 +423,7 @@ export default function StepOneForm({
 )}
 
 {/* Step 3: If CKYC + Dropdown Value Selected → Show Fields */}
-{kycType === "CKYC" && step1Form.watch("ckycSubType") && (
+{kycType === "CKYC" && !isCKYCHidden && step1Form.watch("ckycSubType") && (
   <div className="space-y-2 mt-3">
     <label className="block font-semibold">Provide Identity Info</label>
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

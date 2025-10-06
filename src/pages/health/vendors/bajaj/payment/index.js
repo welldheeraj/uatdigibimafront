@@ -8,11 +8,10 @@ import handShake from "@/animation/policygenerate.json";
 
 export default function PaymentPage() {
   const searchParams = useSearchParams();
-  const proposalNumber = searchParams.get("proposalNumber"); // AES encrypted value ideally
-  const returnURL = "https://stage.digibima.com/return/api/carethankyou.php";
-  const gatewayURL = "https://apiuat.careinsurance.com/portalui/PortalPaymentV2.run";
+  const paymentLink = searchParams.get("paymentLink"); // AES encrypted value ideally
 
-  // Temporary static CSRF — in real case fetch from API
+console.log(paymentLink)
+
   const csrfToken = "491F8765-7AE0-4484-84D7-18132A6B637B";
 
   return (
@@ -27,7 +26,7 @@ export default function PaymentPage() {
         </div>
         <h2 className="text-2xl font-bold text-gray-800">
           Proposal:{" "}
-          <span className="text-indigo-600">{proposalNumber || "N/A"}</span>
+          {/* <span className="text-indigo-600">{proposalNumber || "N/A"}</span> */}
         </h2>
         <p className="text-sm text-gray-600 py-3">
           Thank you for choosing us for your health insurance needs. After your
@@ -35,11 +34,11 @@ export default function PaymentPage() {
           policy details.
         </p>
 
-        <form action={gatewayURL} method="POST" name="PAYMENTFORM" className="space-y-4">
-          <input type="hidden" name="CSRF" value={csrfToken} />
+        <form action={paymentLink} method="POST" name="PAYMENTFORM" className="space-y-4">
+          {/* <input type="hidden" name="CSRF" value={csrfToken} />
           <input type="hidden" name="proposalNum" value={proposalNumber} />
           <input type="hidden" name="source" value="PARTNER" />
-          <input type="hidden" name="returnURL" value={returnURL} />
+          <input type="hidden" name="returnURL" value={returnURL} /> */}
 
           <button
             type="submit"
