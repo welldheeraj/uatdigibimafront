@@ -98,6 +98,7 @@ const constant = {
       PINCODE: "/api/acpincode",
       
        PLANTYPE: "/api/plantype",
+      GETPLANTYPE: "/api/getplantype",
       INSUREVIEW: "/api/insureview",
       GETINSURE: "/api/getinsureinfo",
       ILLNESS: "/api/illnesses",

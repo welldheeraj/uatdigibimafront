@@ -169,18 +169,18 @@ const typeMap = {
 const kycCode = usersData.cacheData?.toLowerCase();
 const kycLabel = typeMap[kycCode];
 
-if (kycLabel) {
-  setKycType(kycLabel);
-  step1Form.setValue("kycType", kycLabel, { shouldValidate: true });
-  setKycVerified(true);
+// if (kycLabel) {
+//   setKycType(kycLabel);
+//   step1Form.setValue("kycType", kycLabel, { shouldValidate: true });
+//   setKycVerified(true);
 
-  if (kycCode === "c") {
-    setIsCKYCHidden(true);
-  }
-  if (kycCode === "o") {
-    setIsOtherKycHidden(true);
-  }
-}
+//   if (kycCode === "c") {
+//     setIsCKYCHidden(true);
+//   }
+//   if (kycCode === "o") {
+//     setIsOtherKycHidden(true);
+//   }
+// }
 
 
     const set = step1Form.setValue;
