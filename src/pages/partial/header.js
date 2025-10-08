@@ -34,27 +34,31 @@ export default function Header({ token, username, setUsername }) {
     setLoading(true);
     setError("");
     try {
-      const res = await CallApi(constant.API.USER.NOTIFICATION, "GET");
-      if (res?.status) {
-        const notifications = Array.isArray(res?.notification)
-          ? res.notification.map((n) => ({
-              id: n.notificationId ?? n.id,
-              message: n.message ?? "",
-              time: n.time ?? "",
-              vendor: n.vendor,
-              type: n.type,
-              read: Boolean(n.read ?? n.isRead ?? false),
-              isRead: Boolean(n.isRead ?? n.read ?? false),
-            }))
-          : [];
+      if (localStorage.getItem("token")) {
+        const res = await CallApi(constant.API.USER.NOTIFICATION, "GET");
+        if (res?.status) {
+          const notifications = Array.isArray(res?.notification)
+            ? res.notification.map((n) => ({
+                id: n.notificationId ?? n.id,
+                message: n.message ?? "",
+                time: n.time ?? "",
+                vendor: n.vendor,
+                type: n.type,
+                read: Boolean(n.read ?? n.isRead ?? false),
+                isRead: Boolean(n.isRead ?? n.read ?? false),
+              }))
+            : [];
 
-        setData({
-          notifications,
-          userName:
-            typeof res?.user === "string" ? res.user : res?.user?.name ?? null,
-        });
-      } else {
-        setError("Failed to load notifications");
+          setData({
+            notifications,
+            userName:
+              typeof res?.user === "string"
+                ? res.user
+                : res?.user?.name ?? null,
+          });
+        } else {
+          setError("Failed to load notifications");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -135,7 +139,6 @@ export default function Header({ token, username, setUsername }) {
     };
   }, [setUsername]);
 
-
   useEffect(() => {
     const updateAuth = (e) => {
       const detail = e?.detail ?? null;
@@ -153,7 +156,7 @@ export default function Header({ token, username, setUsername }) {
       }
     };
 
-    updateAuth(); 
+    updateAuth();
     window.addEventListener("auth-change", updateAuth);
     return () => window.removeEventListener("auth-change", updateAuth);
   }, [fetchData, setUsername]);
@@ -243,23 +246,23 @@ export default function Header({ token, username, setUsername }) {
         </Link>
 
         <div className="relative flex items-center gap-2">
-        {notifications.length > 0 && (
-  <button
-    onClick={() => setShowNotificationModal(true)}
-    className="w-10 h-10 rounded-full bg-[#C2EBFE] flex items-center justify-center shadow relative"
-  >
-    <FaBell className="text-purple-600 text-lg" />
+          {notifications.length > 0 && (
+            <button
+              onClick={() => setShowNotificationModal(true)}
+              className="w-10 h-10 rounded-full bg-[#C2EBFE] flex items-center justify-center shadow relative"
+            >
+              <FaBell className="text-purple-600 text-lg" />
 
-    {unreadCount > 0 && (
-      <span className="absolute -top-1 -right-1 flex h-4 w-4">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center">
-          {unreadCount}
-        </span>
-      </span>
-    )}
-  </button>
-)}
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-white text-[10px] items-center justify-center">
+                    {unreadCount}
+                  </span>
+                </span>
+              )}
+            </button>
+          )}
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen((prev) => !prev)}

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { showSuccess, showError } from "../../layouts/toaster";
-import { CallApi, getUserinfo } from "../../api";
+import { CallApi, getUserinfo,storeDBData,getDBData } from "../../api";
 import constant from "../../env";
 import { isNumber } from "../../styles/js/validation";
 import Image from "next/image";
@@ -70,6 +70,7 @@ export default function FormPage({ usersData }) {
 
   useEffect(() => {
     const getToken = localStorage.getItem("token");
+    //const getToken = await getDBData("token")
     if (type === "health" && getToken) {
       router.push(constant.ROUTES.HEALTH.INSURE);
     }
@@ -77,6 +78,7 @@ export default function FormPage({ usersData }) {
       router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
     }
     if (getToken) {
+      
       setToken(getToken);
       setIsOtpVerified(true);
       const fetchData = async () => {
@@ -272,9 +274,12 @@ export default function FormPage({ usersData }) {
         if (res.status) {
           localStorage.setItem("token", res.token);
           localStorage.setItem("logintype", "user");
+          localStorage.setItem("userid", res.userid);
           localStorage.setItem("username", data.name || "");
+          await storeDBData("token",res.token);
+          await storeDBData("userid",res.userid);
           setToken(res.token);
-
+          console.log( await getDBData("token"));
           window.dispatchEvent(
             new CustomEvent("auth-change", {
               detail: { username: data.name || "", token: res.token },

@@ -1,15 +1,18 @@
 import { openDB } from 'idb';
-const DB_NAME = 'AuthDB';
-const STORE_NAME = 'tokens';
+const DB_NAME = 'DIGIBIMA';
+const STORE_NAME = 'digibima';
 import constant from '@/env'
 
 export async function CallApi(url, method = "POST", data = null) {
   let token = localStorage.getItem("token");
+  //let userid = await getDBData("userid");
+  // let token = await getDBToken("token");
+  //  console.log( await getDBToken("token"));
   let options = {
     method,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `${token}`,
+      Authorization: `Bearer ${token}`,
     },
   };
   if (data) {
@@ -26,7 +29,7 @@ export async function UploadDocument(url, method = "POST", file = null) {
   let options = {
     method,
     headers: {
-      Authorization: `${token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: file,
   };
@@ -40,17 +43,20 @@ export async function getUserinfo(token = localStorage.getItem("token")) {
   const response = await fetch("/api/getuserinfo", {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
   return response;
 }
 export async function VerifyToken(pretoken) {
+   let userid = await getDBData("userid");
   const response = await fetch("/api/verifytoken", {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `${pretoken}`,
-    },
+      Authorization: `Bearer ${pretoken}`,
+      
+    }
+    //body:{"userid":userid}
   });
   return response;
 }
@@ -66,19 +72,19 @@ export async function getDB() {
   });
 }
 
-export async function storeDBToken(token) {
+export async function getDBData(key) {
   const db = await getDB();
-  await db.put(STORE_NAME, token, 'authToken');
+  return db.get(STORE_NAME, key);
 }
 
-export async function getDBToken() {
+export async function storeDBData(key,value) {
   const db = await getDB();
-  return db.get(STORE_NAME, 'authToken');
+  await db.put(STORE_NAME, value, key);
 }
 
-export async function deleteDBToken() {
+export async function deleteDBData() {
   const db = await getDB();
-  await db.delete(STORE_NAME, 'authToken');
+  await db.delete(STORE_NAME, key);
 }
 
 export async function isAuth() {
