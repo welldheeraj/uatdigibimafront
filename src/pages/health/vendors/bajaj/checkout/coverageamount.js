@@ -5,6 +5,7 @@ export default function CoverageAmount({
   coverageOptions = [],
   onCoverageChange,
 }) {
+
    const formatAmount = (amt) =>
     amt === 100 ? "1 Cr" : `${amt.toLocaleString()} Lac`;
 

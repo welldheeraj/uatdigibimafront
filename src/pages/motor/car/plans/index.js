@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { CallApi } from "@/api";
 import constant from "@/env";
 import { FaChevronLeft, FaCar, FaInfoCircle } from "react-icons/fa";
@@ -12,6 +12,7 @@ import UpdateIdvModal from "./updateIdvmodal";
 import VendorCard from "./vendorcard";
 import VehicleCard from "../../vehicledetails/index";
 import { MotorCardSkeleton } from "@/components/loader";
+import  GotoHealth  from "@/components/gotohealth";
 import { showError } from "@/layouts/toaster";
 
 export default function Plans() {
@@ -56,10 +57,11 @@ export default function Plans() {
 
   // ---------- helpers for compare ----------
   // motor + health dono ko cover karne ke liye safe key
-  const getPlanKey = (plan) =>
-    `${String(plan?.vendorId || plan?.vid || "")}|${String(
-      plan?.title || plan?.productname || plan?.planname || ""
-    )}|${String(plan?.price || plan?.premium || "")}`;
+ const getPlanKey = (plan) =>
+  `${String(plan?.vendorId || plan?.vid || "")}|${String(
+    plan?.title || plan?.productname || ""
+  )}|${String(plan?.price || plan?.premium || "")}`;
+
 
   const isCompared = (plan) =>
     compared.some((p) => getPlanKey(p) === getPlanKey(plan));
@@ -82,24 +84,21 @@ export default function Plans() {
   };
 
   const removeCompared = (plan) =>
-    setCompared((prev) =>
-      prev.filter((p) => getPlanKey(p) !== getPlanKey(plan))
-    );
+    setCompared((prev) => prev.filter((p) => getPlanKey(p) !== getPlanKey(plan)));
 
   const compareDisabledForOthers = compared.length >= 3;
 
   const handleCompareCTA = () => {
     try {
       if (typeof window !== "undefined") {
-        // store for compare page (re-usable health/motor)
-        sessionStorage.setItem("compareType", "motor");
-        sessionStorage.setItem("comparePlans:motor", JSON.stringify(compared));
+       sessionStorage.setItem("compareType", "car");
+sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
         sessionStorage.setItem(
           "compareBack",
           window.location.pathname + window.location.search
         );
       }
-      router.push("/compareplan?type=motor");
+     router.push("/compare/category/carcompare");
     } catch (e) {
       console.warn("Compare CTA navigation failed", e);
     }
@@ -111,6 +110,7 @@ export default function Plans() {
       try {
         setLoading(true);
         const res = await CallApi(constant.API.MOTOR.CAR.PLANS, "GET");
+        console.log(res)
         if (res.data?.under === "company") {
           setIsCompany(true);
         }
@@ -201,6 +201,7 @@ export default function Plans() {
           "POST",
           vendorWithRoute
         );
+        console.log(response)
 
         data = response?.data;
         if (response?.status == "1" && data) {
@@ -665,7 +666,7 @@ export default function Plans() {
 
         {/* Right: VehicleCard Section (3 columns) */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-2xl shadow-sm p-6 text-sm sticky top-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6 text-sm sticky top-6 mb-10">
             {(motortype === "knowcar" || motortype === "newcar") && (
               <VehicleCard
                 vehicleDetails={vehicleDetails}
@@ -674,6 +675,7 @@ export default function Plans() {
               />
             )}
           </div>
+          <GotoHealth />
         </div>
       </div>
 
@@ -705,7 +707,7 @@ export default function Plans() {
                   {p?.logo ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={`/images/health/vendorimage/${p.logo}`}
+                       src={`${constant.BASE_URL}/front/logo/${p.logo}`}
                       alt={p.productname || "logo"}
                       className="h-full w-full object-contain"
                     />
@@ -720,10 +722,7 @@ export default function Plans() {
                   </div>
                   {/* optional: show premium/price */}
                   <div className="text-xs text-gray-600">
-                    ₹
-                    {(p?.price || p?.premium || "").toLocaleString
-                      ? (p.price || p.premium).toLocaleString()
-                      : p?.price || p?.premium || "-"}
+                    ₹ {(p?.price || p?.premium)?.toLocaleString?.("en-IN") || "-"}
                   </div>
                 </div>
 

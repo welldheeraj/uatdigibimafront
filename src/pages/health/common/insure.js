@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { HiPlus, HiMinus } from "react-icons/hi";
 import { showSuccess, showError } from "@/layouts/toaster";
-import { CallApi, VerifyToken } from "../../../api";
+import { CallApi, VerifyToken, storeDBData, getDBData,deleteDBData  } from "../../../api";
 import constant from "../../../env";
 import Image from "next/image";
 import { healthTwo } from "@/images/Image";
@@ -22,67 +22,83 @@ export default function InsurePage() {
   const [showModal, setShowModal] = useState(true);
   const [planType, setPlanType] = useState("");
   const [tenure, setTenure] = useState("");
+  const [originalData, setOriginalData] = useState(null);
 
-  useEffect(() => {
-    const getInsureData = async () => {
-      try {
-        const res = await CallApi(constant.API.HEALTH.GETINSURE);
-        if (res.status && res.data) {
-          if (res.gender) {
-            setGender(res.gender.toLowerCase());
-          }
-          const apiData = res.data;
-          const updatedMembers = [
-            {
-              name: "self",
-              age: apiData.find((item) => item.name === "self")?.age || "",
-            },
-            {
-              name: gender === "male" ? "wife" : "husband",
-              age:
-                apiData.find(
-                  (item) =>
-                    item.name === (gender === "male" ? "wife" : "husband")
-                )?.age || "",
-            },
-            ...[
-              "father",
-              "mother",
-              "grandfather",
-              "grandmother",
-              "fatherinlaw",
-              "motherinlaw",
-            ].map((m) => ({
-              name: m,
-              age: apiData.find((item) => item.name === m)?.age || "",
-            })),
-          ];
+useEffect(() => {
+  const getInsureDataFromDB = async () => {
+    try {
+      let cached = await getDBData(constant.DBSTORE.HEALTH.INSURE);
+      let res;
 
-          const childData = apiData
-            .filter((item) => item.name === "Son" || item.name === "Daughter")
-            .map((item) => ({
-              name: item.name,
-              age: item.age,
-            }));
-          setChildrenList(childData);
-          setIsChildChecked(childData.length > 0);
-          setMembers(updatedMembers);
-
-          const selected = apiData
-            .filter((item) => item.name !== "Son" && item.name !== "Daughter")
-            .map((m) => m.name);
-          setSelectedMembers(selected);
-        } else {
-          showError("Failed to fetch data.");
+      if (cached) {
+        console.log("insure data from IndexedDB");
+        res = cached;
+      } else {
+        console.log("Fetching insure data from API...");
+        res = await CallApi(constant.API.HEALTH.GETINSURE);
+        if (res?.status && res?.data) {
+          await storeDBData(constant.DBSTORE.HEALTH.INSURE, res); 
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        showError("Something went wrong while fetching data.");
       }
-    };
 
-    getInsureData();
-  }, [gender, reset]);
+      if (res?.status && res?.data) {
+        if (res.gender) setGender(res.gender.toLowerCase());
+        setOriginalData(res.data); // original snapshot
+
+        const apiData = res.data;
+        const updatedMembers = [
+          {
+            name: "self",
+            age: apiData.find((item) => item.name === "self")?.age || "",
+          },
+          {
+            name: res.gender?.toLowerCase() === "male" ? "wife" : "husband",
+            age:
+              apiData.find(
+                (item) =>
+                  item.name ===
+                  (res.gender?.toLowerCase() === "male" ? "wife" : "husband")
+              )?.age || "",
+          },
+          ...[
+            "father",
+            "mother",
+            "grandfather",
+            "grandmother",
+            "fatherinlaw",
+            "motherinlaw",
+          ].map((m) => ({
+            name: m,
+            age: apiData.find((item) => item.name === m)?.age || "",
+          })),
+        ];
+
+        const childData = apiData
+          .filter((item) => item.name === "Son" || item.name === "Daughter")
+          .map((item) => ({
+            name: item.name,
+            age: item.age,
+          }));
+        setChildrenList(childData);
+        setIsChildChecked(childData.length > 0);
+        setMembers(updatedMembers);
+
+        const selected = apiData
+          .filter((item) => item.name !== "Son" && item.name !== "Daughter")
+          .map((m) => m.name);
+        setSelectedMembers(selected);
+      } else {
+        showError("Failed to fetch data.");
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      showError("Something went wrong while fetching data.");
+    }
+  };
+
+  getInsureDataFromDB();
+}, [reset]);
+
 
   const addChild = () => {
     if (childrenList.length < maxChildren) {
@@ -229,16 +245,31 @@ export default function InsurePage() {
     }));
     let membersss = selected.map((m) => ({ name: m.name, age: m.age }));
     const formData = [...childdd, ...membersss];
+    console.log(formData);
     try {
       const response = await CallApi(
         constant.API.HEALTH.ILLNESS,
         "POST",
         formData
       );
-      if (response.status) {
-        showSuccess("Data saved!");
-        router.push(constant.ROUTES.HEALTH.ILLNESS);
-      } else {
+     if (response.status) {
+          showSuccess("Data saved!");
+
+          const changed = isDataChanged(originalData, formData);
+          console.log("Form changed:", changed);
+
+          if (changed) {
+            await deleteDBData(constant.DBSTORE.HEALTH.INSURE); 
+            console.log("Cache cleared from IndexedDB (data changed).");
+          } else {
+            console.log("No real change, keeping cached data.");
+          }
+
+          router.push(constant.ROUTES.HEALTH.ILLNESS);
+        }
+
+
+      else {
         showError(response.error || "Failed to submit data. Please try again.");
       }
     } catch (err) {
@@ -311,6 +342,25 @@ useEffect(() => {
 
   fetchData();
 }, []);
+// compare data 
+function isDataChanged(original, current) {
+  if (!original || !current) return true;
+  if (original.length !== current.length) return true;
+
+  const sortByName = (arr) =>
+    [...arr].sort((a, b) => a.name.localeCompare(b.name));
+
+  const o = sortByName(original);
+  const c = sortByName(current);
+
+  for (let i = 0; i < o.length; i++) {
+    if (o[i].name !== c[i].name || String(o[i].age) !== String(c[i].age)) {
+      return true;
+    }
+  }
+  return false;
+}
+// compare data 
 
 
 

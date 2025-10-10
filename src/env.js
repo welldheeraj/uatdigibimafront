@@ -140,7 +140,7 @@ const constant = {
        BAJAJ: {
         CHECKOUT: "/api/bajaj-myhealthcare/addon",
         SETPREMIUM: "/api/bajaj-myhealthcare/setpremium",
-        PlANCHECKOUT: "api/bajaj-myhealthcare/plancheckout",
+        PlANCHECKOUT: "/api/bajaj-myhealthcare/plancheckout",
         ADDADDONS: "/api/bajaj-myhealthcare/addaddon",
         IDENTITYVERIFY: "/api/bajaj-myhealthcare/validateckycdetails",
         PANVERIFY: "/api/health-ultimatecare/verifypan",
@@ -244,6 +244,21 @@ const constant = {
        RECYCLEBIN: "/api/adminpnlx/recycle-bin",
     },
   },
+
+   DBSTORE:{
+     HEALTH: {
+      INSURE:"healthinsuredata",
+      PLANS:{
+        HEALTHPLANDATA:"healthplandata",
+        HEALTHPLANVENDOR:"healthplanvendor",
+      },
+      CARE:{
+        CARECHECKOUTDATA:"CarecheckoutData",
+        CARECHECKOUTTENUREDATA:"CarecheckouttenureData",
+      }
+     }
+  },
+  
   QUESTION: {
     CAREDISEASE: {
       11: "Cancer or Tumor of any kind?",

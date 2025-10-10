@@ -103,7 +103,7 @@ useEffect(() => {
         formData
       );
       console.log("Server Response:", response);
-      showSuccess("Data saved successfully!");
+      // showSuccess("Data saved successfully!");
       router.push(constant.ROUTES.HEALTH.PLANS);
     } catch (err) {
       console.error("API error:", err);

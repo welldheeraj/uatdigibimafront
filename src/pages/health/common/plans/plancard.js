@@ -22,7 +22,9 @@ const PlanCard = ({
       .toString()
       .replace(/,/g, "")
   );
-  const monthlyPremium = Math.round((yearlyPremiumNumber || 0) / 12).toLocaleString("en-IN");
+  const monthlyPremium = Math.round(
+    (yearlyPremiumNumber || 0) / 12
+  ).toLocaleString("en-IN");
 
   const displayCoverage =
     coverage === 100 || coverage === "100" ? "1 Cr" : `${coverage} Lakh`;
@@ -43,7 +45,9 @@ const PlanCard = ({
         cancelText="No, Cancel"
       >
         <div className="space-y-2 text-sm text-gray-700">
-          <p className="font-semibold text-base text-blue-900">Available Add-ons:</p>
+          <p className="font-semibold text-base text-blue-900">
+            Available Add-ons:
+          </p>
           {Array.isArray(plan.addons) && plan.addons.length > 0 ? (
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {plan.addons.map((addon, index) => (
@@ -69,7 +73,7 @@ const PlanCard = ({
         className="bg-white rounded-[30px] border border-blue-100 shadow-md p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6 hover:shadow-xl transition-all duration-300 w-full"
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full sm:w-3/4 flex-wrap">
-          {/* Logo */}
+       
           <div className="w-20 h-14 relative rounded-md bg-blue-50 flex items-center justify-center shadow-inner shrink-0">
             {logo ? (
               <Image
@@ -80,7 +84,9 @@ const PlanCard = ({
                 className="object-contain"
               />
             ) : (
-              <span className="text-xs text-blue-700 font-semibold">No Logo</span>
+              <span className="text-xs text-blue-700 font-semibold">
+                No Logo
+              </span>
             )}
           </div>
 
@@ -94,53 +100,52 @@ const PlanCard = ({
               onClick={() => setShowModal(true)}
             >
               Addons & View Features
-            </div>        
-{allPlans.length > 1 && (
-  <div className="flex items-center gap-2 mt-2">
-    <input
-      id={compareId}
-      type="checkbox"
-      className="form-checkbox accent-pink-500 h-4 w-4 rounded border border-gray-300"
-      checked={!!compared}
-      disabled={disableCompare && !compared}
-      onChange={(e) => onCompareChange(plan, e.target.checked)}
-      onClick={(e) => e.stopPropagation()}
-      aria-label="Compare this plan"
-    />
-    <label
-      htmlFor={compareId}
-      className={`text-sm labelcls select-none ${
-        disableCompare && !compared
-          ? "text-gray-400 cursor-not-allowed"
-          : "text-gray-700 cursor-pointer"
-      }`}
-      onClick={(e) => {
-        if (disableCompare && !compared) e.preventDefault();
-        e.stopPropagation();
-      }}
-    >
-      Compare
-    </label>
-  </div>
-)}
-
+            </div>
+            {allPlans.length > 1 && (
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  id={compareId}
+                  type="checkbox"
+                  className="form-checkbox accent-pink-500 h-4 w-4 rounded border border-gray-300"
+                  checked={!!compared}
+                  disabled={disableCompare && !compared}
+                  onChange={(e) => onCompareChange(plan, e.target.checked)}
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Compare this plan"
+                />
+                <label
+                  htmlFor={compareId}
+                  className={`text-sm labelcls select-none ${
+                    disableCompare && !compared
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-700 cursor-pointer"
+                  }`}
+                  onClick={(e) => {
+                    if (disableCompare && !compared) e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  Compare
+                </label>
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-start sm:items-center sm:ml-auto">
             <span className="text-xs text-gray-500 font-semibold">Cover</span>
             <span className="bg-gradient-to-r from-sky-100 to-sky-50 text-blue-800 font-semibold text-sm px-4 py-1.5 rounded-full shadow mt-1 whitespace-nowrap">
               {displayCoverage}
             </span>
-
-           
           </div>
         </div>
-        <div className="w-full sm:w-auto text-left sm:text-right">
+           <div className="w-full sm:w-auto text-left sm:text-right">
           <button
             type="submit"
             className="px-6 py-2 text-sm flex items-center justify-center thmbtn w-full sm:w-auto"
           >
-            <FaRupeeSign className="text-sm mr-1" />
-            {monthlyPremium} / month
+             <span className="flex items-center whitespace-nowrap">
+              <FaRupeeSign className="text-sm mr-1" />
+              {monthlyPremium} / month
+            </span>
             <FiArrowRight className="ml-1" />
           </button>
           <div className="text-sm flex items-center justify-center text-gray-500 mt-1 italic gap-1 sm:gap-2">

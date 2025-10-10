@@ -1,7 +1,5 @@
 "use client";
-
 import React, { useState, useEffect, useRef } from "react";
-
 export default function PolicyPeriodOptions({
   tenureOptions = [],
   tenure,
@@ -27,7 +25,7 @@ export default function PolicyPeriodOptions({
       setPriceLoading(true);
       prevPricesRef.current = tenurePrices;
 
-      const timeout = setTimeout(() => setPriceLoading(false), 600);
+      const timeout = setTimeout(() => setPriceLoading(false), 600); 
       return () => clearTimeout(timeout);
     }
   }, [tenurePrices]);
@@ -69,9 +67,9 @@ export default function PolicyPeriodOptions({
         remembering yearly renewals.
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-2">
         {tenureOptions.map((year) => (
-          <label
+           <label
             key={year}
             className={`relative flex items-center gap-2 px-6 py-3 border rounded-xl cursor-pointer transition-all duration-200 flex-1 min-w-[160px] max-w-full ${
               tenure == year ? "border-pink-500" : "border-gray-400"

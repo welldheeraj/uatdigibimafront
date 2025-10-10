@@ -14,6 +14,7 @@ export default function AddOnSelection({
   getCheckoutData,
   setApplyClicked,
   setIsAddOnsModified,
+   isSkeletonLoading = false,
 }) {
   const OPD_VALUES = { base: "opd", plus: "opdp" };
   const IC_VALUES = { base: "ic", plus: "icp" };
@@ -313,7 +314,7 @@ export default function AddOnSelection({
   const displayAddOns = Object.entries(addons).filter(([key]) => {
     return !compulsoryAddons.includes(key) || key.toLowerCase() === "ncb";
   });
-  if (displayAddOns.length === 0) {
+ if (isSkeletonLoading || displayAddOns.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 px-6 mb-6">
         <div className="flex justify-between items-center mb-4">

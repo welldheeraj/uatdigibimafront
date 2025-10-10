@@ -8,6 +8,7 @@ export default function PolicyPeriodOptions({
   setTenure,
   tenurePrices = {},
   onTenureChange,
+  isSkeletonLoading = false, // 👈 नया prop
 }) {
   const [priceLoading, setPriceLoading] = useState(false);
   const prevPricesRef = useRef({});
@@ -32,6 +33,28 @@ export default function PolicyPeriodOptions({
     }
   }, [tenurePrices]);
 
+  // 🦴 जब loading हो तो हमेशा skeleton दिखाओ
+  if (isSkeletonLoading) {
+    return (
+      <div className="bg-white rounded-xl p-4 sm:px-8 mb-6 w-full">
+        <div className="mb-2 h-4 w-32 bg-gray-300 rounded animate-pulse" />
+        <div className="mb-4 h-3 w-64 bg-gray-200 rounded animate-pulse" />
+        <div className="flex flex-wrap gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center space-x-2 border rounded-xl px-4 py-3 min-w-[150px] sm:w-[200px] h-[56px] bg-gray-100 animate-pulse"
+            >
+              <div className="h-4 w-4 rounded-full bg-gray-300" />
+              <div className="h-4 w-24 bg-gray-300 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // 🧩 normal logic (same as before)
   if (tenureOptions.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 sm:px-8 mb-6 w-full">
@@ -92,7 +115,7 @@ export default function PolicyPeriodOptions({
 
             <span className="text-sm text-black font-medium flex">
               {year} {year === 1 ? "Year" : "Years"}
-              {!priceLoading && tenurePrices[year] ? (
+              {tenurePrices[year] ? (
                 <span className="ml-2 font-semibold text-black">
                   {`@ ₹${tenurePrices[year].toLocaleString()}`}
                 </span>

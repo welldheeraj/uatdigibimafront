@@ -11,6 +11,7 @@ import VendorCard from "./vendorcard";
 import VehicleCard from "../../vehicledetails/index";
 import { FaChevronLeft, FaMotorcycle, FaInfoCircle } from "react-icons/fa";
 import { MotorCardSkeleton } from "@/components/loader";
+import  GotoHealth  from "@/components/gotohealth";
 
 export default function Plans() {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -95,7 +96,7 @@ export default function Plans() {
         const vendorArr = res.data?.vendor || [];
         setFullAddonsName(res.data?.addons || {});
         const activeVendors = vendorArr.filter((v) => v.isActive === "1");
-        setVendorList(activeVendors);s
+        setVendorList(activeVendors);
         setVehicleDetails(res.data?.vehicledetails || []);
         const paCover = res.data?.pacover;
         if (paCover === "1") {
@@ -614,7 +615,7 @@ const showSkeleton = loading || (vendorPlans.length === 0 && !quoteError);
       
         {/* Right: VehicleCard Section (3 columns) */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-2xl shadow-sm p-6 text-sm sticky top-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6 text-sm sticky top-6 mb-10">
             {(motortype === "knowbike" || motortype === "newbike") && (
               <VehicleCard
                 vehicleDetails={vehicleDetails}
@@ -623,6 +624,7 @@ const showSkeleton = loading || (vendorPlans.length === 0 && !quoteError);
               />
             )}
           </div>
+          <GotoHealth />
         </div>
       </div>
        <VendorAddonModal

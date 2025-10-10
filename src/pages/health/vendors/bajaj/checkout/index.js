@@ -44,8 +44,9 @@ export default function ProposalUI() {
     setLoading(true);
     CallApi(constant.API.HEALTH.BAJAJ.CHECKOUT)
       .then((res) => {
+        console.log(res)
         setSelectedAddons(res.selected_addon || []);
-        setAddons(res["addon value"] || {});
+        setAddons(res["addOn_Value"] || {});
         setFullAddonsName(res.addonname || {});
         setAddonsDes(res.addondes || {});
         setCompulsoryAddons(res.compulsoryaddon || []);
@@ -144,6 +145,7 @@ export default function ProposalUI() {
           />
 
           <AddOnSelection
+            coverAmount={coverAmount}
             addons={addons}
             addonsDes={addonsDes}
             compulsoryAddons={compulsoryAddons}

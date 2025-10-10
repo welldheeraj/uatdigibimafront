@@ -1,7 +1,7 @@
-import { openDB } from 'idb';
-const DB_NAME = 'DIGIBIMA';
-const STORE_NAME = 'digibima';
-import constant from '@/env'
+import { openDB } from "idb";
+const DB_NAME = "DIGIBIMA";
+const STORE_NAME = "digibima";
+import constant from "@/env";
 
 export async function CallApi(url, method = "POST", data = null) {
   let token = localStorage.getItem("token");
@@ -22,7 +22,6 @@ export async function CallApi(url, method = "POST", data = null) {
   if (!res.ok) throw new Error("API request failed");
   return await res.json();
 }
-
 
 export async function UploadDocument(url, method = "POST", file = null) {
   const token = localStorage.getItem("token");
@@ -49,18 +48,16 @@ export async function getUserinfo(token = localStorage.getItem("token")) {
   return response;
 }
 export async function VerifyToken(pretoken) {
-   let userid = await getDBData("userid");
+  let userid = await getDBData("userid");
   const response = await fetch("/api/verifytoken", {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${pretoken}`,
-      
-    }
+    },
     //body:{"userid":userid}
   });
   return response;
 }
-
 
 export async function getDB() {
   return openDB(DB_NAME, 1, {
@@ -77,17 +74,16 @@ export async function getDBData(key) {
   return db.get(STORE_NAME, key);
 }
 
-export async function storeDBData(key,value) {
+export async function storeDBData(key, value) {
   const db = await getDB();
   await db.put(STORE_NAME, value, key);
 }
 
-export async function deleteDBData() {
+export async function deleteDBData(key) {
   const db = await getDB();
   await db.delete(STORE_NAME, key);
 }
 
 export async function isAuth() {
-  return localStorage.getItem('token')?true:false;
+  return localStorage.getItem("token") ? true : false;
 }
-

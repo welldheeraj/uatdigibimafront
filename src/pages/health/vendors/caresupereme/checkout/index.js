@@ -9,16 +9,22 @@ import AddOnSelection from "./addonselection";
 import MemberDetails from "./editmember";
 import SummaryCard from "./rightsection";
 import SlidePanel from "../../../sidebar/index";
-import { CallApi } from "../../../../../api";
+import {
+  CallApi,
+  getDBData,
+  storeDBData,
+  deleteDBData,
+} from "../../../../../api";
+import { isObjectDataChanged } from "@/pages/api/helpers";
+import { showError, showSuccess } from "@/layouts/toaster";
 import constant from "../../../../../env";
-
-// react-query
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function ProposalUI() {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const [loading, setLoading] = useState(true);
+  const [originalData, setOriginalData] = useState(null);
 
+  // Core states
   const [addons, setAddons] = useState({});
   const [addonsDes, setAddonsDes] = useState({});
   const [selectedAddons, setSelectedAddons] = useState([]);
@@ -40,86 +46,183 @@ export default function ProposalUI() {
   const [applyClicked, setApplyClicked] = useState(false);
   const [isAddOnsModified, setIsAddOnsModified] = useState(false);
 
-  // 1. Checkout initial data
-  const { data: checkoutData, isLoading: loadingCheckout } = useQuery({
-    queryKey: ["checkoutData"],
-    queryFn: () => CallApi(constant.API.HEALTH.CARESUPEREME.CHECKOUT),
-  });
-
-  // set state when checkoutData comes
   useEffect(() => {
-    if (checkoutData) {
-      setSelectedAddons(checkoutData.selected_addon || []);
-      setAddons(checkoutData["addon value"] || {});
-      setFullAddonsName(checkoutData.addonname || {});
-      setAddonsDes(checkoutData.addondes || {});
-      setCompulsoryAddons(checkoutData.compulsoryaddon || []);
-      setCoverageOptions(checkoutData.coveragelist || []);
-      setCoverAmount(checkoutData.coverage || "");
-      setPincode(checkoutData.pincode || "");
-      setTotalPremium(checkoutData.totalamount || "");
-      setTenureOptions(checkoutData.tenureList || []);
-      setTenure(checkoutData.tenure || "");
-      setInsurers(checkoutData.aInsureData || []);
-      setChildList(checkoutData.child || []);
-      setGender(checkoutData.gender || "");
-      setKycRequired(checkoutData.kyc === "1");
+    const fetchCheckoutData = async () => {
+      setLoading(true);
+      try {
+        const cached = await getDBData(constant.DBSTORE.HEALTH.CARE.CARECHECKOUTDATA);
 
-      const allMembers = checkoutData.aInsureData || [];
-      setMemberName(`Self(${allMembers.length})`);
-    }
-  }, [checkoutData]);
-
-  // 2. Tenure wise prices (dependent query)
-  const { data: pricesData } = useQuery({
-    queryKey: ["tenurePrices", coverAmount, tenureOptions],
-    queryFn: async () => {
-      const newPrices = {};
-      for (const t of tenureOptions) {
-        try {
-          const res = await CallApi(
-            constant.API.HEALTH.CARESUPEREME.PlANCHECKOUT,
-            "POST",
-            { tenure: t, coverage: coverAmount }
-          );
-          if (res?.data?.premium) newPrices[t] = res.data.premium;
-        } catch (err) {
-          console.error("Price error:", err);
+        if (cached) {
+          console.log("Using CarecheckoutData");
+          populateData(cached);
+          setOriginalData(cached);
+          setLoading(false);
+          return;
         }
+
+        console.log("No cache — fetching API...");
+        const res = await CallApi(constant.API.HEALTH.CARESUPEREME.CHECKOUT);
+        if (res) {
+          populateData(res);
+          setOriginalData(res);
+          await storeDBData(constant.DBSTORE.HEALTH.CARE.CARECHECKOUTDATA, res);
+          console.log("Cache created successfully.");
+        }
+      } catch (err) {
+        console.error("Error fetching CarecheckoutData:", err);
+        showError("Failed to load checkout data.");
+      } finally {
+        setLoading(false);
       }
-      return newPrices;
-    },
-    enabled: !!coverAmount && tenureOptions.length > 0,
-  });
+    };
 
-  // set tenurePrices when pricesData comes
+    fetchCheckoutData();
+  }, []);
+
+  // 🔹 Set all states from API or cache data
+  const populateData = (res) => {
+    setSelectedAddons(res.selected_addon || []);
+    setAddons(res["addon value"] || {});
+    setFullAddonsName(res.addonname || {});
+    setAddonsDes(res.addondes || {});
+    setCompulsoryAddons(res.compulsoryaddon || []);
+    setCoverageOptions(res.coveragelist || []);
+    setCoverAmount(res.coverage || "");
+    setPincode(res.pincode || "");
+    setTotalPremium(res.totalamount || "");
+    setTenureOptions(res.tenureList || []);
+    setTenure(res.tenure || "");
+    setInsurers(res.aInsureData || []);
+    setChildList(res.child || []);
+    setGender(res.gender || "");
+    setKycRequired(res.kyc === "1");
+    const memberCount = (res.aInsureData || []).length;
+    setMemberName(`Self(${memberCount})`);
+  };
+
+  //  Fetch price when coverage or tenure changes
   useEffect(() => {
-    if (pricesData) setTenurePrices(pricesData);
-  }, [pricesData]);
+    if (!coverAmount || tenureOptions.length === 0) return;
 
-  // 3. Filter API (on coverage/tenure change)
-  const filterMutation = useMutation({
-    mutationFn: (payload) =>
-      CallApi(constant.API.HEALTH.FILTERPLAN, "POST", payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries(["checkoutData"]);
-      queryClient.invalidateQueries(["tenurePrices"]);
-    },
-  });
+    const fetchPrices = async () => {
+      const cacheKey = constant.DBSTORE.HEALTH.CARE.CARECHECKOUTTENUREDATA;
 
-  const handleCoverageOrTenureChange = (type, value) => {
+      try {
+        const cached = await getDBData(cacheKey);
+        if (
+          cached &&
+          cached.coverage === coverAmount &&
+          JSON.stringify(cached.tenureOptions) === JSON.stringify(tenureOptions)
+        ) {
+          console.log("Using CarecheckouttenureData");
+          setTenurePrices(cached.tenurePrices || {});
+          return;
+        }
+
+        console.log("Fetching tenure prices API...");
+        const newPrices = {};
+
+        for (const t of tenureOptions) {
+          try {
+            const res = await CallApi(
+              constant.API.HEALTH.CARESUPEREME.PlANCHECKOUT,
+              "POST",
+              { tenure: t, coverage: coverAmount }
+            );
+            // console.log(`API run for tenure ${t}:`, res?.data?.premium);
+            if (res?.data?.premium) {
+              newPrices[t] = res.data.premium;
+              setTenurePrices((prev) => ({
+                ...prev,
+                [t]: res.data.premium,
+              }));
+            }
+          } catch (err) {
+            console.error(`Price fetch error for tenure ${t}:`, err);
+          }
+        }
+
+        await deleteDBData(cacheKey);
+        // deleteDBData("healthplandata"),
+        // deleteDBData("healthplanvendor"),
+
+        await storeDBData(cacheKey, {
+          coverage: coverAmount,
+          tenureOptions,
+          tenurePrices: newPrices,
+          updatedAt: new Date().toISOString(),
+        });
+        console.log("Cached CarecheckouttenureData successfully.");
+      } catch (err) {
+        console.error("Error fetching PlanCheckout data:", err);
+      }
+    };
+
+    fetchPrices();
+  }, [coverAmount, tenureOptions]);
+
+  const handleCoverageOrTenureChange = async (type, value) => {
     const updatedPayload =
       type === "coverage"
         ? { coverage: value }
         : { coverage: coverAmount, tenure: value };
 
-    if (type === "coverage") setCoverAmount(value);
-    else setTenure(value);
+    const newState = {
+      ...originalData,
+      coverage: type === "coverage" ? value : coverAmount,
+      tenure: type === "tenure" ? value : tenure,
+    };
 
-    filterMutation.mutate(updatedPayload);
+    const changed = isObjectDataChanged(originalData, newState);
+
+    if (!changed) {
+      console.log("No change — skipping API call.");
+      showSuccess("No changes, using cached data.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log("Change  — updating from API...");
+
+      await CallApi(constant.API.HEALTH.FILTERPLAN, "POST", updatedPayload);
+
+      const res = await CallApi(constant.API.HEALTH.CARESUPEREME.CHECKOUT);
+      if (res) {
+        console.log(res);
+        populateData(res);
+        setOriginalData(res);
+        await Promise.all([
+          deleteDBData(constant.DBSTORE.HEALTH.PLANS.HEALTHPLANDATA),
+          deleteDBData(constant.DBSTORE.HEALTH.PLANS.HEALTHPLANVENDOR),
+          deleteDBData(constant.DBSTORE.HEALTH.CARE.CARECHECKOUTDATA),
+        ]);
+        await storeDBData(constant.DBSTORE.HEALTH.CARE.CARECHECKOUTDATA, res);
+        console.log("Cache refreshed with latest data.");
+        showSuccess("Plan updated successfully!");
+      }
+    } catch (err) {
+      console.error("Error updating plan:", err);
+      showError("Failed to update plan.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const basePremium = tenurePrices[tenure] || 0;
+  const refreshCheckoutData = async () => {
+    try {
+      const res = await CallApi(constant.API.HEALTH.CARESUPEREME.CHECKOUT);
+      if (res) {
+        populateData(res);
+        setOriginalData(res);
+        await deleteDBData(constant.DBSTORE.HEALTH.CARE.CARECHECKOUTDATA);
+        await storeDBData(constant.DBSTORE.HEALTH.CARE.CARECHECKOUTDATA, res);
+        console.log("Cache updated after add-ons applied.");
+      }
+    } catch (err) {
+      console.error("Error refreshing add-on data:", err);
+    }
+  };
 
   return (
     <div className="bgcolor min-h-screen px-3 sm:px-10 lg:px-20 py-6">
@@ -141,6 +244,7 @@ export default function ProposalUI() {
               handleCoverageOrTenureChange("coverage", val)
             }
             coverageOptions={coverageOptions}
+            isSkeletonLoading={loading}
           />
 
           <PolicyPeriodOptions
@@ -148,6 +252,7 @@ export default function ProposalUI() {
             tenure={tenure}
             setTenure={(val) => handleCoverageOrTenureChange("tenure", val)}
             tenurePrices={tenurePrices}
+            isSkeletonLoading={loading}
           />
 
           <AddOnSelection
@@ -156,11 +261,10 @@ export default function ProposalUI() {
             compulsoryAddons={compulsoryAddons}
             fullAddonsName={fullAddonsName}
             selectedAddons={selectedAddons}
-            getCheckoutData={() =>
-              queryClient.invalidateQueries(["checkoutData"])
-            }
+            getCheckoutData={refreshCheckoutData}
             setApplyClicked={setApplyClicked}
             setIsAddOnsModified={setIsAddOnsModified}
+            isSkeletonLoading={loading}
           />
 
           <MemberDetails
