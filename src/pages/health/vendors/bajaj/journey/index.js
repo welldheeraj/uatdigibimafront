@@ -95,12 +95,15 @@ export default function StepperForm({ usersData, kycData }) {
   };
 
   const validateFormStepOne = async () => {
+   step1Form.unregister("kycType");
     const rawValues = step1Form.getValues();
+    console.log(rawValues)
 
-    if (!kycVerified) {
-      showError("Please complete KYC verification before proceeding.");
-      return false;
-    }
+    // if (!kycVerified) {
+    //   showError("Please complete KYC verification before proceeding.");
+    //   return false;
+    // }
+
 
     const fieldsValid = await validateFields(step1Form);
     if (!fieldsValid) return false;

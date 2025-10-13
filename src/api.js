@@ -84,6 +84,10 @@ export async function deleteDBData(key) {
   await db.delete(STORE_NAME, key);
 }
 
+export async function clearDBData() {
+  const db = await getDB();
+  await db.clear(STORE_NAME);
+}
 export async function isAuth() {
   return localStorage.getItem("token") ? true : false;
 }

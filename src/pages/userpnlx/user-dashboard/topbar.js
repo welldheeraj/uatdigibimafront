@@ -11,7 +11,7 @@ import {
   FaChevronUp,
 } from "react-icons/fa";
 import { FiSearch } from "react-icons/fi";
-import { CallApi } from "@/api";
+import { CallApi,clearDBData } from "@/api";
 import constant from "@/env";
 import { useRouter } from "next/navigation";
 import { showSuccess } from "@/layouts/toaster";
@@ -77,6 +77,7 @@ export default function TopBar({ setActivePage, setIsMobileMenuOpen }) {
     const response = await CallApi("/api/logout", "POST", "");
     if (response?.status) {
       localStorage.removeItem("token");
+       await clearDBData();
       window.dispatchEvent(new Event("auth-change"));
       setIsDropdownOpen(false);
       showSuccess(response.message);

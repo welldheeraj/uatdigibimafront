@@ -2,7 +2,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState, useCallback } from "react";
 import { CallApi } from "@/api";
-import { HealthLoaderOne} from "@/components/loader";
+import { HealthLoaderOne } from "@/components/loader";
 import { showError } from "@/layouts/toaster";
 import Lottie from "lottie-react";
 import successAnimation from "@/animation/success.json";
@@ -10,31 +10,33 @@ import Ribbon from "@/animation/ribbon.json";
 
 export default function ThankYou() {
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
   const [policyData, setPolicyData] = useState(null);
+  const router = useRouter();
 
   const fetchData = useCallback(async () => {
+    // ✅ Use router.query (Pages Router)
+    const { status, amt, txn, referenceno,  quoteno } = router.query;
+
+    // Guard clause for missing params
+    if (!status || !txn) return;
+
     const payload = {
-      policy: router.query.policynumber,
-      parm1: router.query.Param1,
-      parm2: router.query.Param2,
-      policyurl: router.query.policyurl,
+      status,
+      amt: amt,
+      txn: txn,
+      referenceno: referenceno,
+      endorsementno: quoteno,
+      quoteno: quoteno,
     };
 
     setLoading(true);
     try {
-      const response = await CallApi(
-        "/api/health-bajaj/thankyou",
-        "POST",
-        payload
-      );
+      const response = await CallApi("/api/bajaj-myhealthcare/thankyou", "POST", payload);
+
       if (response?.status && response?.data) {
         setPolicyData(response.data);
-      }
-
-      if (!response?.status) {
-        showError(response.message || "Something went wrong");
-        return;
+      } else {
+        showError(response?.message || "Something went wrong");
       }
     } catch (error) {
       console.error("Error calling API:", error);
@@ -45,6 +47,7 @@ export default function ThankYou() {
   }, [router.query]);
 
   useEffect(() => {
+    // Wait for query to be ready
     if (router.isReady) {
       fetchData();
     }
@@ -57,21 +60,22 @@ export default function ThankYou() {
           <HealthLoaderOne />
         </div>
       ) : policyData ? (
-       <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-6 text-center border border-blue-100">
+        <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-6 text-center border border-blue-100">
           <div className="flex justify-center">
             <Lottie
               animationData={successAnimation}
-             loop={true}
-              autoplay={true}
+              loop
+              autoplay
               className="w-40 h-40"
             />
           </div>
+
           <div className="relative flex items-center justify-center">
             <Lottie
               animationData={Ribbon}
-             loop={true}
-              autoplay={true}
-              className="absolute w-60 h-60  pointer-events-none"
+              loop
+              autoplay
+              className="absolute w-60 h-60 pointer-events-none"
             />
             <h2 className="text-3xl font-bold text-gray-800 relative z-10">
               Thank You! 🎉
@@ -81,11 +85,13 @@ export default function ThankYou() {
           <p className="text-gray-700">
             Your policy has been successfully generated.
           </p>
+
           <p className="text-md mt-4 mb-3 text-black font-semibold">
             <strong>Policy Number:</strong>
             <br />
             {policyData.policy}
           </p>
+
           <a
             href={policyData.policyURL}
             className="thmbtn text-white font-semibold py-3 rounded-md flex items-center justify-center gap-2"
@@ -97,7 +103,7 @@ export default function ThankYou() {
           </a>
         </div>
       ) : (
-        <div className="min-h-screen text-center text-red-500">
+        <div className="text-center text-red-500">
           Policy data not found.
         </div>
       )}

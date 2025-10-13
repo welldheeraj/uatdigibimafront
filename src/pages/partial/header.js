@@ -12,7 +12,7 @@ import {
   FaChevronUp,
   FaBell,
 } from "react-icons/fa";
-import { CallApi } from "../../api";
+import { CallApi,clearDBData } from "../../api";
 import constant from "../../env";
 import { useRouter } from "next/router";
 import { showSuccess } from "@/layouts/toaster";
@@ -107,22 +107,26 @@ export default function Header({ token, username, setUsername }) {
     (n) => !n?.isRead && !n?.read
   ).length;
 
-  const logout = async () => {
-    const response = await CallApi("/api/logout", "POST", "");
-    if (response.status) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("username");
-      localStorage.removeItem("logintype");
+const logout = async () => {
+  const response = await CallApi("/api/logout", "POST", "");
+  if (response.status) {
+    // Clear local storage
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("logintype");
 
-      setUsername("");
-      setLocalToken(null);
+    // Clear IndexedDB data
+    await clearDBData();
 
-      window.dispatchEvent(new Event("auth-change"));
+    setUsername("");
+    setLocalToken(null);
 
-      router.push("/");
-      showSuccess(response.message);
-    }
-  };
+    window.dispatchEvent(new Event("auth-change"));
+
+    router.push("/");
+    showSuccess(response.message);
+  }
+};
   useEffect(() => {
     const syncAuth = () => {
       setLocalToken(localStorage.getItem("token"));

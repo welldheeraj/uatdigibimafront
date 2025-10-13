@@ -44,7 +44,7 @@ export default function ProposalUI() {
     setLoading(true);
     CallApi(constant.API.HEALTH.BAJAJ.CHECKOUT)
       .then((res) => {
-        console.log(res)
+        console.log(res);
         setSelectedAddons(res.selected_addon || []);
         setAddons(res["addOn_Value"] || {});
         setFullAddonsName(res.addonname || {});
@@ -80,7 +80,21 @@ export default function ProposalUI() {
             "POST",
             { tenure: t, coverage: coverAmount }
           );
+          console.log(res);
           if (res?.data?.premium) newPrices[t] = res.data.premium;
+          if (res?.data?.transactionid) {
+            const existing =
+              JSON.parse(localStorage.getItem("transactions")) || [];
+            const newEntry = {
+              transactionid: res.data.transactionid,
+              tenure: res.data.tenure,
+            };
+            existing.push(newEntry);
+            localStorage.setItem("transactions", JSON.stringify(existing));
+          }
+          const allTransactions =
+            JSON.parse(localStorage.getItem("transactions")) || [];
+          console.log(allTransactions);
         } catch (err) {
           console.error("Price error:", err);
         }

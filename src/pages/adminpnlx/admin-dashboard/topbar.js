@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FaBell, FaUserCircle, FaSignOutAlt, FaUser, FaChevronDown, FaChevronUp, FaBars } from "react-icons/fa";
 import { FiSearch } from "react-icons/fi";
 import { useRouter } from "next/router";
-import { CallApi } from "@/api";
+import { CallApi,clearDBData } from "@/api";
 import { showSuccess } from "@/layouts/toaster";
 import constant from "@/env";
 
@@ -17,6 +17,7 @@ export default function TopBar({ setActivePage, admindata, token,setIsMobileMenu
     const response = await CallApi("/api/logout", "POST", "");
     if (response.status) {
       localStorage.removeItem("token");
+       await clearDBData();
       window.dispatchEvent(new Event("auth-change"));
       setIsDropdownOpen(false);
       showSuccess(response.message);

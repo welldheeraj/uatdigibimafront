@@ -246,54 +246,70 @@ export default function FormPage({ usersData }) {
       showError("Please Enter Email");
       return;
     }
-    if (type === "motor") {
-      try {
-        const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
-        if (!stoken) {
-          localStorage.setItem("token", res.token);
-          localStorage.setItem("logintype", "user");
-          localStorage.setItem("username", data.name || "");
-          setToken(res.token);
-          window.dispatchEvent(
-            new CustomEvent("auth-change", {
-              detail: { username: data.name || "", token: res.token },
-            })
-          );
-        }
+   if (type === "motor") {
+  try {
+    const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
 
-        showSuccess("Login successfully");
-        router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
-      } catch (error) {
-        console.error("Submission Error:", error);
-        showError("Submission failed. Please try again later.");
-      }
-    } else if (type === "health") {
-      try {
-        const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
-        console.log(res);
-        if (res.status) {
-          localStorage.setItem("token", res.token);
-          localStorage.setItem("logintype", "user");
-          localStorage.setItem("userid", res.userid);
-          localStorage.setItem("username", data.name || "");
-          await storeDBData("token",res.token);
-          await storeDBData("userid",res.userid);
-          setToken(res.token);
-          console.log( await getDBData("token"));
-          window.dispatchEvent(
-            new CustomEvent("auth-change", {
-              detail: { username: data.name || "", token: res.token },
-            })
-          );
-        }
-        console.log(localStorage.getItem("token"))
-        showSuccess(res.message);
-        router.push(constant.ROUTES.HEALTH.INSURE);
-      } catch (error) {
-        console.error("Submission Error:", error);
-        showError("Submission failed. Please try again later.");
-      }
+    // ✅ Handle already logged-in condition
+    if (res.isloggedin) {
+      showError(res.message || "You are already logged in from another device.");
+      return; // Stop further execution
     }
+
+    if (!stoken) {
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("logintype", "user");
+      localStorage.setItem("username", data.name || "");
+      setToken(res.token);
+      window.dispatchEvent(
+        new CustomEvent("auth-change", {
+          detail: { username: data.name || "", token: res.token },
+        })
+      );
+    }
+
+    showSuccess("Login successfully");
+    router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
+  } catch (error) {
+    console.error("Submission Error:", error);
+    showError("Submission failed. Please try again later.");
+  }
+} else if (type === "health") {
+  try {
+    const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
+    console.log(res);
+
+    // ✅ Handle already logged-in condition
+    if (res.isloggedin) {
+      showError(res.message || "You are already logged in from another device.");
+      return;
+    }
+
+    if (res.status) {
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("logintype", "user");
+      localStorage.setItem("userid", res.userid);
+      localStorage.setItem("username", data.name || "");
+      await storeDBData("token", res.token);
+      await storeDBData("userid", res.userid);
+      setToken(res.token);
+      console.log(await getDBData("token"));
+      window.dispatchEvent(
+        new CustomEvent("auth-change", {
+          detail: { username: data.name || "", token: res.token },
+        })
+      );
+    }
+
+    console.log(localStorage.getItem("token"));
+    showSuccess(res.message);
+    router.push(constant.ROUTES.HEALTH.INSURE);
+  } catch (error) {
+    console.error("Submission Error:", error);
+    showError("Submission failed. Please try again later.");
+  }
+}
+
   };
 
   return (

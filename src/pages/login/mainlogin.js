@@ -214,7 +214,7 @@ useEffect(() => {
   };
 
 const onSubmit = async (data) => {
-    if (!data.gender) return showError("Please select your gender");
+  if (!data.gender) return showError("Please select your gender");
   if (!data.name) return showError("Please enter your name");
   if (!isOtpVerified && !stoken) return showError("Please verify mobile number");
   if (!data.pincode) return showError("Please enter pincode");
@@ -222,6 +222,13 @@ const onSubmit = async (data) => {
 
   try {
     const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
+
+    //Check if already logged in
+    if (res.isloggedin) {
+      showError(res.message || "You are already logged in from another device.");
+      return; // stop execution here
+    }
+
     const tokenVal = res?.token || res?.data?.token || res?.accessToken || null;
     const usernameVal =
       res?.name ||
@@ -229,30 +236,35 @@ const onSubmit = async (data) => {
       res?.user?.username ||
       data.name ||
       "";
-if (!stoken) {
-  if (tokenVal) localStorage.setItem("token", tokenVal);
-  localStorage.setItem("logintype", "user");
 
-  if (usernameVal) {
-    localStorage.setItem("username", usernameVal);
-  } else {
-    localStorage.setItem("username", data.name || "");
-  }
-  window.dispatchEvent(
-    new CustomEvent("auth-change", { detail: { username: usernameVal || data.name, token: tokenVal } })
-  );
+    // Only set token if stoken is not already present
+    if (!stoken) {
+      if (tokenVal) localStorage.setItem("token", tokenVal);
+      localStorage.setItem("logintype", "user");
 
-  setToken(tokenVal);
-}
+      if (usernameVal) {
+        localStorage.setItem("username", usernameVal);
+      } else {
+        localStorage.setItem("username", data.name || "");
+      }
 
+      window.dispatchEvent(
+        new CustomEvent("auth-change", {
+          detail: { username: usernameVal || data.name, token: tokenVal },
+        })
+      );
 
-    showSuccess("Login successfully");
+      setToken(tokenVal);
+    }
+
+    showSuccess(res.message || "Login successfully");
     router.push("/");
   } catch (err) {
     console.error("Submission Error:", err);
     showError("Submission failed. Please try again later.");
   }
 };
+
 
 
   return (
