@@ -225,8 +225,8 @@ export default function HealthCompare({ plans = [] }) {
                   return (
                     <th key={getPlanKey(p, i)} className="p-5 text-center border-l bg-gradient-to-b from-white to-slate-50">
                       <div className="flex flex-col items-center gap-3">
-                        <div className="bg-white p-3 rounded-2xl shadow-md border border-slate-200">
-                          <Logo src={p.logo} alt={p.company} className="h-8 object-contain" />
+                        <div className="w-22 h-16 rounded-xl bg-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden">
+                          <Logo src={p.logo} alt={p.company} className="h-full w-full object-cover" />
                         </div>
                         <p className="font-bold text-blue-900 text-sm text-center">{p.productname}</p>
                         <p className={`font-extrabold text-xl ${toNum(p.premium) === cheapestPremium ? "text-emerald-600" : "text-indigo-700"}`}>₹{p.premium}</p>

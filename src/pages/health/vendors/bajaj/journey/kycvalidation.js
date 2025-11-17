@@ -13,9 +13,10 @@ export default async function validateKycStep(
   kycVerified,
   setVerifiedData,
   setIsCKYCHidden,
-  setIsOtherKycHidden
+  setIsOtherKycHidden,
+  finalTxn
 ) {
- 
+ console.log(finalTxn)
   if (!kycType) return showError("Please select a KYC type."), false;
 try {
   let payload, res;
@@ -26,15 +27,17 @@ try {
   const number = values.number || values.docNumber;
   const dob = values.dob || values.docDob;
   const gender = values.gender || values.docGender;
+  const transactionid = finalTxn.transactionid 
 
   if (!type || !number || !dob || !gender) {
     showError("All CKYC fields are required.");
     return false;
   }
 
-  payload = { type, number, dob, gender };
+  payload = { type, number, dob, gender ,transactionid};
 
   console.log("CKYC payload:", payload);
+
 
   try {
     res = await CallApi(

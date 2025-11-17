@@ -8,7 +8,7 @@ export default function PolicyPeriodOptions({
   setTenure,
   tenurePrices = {},
   onTenureChange,
-  isSkeletonLoading = false, // 👈 नया prop
+  isSkeletonLoading = false, 
 }) {
   const [priceLoading, setPriceLoading] = useState(false);
   const prevPricesRef = useRef({});
@@ -33,7 +33,7 @@ export default function PolicyPeriodOptions({
     }
   }, [tenurePrices]);
 
-  // 🦴 जब loading हो तो हमेशा skeleton दिखाओ
+
   if (isSkeletonLoading) {
     return (
       <div className="bg-white rounded-xl p-4 sm:px-8 mb-6 w-full">
@@ -54,7 +54,7 @@ export default function PolicyPeriodOptions({
     );
   }
 
-  // 🧩 normal logic (same as before)
+
   if (tenureOptions.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 sm:px-8 mb-6 w-full">

@@ -12,7 +12,7 @@ import UpdateIdvModal from "./updateIdvmodal";
 import VendorCard from "./vendorcard";
 import VehicleCard from "../../vehicledetails/index";
 import { MotorCardSkeleton } from "@/components/loader";
-import  GotoHealth  from "@/components/gotohealth";
+import GotoHealth from "@/components/gotohealth";
 import { showError } from "@/layouts/toaster";
 
 export default function Plans() {
@@ -56,19 +56,16 @@ export default function Plans() {
   const router = useRouter();
 
   // ---------- helpers for compare ----------
-  // motor + health dono ko cover karne ke liye safe key
- const getPlanKey = (plan) =>
-  `${String(plan?.vendorId || plan?.vid || "")}|${String(
-    plan?.title || plan?.productname || ""
-  )}|${String(plan?.price || plan?.premium || "")}`;
-
+  const getPlanKey = (plan) =>
+    `${String(plan?.vendorId || plan?.vid || "")}|${String(
+      plan?.title || plan?.productname || ""
+    )}|${String(plan?.price || plan?.premium || "")}`;
 
   const isCompared = (plan) =>
     compared.some((p) => getPlanKey(p) === getPlanKey(plan));
 
   const handleCompareChange = (plan, checked) => {
     setCompared((prev) => {
-      // already in list?
       const key = getPlanKey(plan);
       const exists = prev.some((p) => getPlanKey(p) === key);
 
@@ -84,21 +81,23 @@ export default function Plans() {
   };
 
   const removeCompared = (plan) =>
-    setCompared((prev) => prev.filter((p) => getPlanKey(p) !== getPlanKey(plan)));
+    setCompared((prev) =>
+      prev.filter((p) => getPlanKey(p) !== getPlanKey(plan))
+    );
 
   const compareDisabledForOthers = compared.length >= 3;
 
   const handleCompareCTA = () => {
     try {
       if (typeof window !== "undefined") {
-       sessionStorage.setItem("compareType", "car");
-sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
+        sessionStorage.setItem("compareType", "car");
+        sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
         sessionStorage.setItem(
           "compareBack",
           window.location.pathname + window.location.search
         );
       }
-     router.push("/compare/category/carcompare");
+      router.push("/compare/category/carcompare");
     } catch (e) {
       console.warn("Compare CTA navigation failed", e);
     }
@@ -110,7 +109,7 @@ sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
       try {
         setLoading(true);
         const res = await CallApi(constant.API.MOTOR.CAR.PLANS, "GET");
-        console.log(res)
+        console.log(res);
         if (res.data?.under === "company") {
           setIsCompany(true);
         }
@@ -181,11 +180,14 @@ sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
     getDetails();
   }, []);
 
+  // PROGRESSIVE QUOTE FETCH
   const getQuote = useCallback(async () => {
     if (!vendorList.length) return;
     try {
       setLoading(true);
       setQuoteError(false);
+
+      setVendorPlans([]);
 
       const allPlans = [];
       let data;
@@ -201,7 +203,7 @@ sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
           "POST",
           vendorWithRoute
         );
-        console.log(response)
+        console.log(response);
 
         data = response?.data;
         if (response?.status == "1" && data) {
@@ -211,13 +213,22 @@ sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
             setIdv(data.idv);
             setSelectedIdv(data.selectedvalue);
           }
-          allPlans.push({ ...data, vendorId: vendorPayload.vid });
+
+          const planObj = { ...data, vendorId: vendorPayload.vid, route };
+          allPlans.push(planObj);
+
+          setVendorPlans((prev) => {
+            const exists = prev.some(
+              (p) => (p.vendorId || p.vid) === planObj.vendorId
+            );
+            return exists ? prev : [...prev, planObj];
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 0));
         }
       }
 
-      if (allPlans.length > 0) {
-        setVendorPlans(allPlans);
-      } else {
+      if (!allPlans.length) {
         setVendorPlans([]);
         setQuoteError(true);
       }
@@ -486,8 +497,6 @@ sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
     router.push(route);
   };
 
-  const showSkeleton = loading || vendorPlans.length === 0;
-
   const handleRedirect = () => {
     if (motortype === "knowcar" || motortype === "") {
       router.push(constant.ROUTES.MOTOR.CAR.KNOWCARSTEPTHREE);
@@ -634,37 +643,38 @@ sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
         {/* Left: VendorCard Section (9 columns) */}
         <div className="lg:col-span-9">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {loading ? (
-              Array.from({ length: 3 }).map((_, idx) => (
-                <MotorCardSkeleton key={idx} />
-              ))
-            ) : quoteError || vendorPlans.length === 0 ? (
+            {vendorPlans.map((plan) => (
+              <VendorCard
+                key={plan.vendorId || plan.vid || plan.title || Math.random()}
+                data={plan}
+                onAddonsClick={(vendorData) => {
+                  setSelectedPlan(vendorData);
+                  setAddAddonModal(true);
+                }}
+                handlePlanSubmit={handlePlanSubmit}
+                showCompare={vendorPlans.length > 1}
+                compared={isCompared(plan)}
+                disableCompare={compareDisabledForOthers && !isCompared(plan)}
+                onCompareChange={(checked) =>
+                  handleCompareChange(plan, checked)
+                }
+              />
+            ))}
+
+            {loading &&
+              vendorPlans.length < vendorList.length &&
+              Array.from({
+                length: Math.min(3, vendorList.length - vendorPlans.length),
+              }).map((_, idx) => <MotorCardSkeleton key={`skeleton-${idx}`} />)}
+
+            {!loading && ( vendorPlans.length === 0) && (
               <div className="col-span-full text-center text-gray-500 py-10">
                 No Plans Available
               </div>
-            ) : (
-              vendorPlans.map((plan) => (
-                <VendorCard
-                  key={plan.vendorId || plan.vid || plan.title || Math.random()}
-                  data={plan}
-                  onAddonsClick={(vendorData) => {
-                    setSelectedPlan(vendorData);
-                    setAddAddonModal(true);
-                  }}
-                  handlePlanSubmit={handlePlanSubmit}
-                  showCompare={vendorPlans.length > 1}
-                  compared={isCompared(plan)}
-                  disableCompare={compareDisabledForOthers && !isCompared(plan)}
-                  onCompareChange={(checked) =>
-                    handleCompareChange(plan, checked)
-                  }
-                />
-              ))
             )}
           </div>
         </div>
 
-        {/* Right: VehicleCard Section (3 columns) */}
         <div className="lg:col-span-3">
           <div className="bg-white rounded-2xl shadow-sm p-6 text-sm sticky top-6 mb-10">
             {(motortype === "knowcar" || motortype === "newcar") && (
@@ -707,7 +717,7 @@ sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
                   {p?.logo ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                       src={`${constant.BASE_URL}/front/logo/${p.logo}`}
+                      src={`${constant.BASE_URL}/front/logo/${p.logo}`}
                       alt={p.productname || "logo"}
                       className="h-full w-full object-contain"
                     />
@@ -720,9 +730,9 @@ sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
                   <div className="text-sm font-medium text-gray-900 truncate">
                     {p?.title || p?.productname || p?.planname || "—"}
                   </div>
-                  {/* optional: show premium/price */}
                   <div className="text-xs text-gray-600">
-                    ₹ {(p?.price || p?.premium)?.toLocaleString?.("en-IN") || "-"}
+                    ₹{" "}
+                    {(p?.price || p?.premium)?.toLocaleString?.("en-IN") || "-"}
                   </div>
                 </div>
 
@@ -733,7 +743,7 @@ sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
                   aria-label="Remove"
                   title="Remove"
                 >
-                  {/* MdClose import na ho to X use kar lo */}×
+                  ×
                 </button>
               </div>
             ))}

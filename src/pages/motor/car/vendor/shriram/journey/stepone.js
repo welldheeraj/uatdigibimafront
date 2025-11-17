@@ -524,19 +524,31 @@ export default function StepOneForm({
               }}
             />
 
-            <UniversalDatePicker
-              id="pancardDob"
-              name="pancardDob"
-              value={dates.pancardno}
-              onChange={(date) => {
-                if (date instanceof Date && !isNaN(date)) {
-                  const formatted = format(date, "dd-MM-yyyy");
-                  handleDateChange("pancardno", "pancardDob");
-                }
-              }}
-              placeholder="Pick a start date"
-              error={!dates.pan}
-              errorText="Please select a valid date"
+             <Controller
+              control={step1Form.control}
+              name="pancarddob"
+              rules={{ required: "DOB is required" }}
+              render={({ field, fieldState }) => (
+                <UniversalDatePicker
+                  id="pancarddob"
+                  name="pancarddob"
+                  value={
+                    field.value
+                      ? parse(field.value, "dd-MM-yyyy", new Date())
+                      : null
+                  }
+                  onChange={(date) => {
+                    if (date instanceof Date && !isNaN(date)) {
+                      const formatted = format(date, "dd-MM-yyyy");
+                      field.onChange(formatted);
+                    }
+                   
+                  }}
+                  error={!!fieldState.error}
+                  errorText={fieldState.error?.message}
+                  placeholder="Pick a date"
+                />
+              )}
             />
 
             <input
@@ -595,20 +607,35 @@ export default function StepOneForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <div className="sm:col-span-5">
-              <UniversalDatePicker
-                id="aadharDob"
-                name="aadharDob"
-                value={dates.aadhar}
-                onChange={(date) => {
-                  if (date instanceof Date && !isNaN(date)) {
-                    const formatted = format(date, "dd-MM-yyyy");
-                    handleDateChange("aadhar", "aadharDob");
+                <Controller
+              control={step1Form.control}
+              name="aadharDob"
+              rules={{ required: "DOB is required" }}
+              render={({ field, fieldState }) => (
+                <UniversalDatePicker
+                  id="aadharDob"
+                  name="aadharDob"
+                  value={
+                    field.value
+                      ? parse(field.value, "dd-MM-yyyy", new Date())
+                      : null
                   }
-                }}
-                placeholder="Pick a start date"
-                error={!dates.aadhar}
-                errorText="Please select a valid date"
-              />
+                  onChange={(date) => {
+                    if (date instanceof Date && !isNaN(date)) {
+                      const formatted = format(date, "dd-MM-yyyy");
+                      field.onChange(formatted);
+                    }
+                    // handleDateChange(
+                    //   "customerpancardno",
+                    //   "customerpancardDob"
+                    // )(date);
+                  }}
+                  error={!!fieldState.error}
+                  errorText={fieldState.error?.message}
+                  placeholder="Pick a date"
+                />
+              )}
+            />
             </div>
 
             <div className="sm:col-span-2">

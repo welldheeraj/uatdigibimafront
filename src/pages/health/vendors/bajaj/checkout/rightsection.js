@@ -1,6 +1,6 @@
 "use client";
 import { useRouter, usePathname } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { BsArrowRight } from "react-icons/bs";
 import { FiInfo, FiDownload } from "react-icons/fi";
 import { showError } from "@/layouts/toaster";
@@ -10,6 +10,7 @@ export default function SummaryCard({
   tenurePrices = {},
   coverAmount = "",
   selectedAddons = [],
+  defaultAddons = [],
   compulsoryAddons = [],
   fullAddonsName = {},
   addons = {},
@@ -23,7 +24,9 @@ export default function SummaryCard({
   oldPincode,
   newPincode,
 }) {
-  console.log(totalPremium)
+  // console.log("selectedAddons", selectedAddons);
+  // console.log("defaultAddons", defaultAddons);
+
   const router = useRouter();
   const pathname = usePathname();
   const isStepFour = currentStep === 4;
@@ -40,12 +43,10 @@ export default function SummaryCard({
   const formatPrice = (val) => `₹ ${(val || 0).toLocaleString()}`;
   const selectedTenurePrice = tenurePrices[tenure] || 0;
 
-  // ✅ Helper: normalize & find correct Addon Name
+
   const getAddonName = (key) => {
     const cleanedKey = key.replace(/[0-9]+$/g, "").replace(/SIMAX\d*/i, "").trim();
-    const baseMatch = Object.keys(fullAddonsName).find((name) =>
-      key.startsWith(name)
-    );
+    const baseMatch = Object.keys(fullAddonsName).find((name) => key.startsWith(name));
     return (
       fullAddonsName[key] ||
       fullAddonsName[cleanedKey] ||
@@ -53,7 +54,69 @@ export default function SummaryCard({
     );
   };
 
-  // Detect premium change animation
+ 
+  const parsedSelected = useMemo(() => {
+    const toArr =
+      Array.isArray(selectedAddons)
+        ? selectedAddons
+        : typeof selectedAddons === "string" && selectedAddons.startsWith("[")
+        ? JSON.parse(selectedAddons || "[]")
+        : Object.values(selectedAddons || []);
+    const out = {};
+    for (const raw of toArr) {
+      const item = String(raw);
+      let base = item, val = "";
+      const numMatch = item.match(/^([A-Za-z]+)(\d+)$/);
+      const rrMatch = item.match(/^([A-Z]{2})([A-Z0-9]+)$/i);
+      if (numMatch) [base, val] = [numMatch[1], numMatch[2]];
+      else if (rrMatch) [base, val] = [rrMatch[1], rrMatch[2]];
+      out[base] = (val || "").toUpperCase();
+    }
+    return out;
+  }, [selectedAddons]);
+
+
+  const parsedDefaults = useMemo(() => {
+    const out = {};
+    if (!defaultAddons) return out;
+
+    if (Array.isArray(defaultAddons)) {
+      for (const raw of defaultAddons) {
+        const item = String(raw);
+        let base = item, val = "";
+        const numMatch = item.match(/^([A-Za-z]+)(\d+)$/);
+        const rrMatch = item.match(/^([A-Z]{2})([A-Z0-9]+)$/i);
+        if (numMatch) [base, val] = [numMatch[1], numMatch[2]];
+        else if (rrMatch) [base, val] = [rrMatch[1], rrMatch[2]];
+        out[base] = (val || "").toUpperCase();
+      }
+      return out;
+    }
+
+    for (const [k, v] of Object.entries(defaultAddons || {})) {
+      if (v == null) continue;
+      let val = String(v).trim();
+      const parenIdx = val.indexOf("(");
+      if (parenIdx > 0) val = val.slice(0, parenIdx).trim();
+      val = val.split(" ")[0].trim();
+      out[k] = val.toUpperCase();
+    }
+    return out;
+  }, [defaultAddons]);
+
+
+  const initialSelected = useMemo(() => {
+    const hasSelected =
+      (Array.isArray(selectedAddons) && selectedAddons.length > 0) ||
+      (typeof selectedAddons === "string" &&
+        selectedAddons.startsWith("[") &&
+        JSON.parse(selectedAddons || "[]").length > 0) ||
+      (!!selectedAddons && typeof selectedAddons === "object" && Object.keys(selectedAddons).length > 0);
+
+    return hasSelected ? parsedSelected : parsedDefaults; // winner
+  }, [selectedAddons, parsedSelected, parsedDefaults]);
+
+
   useEffect(() => {
     if (Object.keys(prevPricesRef.current).length === 0) {
       prevPricesRef.current = tenurePrices;
@@ -66,7 +129,7 @@ export default function SummaryCard({
     }
   }, [tenurePrices]);
 
-  // Detect total premium change message
+  
   useEffect(() => {
     if (prevTotalRef.current && prevTotalRef.current !== totalPremium) {
       const oldPrice = formatPrice(prevTotalRef.current);
@@ -104,7 +167,7 @@ export default function SummaryCard({
 
   const handleBrowse = () =>
     window.open(
-      "https://stage.digibima.com/public/broucher/caresupreme.pdf",
+      "https://stage.digibima.com/public/broucher/bajamyhealthcare.pdf",
       "_blank"
     );
 
@@ -112,7 +175,7 @@ export default function SummaryCard({
     <div className="w-full lg:w-[415px] bg-white rounded-[32px] shadow-sm p-6 text-sm self-start">
       <h2 className="text-base font-semibold text-[#003366] mb-1">Summary</h2>
 
-      {/* Base Premium */}
+      
       <div className="flex items-center justify-between text-sm font-semibold text-black mb-3">
         <p className="text-gray-600 mb-1">
           Base Premium - {tenure} {tenure === 1 ? "Year" : "Years"}
@@ -136,7 +199,7 @@ export default function SummaryCard({
         </span>
       </div>
 
-      {/* Compulsory Add-ons (Names Only) */}
+    
       <p className="text-sm font-semibold text-[#003366] mt-4 mb-2">
         Add-On(s) benefits
       </p>
@@ -152,23 +215,26 @@ export default function SummaryCard({
         )}
       </div>
 
-      {/* Selected Add-ons (Names Only) */}
-      {selectedAddons && Object.values(selectedAddons).length > 0 && (
+     
+      {initialSelected && Object.keys(initialSelected).length > 0 && (
         <>
           <p className="text-sm font-semibold text-[#003366] mt-6 mb-2">
             Selected Optional Add-Ons
           </p>
           <div className="space-y-1 text-gray-700">
-            {Object.entries(selectedAddons).map(([k, key]) => (
-              <div className="flex justify-between" key={k}>
-                <span>{getAddonName(key)}</span>
-              </div>
-            ))}
+            {Object.entries(initialSelected).map(([base, val]) => {
+              const keyForName = `${base}${val || ""}`; // e.g., "ped3", "RRSPA"
+              return (
+                <div className="flex justify-between" key={keyForName}>
+                  <span>{getAddonName(keyForName)}</span>
+                </div>
+              );
+            })}
           </div>
         </>
       )}
 
-      {/* Price Change Tooltip */}
+ 
       <div className="mt-4 border-t pt-3 font-semibold text-black">
         {priceChangeMsg && (
           <div className="flex justify-end items-center gap-2 mt-1">

@@ -6,11 +6,21 @@ import Modal from "@/components/modal";
 import { FiTag } from "react-icons/fi";
 import Image from "next/image";
 
-export default function VendorCard({ data, onAddonsClick, handlePlanSubmit }) {
+export default function VendorCard({
+     data,
+  onAddonsClick,
+  handlePlanSubmit,
+  compared = false,
+  disableCompare = false,
+  onCompareChange = () => {},
+  showCompare = true,
+  }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedPremiumData, setSelectedPremiumData] = useState([]);
+
   const router = useRouter();
-  const handlePremium = () => {
+
+ const handlePremium = () => {
     const premium = data.premiumBackup || {};
     const premiumArray = Object.entries(premium).map(([key, value]) => ({
       label: key,
@@ -19,21 +29,29 @@ export default function VendorCard({ data, onAddonsClick, handlePlanSubmit }) {
     setSelectedPremiumData(premiumArray);
     setShowModal(true);
   };
+
+  const compareId = `compare-${String(data?.vendorId ?? data?.title ?? "plan")
+    .toLowerCase()
+    .replace(/\s+/g, "-")}`;
+
   return (
     <>
       {/* Card */}
       <div className="w-full h-full min-h-[310px] bg-white rounded-3xl shadow-xl p-5 relative overflow-hidden hover:transition-transform duration-300 group">
-        {/* Logo and Title */}
+     
         <div className="flex flex-col items-center text-center gap-3 mt-2">
-          <div className="w-28 h-25 rounded-xl bg-gradient-to-br from-white via-blue-50 to-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden hover:shadow-lg transition-all duration-300">
-            <Image
-              src={`${constant.BASE_URL}/front/logo/${data.logo}` || ""}
-              alt={data.title}
-              width={80}
-              height={40}
-              className="h-auto w-[100%] object-contain"
-            />
-          </div>
+<div className="w-28 h-20 rounded-xl bg-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden">
+  <Image
+    src={`${constant.BASE_URL}/front/logo/${data.logo}` || ""}
+    alt={data.title}
+    width={112}   
+    height={80}   
+    className="w-full h-full object-contain"
+  />
+</div>
+
+
+
 
           <h2 className="text-blue-900 font-bold text-lg tracking-wide capitalize">
             {data.title || "Unknown Vendor"}
@@ -70,6 +88,30 @@ export default function VendorCard({ data, onAddonsClick, handlePlanSubmit }) {
               Premium Break-up
             </button>
           </div>
+          {showCompare && (
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                id={compareId}
+                type="checkbox"
+                className="h-4 w-4 accent-indigo-600"
+                checked={!!compared}
+                disabled={disableCompare && !compared}
+                onChange={(e) => onCompareChange(e.target.checked)}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <label
+                htmlFor={compareId}
+                className={`text-sm ${
+                  disableCompare && !compared
+                    ? "text-gray-400"
+                    : "text-gray-700"
+                } select-none cursor-pointer`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                Compare
+              </label>
+            </div>
+          )}
         </div>
 
         {/* Glass bottom layer for depth */}

@@ -4,12 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { CallApi } from "@/api";
 import constant from "@/env";
+import { FaChevronLeft, FaMotorcycle, FaInfoCircle } from "react-icons/fa";
+import { MdClose } from "react-icons/md";
 import PaCoverModal from "./pacovermodal";
 import AddonModal, { VendorAddonModal } from "./addonmodal";
 import UpdateIdvModal from "./updateIdvmodal";
 import VendorCard from "./vendorcard";
 import VehicleCard from "../../vehicledetails/index";
-import { FaChevronLeft, FaMotorcycle, FaInfoCircle } from "react-icons/fa";
 import { MotorCardSkeleton } from "@/components/loader";
 import  GotoHealth  from "@/components/gotohealth";
 
@@ -49,7 +50,59 @@ export default function Plans() {
   const [odselectedAddon, setOdSelectedAddon] = useState([]);
   const [tpselectedAddon, setTpSelectedAddon] = useState([]);
 
+   const [compared, setCompared] = useState([]);
   const router = useRouter();
+
+
+    // ---------- helpers for compare ----------
+ const getPlanKey = (plan) =>
+  `${String(plan?.vendorId || plan?.vid || "")}|${String(
+    plan?.title || plan?.productname || ""
+  )}|${String(plan?.price || plan?.premium || "")}`;
+
+
+  const isCompared = (plan) =>
+    compared.some((p) => getPlanKey(p) === getPlanKey(plan));
+
+  const handleCompareChange = (plan, checked) => {
+    setCompared((prev) => {
+      // already in list?
+      const key = getPlanKey(plan);
+      const exists = prev.some((p) => getPlanKey(p) === key);
+
+      if (checked) {
+        if (exists || prev.length >= 3) return prev;
+        const next = [...prev, plan];
+        return next;
+      } else {
+        const next = prev.filter((p) => getPlanKey(p) !== key);
+        return next;
+      }
+    });
+  };
+
+  const removeCompared = (plan) =>
+    setCompared((prev) => prev.filter((p) => getPlanKey(p) !== getPlanKey(plan)));
+
+  const compareDisabledForOthers = compared.length >= 3;
+
+  const handleCompareCTA = () => {
+    try {
+      if (typeof window !== "undefined") {
+       sessionStorage.setItem("compareType", "car");
+sessionStorage.setItem("comparePlans:car", JSON.stringify(compared));
+        sessionStorage.setItem(
+          "compareBack",
+          window.location.pathname + window.location.search
+        );
+      }
+     router.push("/compare/category/bikecompare");
+    } catch (e) {
+      console.warn("Compare CTA navigation failed", e);
+    }
+  };
+  // ----------------------------------------
+
 
  useEffect(() => {
     async function getDetails() {
@@ -132,7 +185,7 @@ export default function Plans() {
     getDetails();
   }, []);
 
-  // 📌 Fetch quote
+
   const getQuote = useCallback(async () => {
     if (!vendorList.length) return;
     try {
@@ -597,18 +650,23 @@ const showSkeleton = loading || (vendorPlans.length === 0 && !quoteError);
                 🚫 No Plans Available
               </div>
             ) : (
-              vendorPlans.map((plan) => (
-                <VendorCard
-                  key={plan.vendorId}
-                  data={plan}
-                  onAddonsClick={(vendorData) => {
-                    setSelectedPlan(vendorData);
-                    setAddAddonModal(true);
-                  }}
-                  handlePlanSubmit={handlePlanSubmit}
-                  onPremiumClick={premiumBackupData}
-                />
-              ))
+               vendorPlans.map((plan) => (
+                              <VendorCard
+                                key={plan.vendorId || plan.vid || plan.title || Math.random()}
+                                data={plan}
+                                onAddonsClick={(vendorData) => {
+                                  setSelectedPlan(vendorData);
+                                  setAddAddonModal(true);
+                                }}
+                                handlePlanSubmit={handlePlanSubmit}
+                                showCompare={vendorPlans.length > 1}
+                                compared={isCompared(plan)}
+                                disableCompare={compareDisabledForOthers && !isCompared(plan)}
+                                onCompareChange={(checked) =>
+                                  handleCompareChange(plan, checked)
+                                }
+                              />
+                            ))
             )}
           </div>
         </div>
@@ -636,6 +694,77 @@ const showSkeleton = loading || (vendorPlans.length === 0 && !quoteError);
               }}
               selectedPlan={selectedPlan}
             />
+            {compared.length > 0 && (
+                    <div className="fixed right-4 bottom-4 z-50 w-80 max-w-[88vw] rounded-xl shadow-2xl bg-white border border-gray-200">
+                      <div className="px-4 py-3 border-b">
+                        <h3 className="text-sm font-semibold text-gray-800">
+                          Compare Plans
+                        </h3>
+                      </div>
+            
+                      <div className="max-h-72 overflow-y-auto px-3 py-2 space-y-2">
+                        {compared.map((p) => (
+                          <div
+                            key={getPlanKey(p)}
+                            className="flex items-center gap-3 rounded-lg border border-gray-100 px-2 py-2"
+                          >
+                            <div className="h-10 w-10 bg-gray-50 rounded overflow-hidden flex items-center justify-center">
+                              {p?.logo ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                   src={`${constant.BASE_URL}/front/logo/${p.logo}`}
+                                  alt={p.productname || "logo"}
+                                  className="h-full w-full object-contain"
+                                />
+                              ) : (
+                                <span className="text-[10px] text-gray-500">No Logo</span>
+                              )}
+                            </div>
+            
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-gray-900 truncate">
+                                {p?.title || p?.productname || p?.planname || "—"}
+                              </div>
+                              {/* optional: show premium/price */}
+                              <div className="text-xs text-gray-600">
+                                ₹ {(p?.price || p?.premium)?.toLocaleString?.("en-IN") || "-"}
+                              </div>
+                            </div>
+            
+                            <button
+                              type="button"
+                              onClick={() => removeCompared(p)}
+                              className="p-1 rounded hover:bg-gray-100"
+                              aria-label="Remove"
+                              title="Remove"
+                            >
+                              {/* MdClose import na ho to X use kar lo */}×
+                            </button>
+                          </div>
+                        ))}
+            
+                        {compared.length < 3 && (
+                          <div className="text-center text-[11px] font-semibold text-gray-400 mt-2">
+                            SELECT UPTO {3 - compared.length} MORE PLAN
+                            {3 - compared.length > 1 ? "S" : ""} TO COMPARE
+                          </div>
+                        )}
+                      </div>
+            
+                      <div className="p-3">
+                        <button
+                          type="button"
+                          onClick={handleCompareCTA}
+                          disabled={compared.length < 2}
+                          className={`w-full px-4 py-2 thmbtn ${
+                            compared.length >= 2 ? "" : "opacity-60 cursor-not-allowed"
+                          }`}
+                        >
+                          Compare Plans
+                        </button>
+                      </div>
+                    </div>
+                  )}
     </div>
   );
 }

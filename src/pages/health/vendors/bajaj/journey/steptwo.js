@@ -7,6 +7,7 @@ import { CallApi } from "@/api";
 import constant from "@/env";
 import { Controller } from "react-hook-form";
 
+
 // --- helpers ---
 const normalizeRelation = (rel = "") => rel?.toLowerCase().trim();
 
@@ -46,6 +47,7 @@ export default function StepTwoForm({
   const [isAutoFilled, setIsAutoFilled] = useState(false);
   const [dates, setDates] = useState({});
   const [apiMembers, setApiMembers] = useState([]);
+  const [occupationList, setOccupationList] = useState({});
 
   const handleDateChange = useCallback(
     (key, fieldNameInForm) => (date) => {
@@ -89,17 +91,17 @@ export default function StepTwoForm({
       setDates((prev) => ({ ...prev, self: { dob: parsedDate } }));
     }
 
-    try {
-      const bank = u.bank_details ? JSON.parse(u.bank_details) : {};
-      if (!step2Form.getValues("proposarbankaccount")) {
-        step2Form.setValue("proposarbankaccount", bank.account || "");
-      }
-      if (!step2Form.getValues("proposarbankifsc")) {
-        step2Form.setValue("proposarbankifsc", bank.ifsc || "");
-      }
-    } catch (err) {
-      console.error("Bank details parse error", err);
-    }
+    // try {
+    //   const bank = u.bank_details ? JSON.parse(u.bank_details) : {};
+    //   if (!step2Form.getValues("proposarbankaccount")) {
+    //     step2Form.setValue("proposarbankaccount", bank.account || "");
+    //   }
+    //   if (!step2Form.getValues("proposarbankifsc")) {
+    //     step2Form.setValue("proposarbankifsc", bank.ifsc || "");
+    //   }
+    // } catch (err) {
+    //   console.error("Bank details parse error", err);
+    // }
 
     setIsAutoFilled(true);
   }, [isAutoFilled, step2Form, steponedata, usersData]);
@@ -137,23 +139,25 @@ export default function StepTwoForm({
           "GET"
         );
         const savedData = res.data || [];
+        console.log("hello world",res.occupationlist)
+        setOccupationList(res.occupationlist || {});
 
         // BANK
-        const raw = res.bank_details;
-        if (raw) {
-          const bankData =
-            typeof raw === "object"
-              ? typeof raw.bank_details === "string"
-                ? JSON.parse(raw.bank_details)
-                : raw
-              : {};
-          if (!step2Form.getValues("proposarbankaccount")) {
-            step2Form.setValue("proposarbankaccount", bankData.account || "");
-          }
-          if (!step2Form.getValues("proposarbankifsc")) {
-            step2Form.setValue("proposarbankifsc", bankData.ifsc || "");
-          }
-        }
+        // const raw = res.bank_details;
+        // if (raw) {
+        //   const bankData =
+        //     typeof raw === "object"
+        //       ? typeof raw.bank_details === "string"
+        //         ? JSON.parse(raw.bank_details)
+        //         : raw
+        //       : {};
+        //   if (!step2Form.getValues("proposarbankaccount")) {
+        //     step2Form.setValue("proposarbankaccount", bankData.account || "");
+        //   }
+        //   if (!step2Form.getValues("proposarbankifsc")) {
+        //     step2Form.setValue("proposarbankifsc", bankData.ifsc || "");
+        //   }
+        // }
 
         // SELF
         const selfData = savedData.find(
@@ -320,17 +324,25 @@ useEffect(() => {
           )}
         />
 
-        <select
-          {...step2Form.register("proposeroccupation", {
-            required: "Please select an occupation",
-          })}
-          className={inputClass}
-        >
-          <option value="">Select Occupation</option>
-          <option value="Salaried">Salaried</option>
-          <option value="Self Employed">Self Employed</option>
-          <option value="Unemployed">Unemployed</option>
-        </select>
+<select
+  {...step2Form.register("proposeroccupation", {
+    required: "Please select an occupation",
+  })}
+  className={`${inputClass} max-h-10 overflow-y-auto`}
+  style={{ height: "auto" }}
+>
+  <option value="" disabled selected>
+    Select Occupation
+  </option>
+  {Object.entries(occupationList).map(([key, value]) => (
+    <option key={key} value={key}>
+      {value}
+    </option>
+  ))}
+</select>
+
+
+
 
         <div className="flex gap-2">
           <input
@@ -362,26 +374,19 @@ useEffect(() => {
           placeholder="Weight (KG)"
           className={inputClass}
         />
+        <input
+          {...step2Form.register("monthlyincom", {
+            required: "Monthly Incom is required",
+          })}
+          onChange={(e) => isNumber(e, step2Form.setValue, "monthlyincom")}
+          maxLength={3}
+          placeholder="Monthly Incom"
+          className={inputClass}
+        />
        
        
       </div>
-      <h2 className="text-xl font-bold text-gray-800">Bank Details:</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input
-          {...step2Form.register("proposarbankaccount", {
-            required: "Bank Account is required",
-          })}
-          placeholder="Bank Account"
-          className={inputClass}
-        />
-        <input
-          {...step2Form.register("proposarbankifsc", {
-            required: "Bank IFSC is required",
-          })}
-          placeholder="Bank IFSC"
-          className={inputClass}
-        />
-      </div>
+     
 
       {/* MEMBERS SECTION */}
       {orderedMembers.map((member, index) => {
@@ -471,17 +476,23 @@ useEffect(() => {
                 </select>
               ) : isSpouse ? (
                 <select
-                  {...step2Form.register(`${prefix}occupation`, {
-                    
-                    required: `${spouseKeyLabel}occupation is required`,
-                  })}
-                  className={inputClass}
-                >
-                  <option value="">Select Occupation</option>
-                  <option value="Salaried">Salaried</option>
-                  <option value="Self Employed">Self Employed</option>
-                  <option value="Unemployed">Unemployed</option>
-                </select>
+                    {...step2Form.register(`${prefix}occupation`, {
+                      required: `${spouseKeyLabel}occupation is required`,
+                    })}
+                    className={inputClass}
+                    style={{ height: "auto" }}
+>
+                  <option value="" disabled selected>
+                    Select Occupation
+                  </option>
+                  {Object.entries(occupationList).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value}
+                    </option>
+                  ))}
+                  </select>
+
+
               ) : null}
 
               <div className="flex gap-2">

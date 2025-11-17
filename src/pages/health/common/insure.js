@@ -258,12 +258,18 @@ useEffect(() => {
           const changed = isDataChanged(originalData, formData);
           console.log("Form changed:", changed);
 
-          if (changed) {
-            await deleteDBData(constant.DBSTORE.HEALTH.INSURE); 
-            console.log("Cache cleared from IndexedDB (data changed).");
-          } else {
-            console.log("No real change, keeping cached data.");
-          }
+            if (changed) {
+          await Promise.all([
+            deleteDBData(constant.DBSTORE.HEALTH.PLANS.HEALTHPLANDATA),
+            deleteDBData(constant.DBSTORE.HEALTH.PLANS.HEALTHPLANVENDOR),
+            deleteDBData(constant.DBSTORE.HEALTH.INSURE),
+            deleteDBData(constant.DBSTORE.HEALTH.CARE.CARECHECKOUTDATA),
+            deleteDBData(constant.DBSTORE.HEALTH.CARE.CARECHECKOUTTENUREDATA),
+          ]);
+          console.log("Cleared caches (members changed)");
+        } else {
+          console.log("Members unchanged, cache kept");
+        }
 
           router.push(constant.ROUTES.HEALTH.ILLNESS);
         }

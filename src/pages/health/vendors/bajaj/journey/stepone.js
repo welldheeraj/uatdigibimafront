@@ -475,7 +475,7 @@ useEffect(() => {
 <button
   type="button"
   onClick={async () => {
-    setIsVerifying(true);  
+    setIsVerifying(true);
     const ckycValues = step1Form.getValues([
       "ckycSubType",
       "docNumber",
@@ -483,19 +483,21 @@ useEffect(() => {
       "docGender",
     ]);
     await handleVerifyIdentity(ckycValues);
-    setIsVerifying(false);  
+    setIsVerifying(false);
   }}
-  className="px-6 py-2 thmbtn"
+  className="px-6 py-2 thmbtn text-wrap flex items-center justify-center gap-2"
   disabled={isVerifying}
 >
   {isVerifying ? (
     <>
-       Verifying<FiLoader className="animate-spin " />
+      <span>Verifying</span>
+      <FiLoader className="animate-spin text-base" />
     </>
   ) : (
     "VERIFY"
   )}
 </button>
+
 
 
   </div>
@@ -566,12 +568,13 @@ useEffect(() => {
         await handleVerifyOther();
         setIsVerifying(false);
       }}
-      className="px-4 py-2 thmbtn flex items-center gap-2"
+       className="px-6 py-2 thmbtn text-wrap flex items-center justify-center gap-2"
       disabled={isVerifying}
     >
       {isVerifying ? (
         <>
-           Verifying<FiLoader className="animate-spin mr-2" />
+          <span>Verifying</span>
+      <FiLoader className="animate-spin text-base" />
         </>
       ) : (
         "VERIFY"

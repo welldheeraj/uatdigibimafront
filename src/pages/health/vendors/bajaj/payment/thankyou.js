@@ -10,31 +10,30 @@ import Ribbon from "@/animation/ribbon.json";
 
 export default function ThankYou() {
   const [loading, setLoading] = useState(true);
-  const [policyData, setPolicyData] = useState(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [message, setMessage] = useState("");
   const router = useRouter();
 
   const fetchData = useCallback(async () => {
-    // ✅ Use router.query (Pages Router)
-    const { status, amt, txn, referenceno,  quoteno } = router.query;
-
-    // Guard clause for missing params
+    const { status, amt, txn, referenceno, quoteno } = router.query;
     if (!status || !txn) return;
 
     const payload = {
       status,
-      amt: amt,
-      txn: txn,
-      referenceno: referenceno,
+      amt,
+      txn,
+      referenceno,
       endorsementno: quoteno,
-      quoteno: quoteno,
+      quoteno,
     };
 
     setLoading(true);
     try {
       const response = await CallApi("/api/bajaj-myhealthcare/thankyou", "POST", payload);
 
-      if (response?.status && response?.data) {
-        setPolicyData(response.data);
+      if (response?.status === true) {
+        setIsSuccess(true);
+        setMessage(response?.message || "Transaction successful!");
       } else {
         showError(response?.message || "Something went wrong");
       }
@@ -47,11 +46,14 @@ export default function ThankYou() {
   }, [router.query]);
 
   useEffect(() => {
-    // Wait for query to be ready
     if (router.isReady) {
       fetchData();
     }
   }, [router.isReady, fetchData]);
+
+  const handleGoBack = () => router.push("/");
+
+  const { amt, txn } = router.query;
 
   return (
     <div className="min-h-screen bgcolor flex items-center justify-center p-4 sm:p-8">
@@ -59,15 +61,10 @@ export default function ThankYou() {
         <div className="text-center text-gray-500 text-lg font-medium">
           <HealthLoaderOne />
         </div>
-      ) : policyData ? (
+      ) : isSuccess ? (
         <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-6 text-center border border-blue-100">
           <div className="flex justify-center">
-            <Lottie
-              animationData={successAnimation}
-              loop
-              autoplay
-              className="w-40 h-40"
-            />
+            <Lottie animationData={successAnimation} loop autoplay className="w-40 h-40" />
           </div>
 
           <div className="relative flex items-center justify-center">
@@ -82,30 +79,29 @@ export default function ThankYou() {
             </h2>
           </div>
 
-          <p className="text-gray-700">
-            Your policy has been successfully generated.
-          </p>
+          <p className="text-gray-700">{message}</p>
 
+          {/* ✅ Show txn and amount from router.query */}
           <p className="text-md mt-4 mb-3 text-black font-semibold">
-            <strong>Policy Number:</strong>
+            <strong>Transaction ID:</strong>
             <br />
-            {policyData.policy}
+            {txn}
           </p>
 
-          <a
-            href={policyData.policyURL}
-            className="thmbtn text-white font-semibold py-3 rounded-md flex items-center justify-center gap-2"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <i className="fas fa-download mr-2"></i>
-            Download Policy
-          </a>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <span className="bg-green-100 text-green-800 px-4 py-2 rounded-md font-semibold">
+              Amount: ₹{amt}
+            </span>
+            <button
+              onClick={handleGoBack}
+              className="thmbtn text-white font-semibold py-3 px-6 rounded-md"
+            >
+              Go Back
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="text-center text-red-500">
-          Policy data not found.
-        </div>
+        <div className="text-center text-red-500">Transaction failed or data not found.</div>
       )}
     </div>
   );

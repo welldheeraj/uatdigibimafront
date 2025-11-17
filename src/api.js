@@ -8,11 +8,15 @@ export async function CallApi(url, method = "POST", data = null) {
   //let userid = await getDBData("userid");
   // let token = await getDBToken("token");
   //  console.log( await getDBToken("token"));
+  const deviceId = await getDeviceId();
+  console.log("call api se phle device id", deviceId);
+  //  return false;
   let options = {
     method,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      "X-Device-Id": deviceId,
     },
   };
   if (data) {
@@ -90,4 +94,10 @@ export async function clearDBData() {
 }
 export async function isAuth() {
   return localStorage.getItem("token") ? true : false;
+}
+async function getDeviceId() {
+  const raw = await getDBData("deviceid");
+
+  // aapke case me value array ho sakti hai: ["1234567890"]
+  return Array.isArray(raw) ? raw[0] : raw || null;
 }

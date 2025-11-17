@@ -39,7 +39,6 @@ const constant = {
           VENDOR: {
             100: "/health/vendors/caresupereme/checkout",
             102: "/health/vendors/ultimatecare/checkout",
-            101: "/health/vendors/Godigits/checkout",
             106: "/health/vendors/bajaj/checkout",
           },
         },
@@ -54,6 +53,12 @@ const constant = {
         
         SHRIRAM: {
           SHRIRAMJOURNEY: "/motor/car/vendor/shriram/journey",
+        },
+        GODIGIT: {
+          SHRIRAMJOURNEY: "/motor/car/vendor/godigit/journey",
+        },
+        ZUNO: {
+          SHRIRAMJOURNEY: "/motor/car/vendor/zuno/journey",
         },
       },
 
@@ -70,10 +75,16 @@ const constant = {
       VENDOR :{
       CAR: {
         101: "/motor/car/vendor/shriram/journey",
+        103: "/motor/car/vendor/godigit/journey",
+        107: "/motor/car/vendor/zuno/journey",
         // Add other car vendors 
+
       },
       BIKE: {
         101: "/motor/bike/vendor/shriram/journey",
+        103: "/motor/bike/vendor/godigit/journey",
+        105: "/motor/bike/vendor/bajaj/journey",
+        
         // Add other bike vendors 
       },
     },
@@ -95,10 +106,11 @@ const constant = {
     HEALTH: {
       SENDOTP: "/api/sendotp",
       VERIFYOTP: "/api/verifyotp",
+      REVERIFYOTP: "/api/relogin",
       PINCODE: "/api/acpincode",
       
        PLANTYPE: "/api/plantype",
-      GETPLANTYPE: "/api/getplantype",
+       GETPLANTYPE: "/api/getplantype",
       INSUREVIEW: "/api/insureview",
       GETINSURE: "/api/getinsureinfo",
       ILLNESS: "/api/illnesses",
@@ -137,14 +149,14 @@ const constant = {
         CREATEPOLICY: "/api/health-ultimatecare/createpolicy",
         GETPROPOSAL: "/api/health-ultimatecare/payment",
       },
-       BAJAJ: {
+      BAJAJ: {
         CHECKOUT: "/api/bajaj-myhealthcare/addon",
         SETPREMIUM: "/api/bajaj-myhealthcare/setpremium",
         PlANCHECKOUT: "/api/bajaj-myhealthcare/plancheckout",
         ADDADDONS: "/api/bajaj-myhealthcare/addaddon",
         IDENTITYVERIFY: "/api/bajaj-myhealthcare/validateckycdetails",
         PANVERIFY: "/api/health-ultimatecare/verifypan",
-        UPLOADDOCUMENT: "/api/health-ultimatecare/uploadfile",
+        UPLOADDOCUMENT: "/api/bajaj-myhealthcare/uploadfile",
         AADHARVERIFY: "/api/verifyadhar",
         SAVESTEPONE: "/api/bajaj-myhealthcare/proposalStepOne",
         SAVESTEPTWO: "/api/bajaj-myhealthcare/proposalStepTwo",
@@ -185,6 +197,18 @@ const constant = {
           SAVESTEPTWO: "/api/motor-car-shriram/savesteptwo",
           SAVESTEPTHREE: "/api/motor-car-shriram/savestepthree",
         },
+        ZUNO: {
+          SAVEDATA: "/api/motor-car-zuno/journey",
+          UPLOADDOCUMENT: "/api/motor-car-zuno/uploadfile",
+          SAVESTEPONE: "/api/motor-car-zuno/savestepone",
+          SAVESTEPTWO: "/api/motor-car-shriram/savesteptwo",
+          SAVESTEPTHREE: "/api/motor-car-shriram/savestepthree",
+        },
+        GODIGIT: {
+          SAVEDATA: "/api/motor-car-godigit/journey",
+          UPLOADDOCUMENT: "/api/motor-car-shriram/uploadfile",
+          SAVESTEPONE: "/api/motor-car-godigit/savestepone",
+        },
       },
 
        BIKE: {
@@ -205,6 +229,18 @@ const constant = {
           SAVEDATA: "/api/motor-bike-shriram/bike-journey",
           UPLOADDOCUMENT: "/api/motor-car-shriram/uploadfile",
           SAVESTEPONE: "/api/motor-bike-shriram/bikestepone",
+         
+        },
+         GODIGIT: {
+          SAVEDATA: "/api/motor-bike-godigit/bike-journey",
+          UPLOADDOCUMENT: "/api/motor-car-shriram/uploadfile",
+          SAVESTEPONE: "/api/motor-bike-shriram/bikestepone",
+         
+        },
+         BAJAJ: {
+          SAVEDATA: "/api/motor-bike-bajaj/journey",
+          UPLOADDOCUMENT: "/api/motor-bike-bajaj/uploadfile",
+          SAVESTEPONE: "/api/motor-bike-bajaj/savestepone",
          
         },
        
@@ -244,8 +280,7 @@ const constant = {
        RECYCLEBIN: "/api/adminpnlx/recycle-bin",
     },
   },
-
-   DBSTORE:{
+  DBSTORE:{
      HEALTH: {
       INSURE:"healthinsuredata",
       PLANS:{
@@ -255,10 +290,26 @@ const constant = {
       CARE:{
         CARECHECKOUTDATA:"CarecheckoutData",
         CARECHECKOUTTENUREDATA:"CarecheckouttenureData",
+      },
+      ULTIMATE:{
+        ULTIMATECHECKOUTDATA:"ultimatecheckoutData",
+        ULTIMATECHECKOUTTENUREDATA:"ultimatecheckouttenureData",
+      },
+      BAJAJ:{
+         BAJAJCHECKOUTDATA:"bajajcheckoutData",
+        BAJAJCHECKOUTTENUREDATA:"bajajcheckouttenureData",
+        TENURETXN:"tenureTxn",
       }
-     }
+     },
+      MOTOR: {
+      CAR:{
+        PLANS:{
+        MOTORPLANDATA:"motorcarplandata",
+        MOTORPLANVENDOR:"motorcarplanvendor",
+      },
+      }
+    }
   },
-  
   QUESTION: {
     CAREDISEASE: {
       11: "Cancer or Tumor of any kind?",

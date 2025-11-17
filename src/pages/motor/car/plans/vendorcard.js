@@ -39,13 +39,13 @@ export default function VendorCard({
       <div className="w-full h-full min-h-[310px] bg-white rounded-3xl shadow-xl p-5 relative overflow-hidden hover:transition-transform duration-300 group">
         {/* Logo and Title */}
         <div className="flex flex-col items-center text-center gap-3 mt-2">
-          <div className="w-28 h-25 rounded-xl bg-gradient-to-br from-white via-blue-50 to-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden hover:shadow-lg transition-all duration-300">
+          <div className="w-28 h-20 rounded-xl bg-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden">
             <Image
               src={`${constant.BASE_URL}/front/logo/${data.logo}` || ""}
               alt={data.title}
-              width={80}
-              height={40}
-              className="h-auto w-[100%] object-contain"
+              width={112}
+              height={80}
+              className="w-full h-full object-cover"
             />
           </div>
 

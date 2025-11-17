@@ -259,6 +259,7 @@ export function VendorAddonModal({
   selectedPlan,
   fullAddonsName,
 }) {
+  console.log(selectedPlan)
   // Addons key detect
   const addonKeys = ["selectedaddon", "tpselectedaddon", "odselectedaddon"];
   const currentAddonKey = addonKeys.find((key) => selectedPlan?.addons?.[key]);

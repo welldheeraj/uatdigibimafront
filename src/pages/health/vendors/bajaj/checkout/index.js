@@ -9,7 +9,7 @@ import AddOnSelection from "./addonselection";
 import MemberDetails from "./editmember";
 import SummaryCard from "./rightsection";
 import SlidePanel from "../../../sidebar/index";
-import { CallApi } from "../../../../../api";
+import { CallApi, storeDBData } from "../../../../../api";
 import constant from "../../../../../env";
 
 export default function ProposalUI() {
@@ -18,6 +18,7 @@ export default function ProposalUI() {
   const [addons, setAddons] = useState({});
   const [addonsDes, setAddonsDes] = useState({});
   const [selectedAddons, setSelectedAddons] = useState([]);
+  const [defaultAddons, setDefaultAddons] = useState([]);
   const [fullAddonsName, setFullAddonsName] = useState({});
   const [compulsoryAddons, setCompulsoryAddons] = useState([]);
   const [coverageOptions, setCoverageOptions] = useState([]);
@@ -25,6 +26,7 @@ export default function ProposalUI() {
   const [tenureOptions, setTenureOptions] = useState([]);
   const [tenure, setTenure] = useState("");
   const [tenurePrices, setTenurePrices] = useState({});
+  const [tenuretxn, setTenureTxn] = useState([]);
   const [totalPremium, setTotalPremium] = useState("");
   const [insurers, setInsurers] = useState([]);
   const [childList, setChildList] = useState([]);
@@ -39,6 +41,9 @@ export default function ProposalUI() {
   useEffect(() => {
     fetchCheckoutData();
   }, []);
+  useEffect(() => {
+    console.log(tenuretxn);
+  }, [tenuretxn]);
 
   const fetchCheckoutData = () => {
     setLoading(true);
@@ -46,6 +51,7 @@ export default function ProposalUI() {
       .then((res) => {
         console.log(res);
         setSelectedAddons(res.selected_addon || []);
+        setDefaultAddons(res.default_addon || []);
         setAddons(res["addOn_Value"] || {});
         setFullAddonsName(res.addonname || {});
         setAddonsDes(res.addondes || {});
@@ -72,38 +78,52 @@ export default function ProposalUI() {
     if (!coverAmount || tenureOptions.length === 0) return;
 
     const fetchPrices = async () => {
-      const newPrices = {};
-      for (const t of tenureOptions) {
-        try {
-          const res = await CallApi(
-            constant.API.HEALTH.BAJAJ.PlANCHECKOUT,
-            "POST",
-            { tenure: t, coverage: coverAmount }
-          );
-          console.log(res);
-          if (res?.data?.premium) newPrices[t] = res.data.premium;
-          if (res?.data?.transactionid) {
-            const existing =
-              JSON.parse(localStorage.getItem("transactions")) || [];
-            const newEntry = {
-              transactionid: res.data.transactionid,
-              tenure: res.data.tenure,
-            };
-            existing.push(newEntry);
-            localStorage.setItem("transactions", JSON.stringify(existing));
-          }
-          const allTransactions =
-            JSON.parse(localStorage.getItem("transactions")) || [];
-          console.log(allTransactions);
-        } catch (err) {
-          console.error("Price error:", err);
-        }
+  const newPrices = {};
+  const allTxnData = {};
+
+  for (const t of tenureOptions) {
+    try {
+      const res = await CallApi(
+        constant.API.HEALTH.BAJAJ.PlANCHECKOUT,
+        "POST",
+        { tenure: t, coverage: coverAmount }
+      );
+
+      if (res?.data) {
+        // Update UI progressively
+        setTenurePrices(prev => ({
+          ...prev,
+          [t]: res.data.premium,
+        }));
+
+        setTenureTxn(prev => ({
+          ...prev,
+          [t]: res.data,
+        }));
+
+        // Also maintain local copy for final DB store
+        newPrices[t] = res.data.premium;
+        allTxnData[t] = res.data;
       }
-      setTenurePrices(newPrices);
-    };
+    } catch (err) {
+      console.error("Price error:", err);
+    }
+  }
+
+  // After all responses are received, store in DB once
+  const updated = { ...tenuretxn, ...allTxnData };
+  await storeDBData(constant.DBSTORE.HEALTH.BAJAJ.TENURETXN, updated);
+  console.log(" TenureTxn saved successfully after all responses");
+
+  // optional: update local states once more to ensure sync
+  setTenurePrices(prev => ({ ...prev, ...newPrices }));
+  setTenureTxn(prev => ({ ...prev, ...allTxnData }));
+};
+
 
     fetchPrices();
   }, [coverAmount, tenureOptions]);
+  console.log(tenuretxn);
 
   const basePremium = tenurePrices[tenure] || 0;
   // const totalPremium =
@@ -165,6 +185,7 @@ export default function ProposalUI() {
             compulsoryAddons={compulsoryAddons}
             fullAddonsName={fullAddonsName}
             selectedAddons={selectedAddons}
+            defaultAddons={defaultAddons}
             getCheckoutData={fetchCheckoutData}
             setApplyClicked={setApplyClicked}
             setIsAddOnsModified={setIsAddOnsModified}
@@ -180,11 +201,13 @@ export default function ProposalUI() {
         {/* RIGHT */}
         <SummaryCard
           tenure={tenure}
+          tenuretxn={tenuretxn}
           tenurePrices={tenurePrices}
           coverAmount={coverAmount}
           compulsoryAddons={compulsoryAddons}
           fullAddonsName={fullAddonsName}
           selectedAddons={selectedAddons}
+          defaultAddons={defaultAddons}
           addons={addons}
           totalPremium={totalPremium}
           applyClicked={applyClicked}

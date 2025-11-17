@@ -11,7 +11,6 @@ export default function StepFourForm({
   onSubmitStep,
   totalPremium,
 }) {
-  console.log(stepthreedata)
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -24,47 +23,47 @@ export default function StepFourForm({
   const proposer = stepthreedata?.proposar || {};
   const members = stepthreedata?.insures || [];
   const nominee = stepthreedata?.nominee || {};
-  const ped = stepthreedata?.ped || [];
-  const lifestyle = stepthreedata?.lifestyle || [];
 
-  let parsedPed = [];
 
+  let pedData = [];
   try {
     stepthreedata?.insures?.forEach((member) => {
-      const raw = member?.ped || "[]";
-      let individualPed = [];
+      const memberPed = member?.ped || {};
+      Object.entries(memberPed).forEach(([key, value]) => {
+        const question =
+          constant.BAJAJQUESTION.HEALTH[key] ||
+          constant.BAJAJQUESTION.LIFESTYLE[key];
 
-      if (typeof raw === "string") {
-        individualPed = JSON.parse(raw);
-      } else if (Array.isArray(raw)) {
-        individualPed = raw;
-      }
-      individualPed.forEach((item) => {
-        parsedPed.push({
-          ...item,
-          name: member.name || "Unknown",
-        });
+        if (question) {
+   
+          const shortName = member.name?.split(" ")[0] || "Unknown";
+          pedData.push({
+            questionId: key,
+            questionLabel: question.label,
+            name: shortName,
+          });
+        }
       });
     });
   } catch (err) {
-    console.error("Invalid PED JSON:", err);
+    console.error("Invalid PED format:", err);
   }
 
-  const medicalHistory = parsedPed.filter(
-    (item) => item.did?.startsWith("1.") || item.did?.startsWith("2.")
+ 
+  const medicalHistory = pedData.filter((item) =>
+    constant.BAJAJQUESTION.HEALTH[item.questionId]
   );
-  const lifestyleHistory = parsedPed.filter((item) =>
-    item.did?.startsWith("3.")
+  const lifestyleHistory = pedData.filter((item) =>
+    constant.BAJAJQUESTION.LIFESTYLE[item.questionId]
   );
+
   return (
     <form
       onSubmit={(e) => e.preventDefault()}
       className="space-y-8 bg-[#f9fafb] p-4 sm:p-6 min-h-screen w-full"
     >
       <div className="max-w-5xl mx-auto space-y-10">
-        <h2 className="text-3xl font-bold text-gray-800">
-          📋 Proposal Summary
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-800">📋 Proposal Summary</h2>
 
         {/* Product Details */}
         <SectionCard title="Products Details" onEdit={() => handleEditStep(1)}>
@@ -79,12 +78,9 @@ export default function StepFourForm({
             <div className="flex-1">
               <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
                 My Health Care —{" "}
-                <span className="text-green-600 font-bold">
-                  ₹{totalPremium}
-                </span>{" "}
+                <span className="text-green-600 font-bold">₹{totalPremium}</span>{" "}
                 Coverage
               </h3>
-
               <button className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full text-sm shadow">
                 View All Benefits
               </button>
@@ -113,19 +109,19 @@ export default function StepFourForm({
         {/* Address */}
         <SectionCard title="Address" onEdit={() => handleEditStep(1)}>
           <p className="text-sm text-gray-600 mb-2">Permanent Address</p>
-         <div className="bg-gray-50 p-3 rounded-md border text-sm break-words whitespace-pre-wrap">
+          <div className="bg-gray-50 p-3 rounded-md border text-sm break-words whitespace-pre-wrap">
             {(() => {
               const addr = proposer.address || {};
-              const {address1,address2,landmark,city,state,pincode} = addr;
-              // return [address1,address2,landmark,city,state,pincode && `- ${pincode}`]
-              //   .filter(Boolean).join(", ") || "-";}
-              return addr}
-            )()}
+              const { address1, address2, landmark, city, state, pincode } = addr;
+              const formatted = [address1, address2, landmark, city, state, pincode]
+                .filter(Boolean)
+                .join(", ");
+              return formatted || "-";
+            })()}
           </div>
-
         </SectionCard>
 
-        {/* Insured Members */}
+    
         <SectionCard
           title="Insured Members Details"
           onEdit={() => handleEditStep(2)}
@@ -146,11 +142,7 @@ export default function StepFourForm({
           <Table
             headers={["Name", "Relation", "Nominee DOB"]}
             rows={[
-              [
-                nominee.name || "-",
-                nominee.relation || "-",
-                nominee.dob || "-",
-              ],
+              [nominee.name || "-", nominee.relation || "-", nominee.dob || "-"],
             ]}
           />
         </SectionCard>
@@ -159,81 +151,57 @@ export default function StepFourForm({
         <SectionCard title="Health Details" onEdit={() => handleEditStep(3)}>
           {/* Medical History */}
           <div>
-            <h4 className="font-semibold text-gray-800">Medical History</h4>
+            <h4 className="font-semibold text-gray-800 mb-2">Medical History</h4>
             {medicalHistory.length > 0 ? (
-              medicalHistory.map((item, i) => {
-                const questionId = item.did?.replace(".", "");
-                const questionText =
-                  constant.QUESTION.CAREDISEASE[questionId] ||
-                  "Unknown Question";
-                return (
-                  <div key={i} className="mb-4 overflow-x-auto">
-                    <p className="font-medium text-sm text-gray-700">
-                      {questionText}
-                    </p>
-                    <table className="w-full text-sm mt-2 border border-gray-200 min-w-[500px]">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="p-2 border">Patient Name</th>
-                          <th className="p-2 border">Date Of Disease</th>
-                          <th className="p-2 border">Description</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="p-2 border">
-                            {item.name || proposer.name || "N/A"}
-                          </td>
-                          <td className="p-2 border">{item.date || "N/A"}</td>
-                          <td className="p-2 border">{item.des || "N/A"}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })
+              <table className="w-full text-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-2 border w-16 text-center">Sr. No.</th>
+                    <th className="p-2 border">Question</th>
+                    <th className="p-2 border">Patient Name</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {medicalHistory.map((item, i) => (
+                    <tr key={i} className="border-t">
+                      <td className="p-2 border text-center">{i + 1}</td>
+                      <td className="p-2 border text-gray-800">
+                        {item.questionLabel}
+                      </td>
+                      <td className="p-2 border text-gray-800">{item.name}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             ) : (
               <p className="text-gray-500 italic">N/A</p>
             )}
           </div>
 
           {/* Lifestyle History */}
-          <div className="mt-6">
-            <h4 className="font-semibold text-gray-800">Lifestyle History</h4>
+          <div className="mt-8">
+            <h4 className="font-semibold text-gray-800 mb-2">Lifestyle History</h4>
             {lifestyleHistory.length > 0 ? (
-              lifestyleHistory.map((item, i) => {
-                const questionId = item.did?.replace(".", "");
-                const questionText =
-                  constant.QUESTION.LIFESTYLE[questionId] ||
-                  "Unknown Lifestyle Question";
-                return (
-                  <div key={i} className="mb-4 overflow-x-auto">
-                    <p className="font-medium text-sm text-gray-700">
-                      {questionText}
-                    </p>
-                    <table className="w-full text-sm mt-2 border border-gray-200 min-w-[500px]">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="p-2 border">Patient Name</th>
-                          <th className="p-2 border">Quantity</th>
-                          <th className="p-2 border">Date Of Disease</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="p-2 border">
-                            {item.name || proposer.name || "N/A"}
-                          </td>
-                          <td className="p-2 border">
-                            {item.quantity || "N/A"}
-                          </td>
-                          <td className="p-2 border">{item.date || "N/A"}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })
+              <table className="w-full text-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-2 border w-16 text-center">Sr. No.</th>
+                    <th className="p-2 border">Question</th>
+                    <th className="p-2 border">Patient Name</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lifestyleHistory.map((item, i) => (
+                    <tr key={i} className="border-t">
+                      <td className="p-2 border text-center">{i + 1}</td>
+                      <td className="p-2 border text-gray-800">
+                        {item.questionLabel}
+                      </td>
+                      <td className="p-2 border text-gray-800">{item.name}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             ) : (
               <p className="text-gray-500 italic">N/A</p>
             )}
@@ -243,6 +211,8 @@ export default function StepFourForm({
     </form>
   );
 }
+
+
 
 function SectionCard({ title, children, onEdit }) {
   return (

@@ -8,7 +8,8 @@ import constant from "../../env";
 import { isNumber } from "../../styles/js/validation";
 import Image from "next/image";
 import { healthTwo } from "@/images/Image";
-
+import Modal from "@/components/modal";
+import { deviceId } from "@/components/deviceid";
 export default function FormPage({ usersData }) {
   const {
     register,
@@ -40,6 +41,14 @@ export default function FormPage({ usersData }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const type = searchParams.get("type");
+
+    const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalOtpVisible, setModalOtpVisible] = useState(false);
+  const [modalMobile, setModalMobile] = useState("");
+const [modalOtp, setModalOtp] = useState("");
+
+
   useEffect(() => {
     const handleAuthChange = (event) => {
       const detail = event?.detail ?? null;
@@ -72,9 +81,11 @@ export default function FormPage({ usersData }) {
     const getToken = localStorage.getItem("token");
     //const getToken = await getDBData("token")
     if (type === "health" && getToken) {
+      deviceId(getToken)
       router.push(constant.ROUTES.HEALTH.INSURE);
     }
     if (type === "motor" && getToken) {
+      deviceId(getToken)
       router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
     }
     if (getToken) {
@@ -179,6 +190,7 @@ export default function FormPage({ usersData }) {
         sendotpdata
       );
       if (res.status) {
+        setOtp("");
         setOtpVisible(true);
         setTimer(30);
         showSuccess("OTP sent to your mobile");
@@ -251,10 +263,24 @@ export default function FormPage({ usersData }) {
     const res = await CallApi(constant.API.MOTOR.LOGIN, "POST", data);
 
     // ✅ Handle already logged-in condition
-    if (res.isloggedin) {
-      showError(res.message || "You are already logged in from another device.");
-      return; // Stop further execution
-    }
+   if (res?.isloggedin === true || res?.data?.isloggedin === true) {
+  const msg =
+    res?.message ||
+    res?.data?.message ||
+    "You are already logged in from another device.";
+
+  setModalMessage(msg);
+
+  // ✅ Reset modal state cleanly
+  setValue("mobile", "");
+  setOtp("");
+  setOtpVisible(false);
+  setTimer(0);
+
+  setModalOpen(true);
+  return;
+}
+
 
     if (!stoken) {
       localStorage.setItem("token", res.token);
@@ -269,6 +295,7 @@ export default function FormPage({ usersData }) {
     }
 
     showSuccess("Login successfully");
+    deviceId(localStorage.getItem("token"))
     router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
   } catch (error) {
     console.error("Submission Error:", error);
@@ -279,11 +306,26 @@ export default function FormPage({ usersData }) {
     const res = await CallApi(constant.API.HEALTH.INSUREVIEW, "POST", data);
     console.log(res);
 
-    // ✅ Handle already logged-in condition
-    if (res.isloggedin) {
-      showError(res.message || "You are already logged in from another device.");
-      return;
-    }
+
+   if (res?.isloggedin === true || res?.data?.isloggedin === true) {
+  const msg =
+    res?.message ||
+    res?.data?.message ||
+    "You are already logged in from another device.";
+
+  setModalMessage(msg);
+
+  // ✅ Reset modal state before showing
+  setValue("mobile", "");
+  setOtp("");
+  setOtpVisible(false);
+  setTimer(0);
+
+  console.log("Modal opening triggered ✅"); // debug check
+  setModalOpen(true);
+  return;
+}
+
 
     if (res.status) {
       localStorage.setItem("token", res.token);
@@ -303,6 +345,7 @@ export default function FormPage({ usersData }) {
 
     console.log(localStorage.getItem("token"));
     showSuccess(res.message);
+    deviceId(localStorage.getItem("token"))
     router.push(constant.ROUTES.HEALTH.INSURE);
   } catch (error) {
     console.error("Submission Error:", error);
@@ -312,7 +355,197 @@ export default function FormPage({ usersData }) {
 
   };
 
+
+  // Send OTP for re-login modal
+const sendModalOtp = async () => {
+  if (!modalMobile || modalMobile.length !== 10) {
+    showError("Please enter a valid 10-digit mobile number");
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const res = await CallApi(constant.API.HEALTH.SENDOTP, "POST", { mobile: modalMobile });
+    if (res.status) {
+      setModalOtp("");
+      setModalOtpVisible(true);
+      setTimer(30);
+      showSuccess("OTP sent to your mobile");
+    } else {
+      showError(res.message || "OTP not sent");
+    }
+  } catch (error) {
+    showError(error.message || "Something went wrong");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Verify OTP for re-login modal
+const verifyModalOtp = async () => {
+  if (!modalOtp || modalOtp.length !== 6) {
+    showError("Please enter a valid 6-digit OTP");
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const res = await CallApi(constant.API.HEALTH.REVERIFYOTP, "POST", {
+      mobile: modalMobile,
+      otp: modalOtp,
+    });
+
+    if (res.status) {
+      showSuccess("Re-login successful!");
+      setModalOpen(false);
+      setModalOtpVisible(false);
+
+      if (res.token) {
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("logintype", "user");
+        setToken(res.token);
+        window.dispatchEvent(
+          new CustomEvent("auth-change", {
+            detail: { username: name || "", token: res.token },
+          })
+        );
+      }
+
+      if (type === "health"){
+        deviceId(localStorage.getItem("token"))
+ router.push(constant.ROUTES.HEALTH.INSURE);
+      }
+      else if (type === "motor") {
+        deviceId(localStorage.getItem("token"))
+        router.push(constant.ROUTES.MOTOR.SELECTVEHICLE);
+      }
+    } else {
+      showError(res.message || "Invalid OTP, please try again");
+    }
+  } catch (error) {
+    showError(error.message || "Something went wrong during verification");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
   return (
+ <>
+    <Modal
+  isOpen={modalOpen}
+  onClose={() => {
+  setModalOpen(false);
+  setModalMobile("");
+  setModalOtp("");
+  setModalOtpVisible(false);
+}}
+
+  title="Re-login Required"
+  showConfirmButton={false}
+    width="max-w-md"
+>
+  <div className="flex flex-col gap-4">
+    <p className="text-gray-700 text-base">{modalMessage}</p>
+
+    {/* Mobile Input */}
+    <div>
+      <label className="text-sm font-semibold text-blue-900 mb-1 block">
+        Mobile Number
+      </label>
+      <div className="flex gap-2">
+       <input
+  type="tel"
+  maxLength={10}
+  placeholder="Enter Mobile Number"
+  value={modalMobile}
+  onChange={(e) => setModalMobile(e.target.value.replace(/\D/g, ""))}
+  className="inputcls"
+/>
+
+      <button
+  type="button"
+  onClick={async () => {
+  await sendModalOtp(); // separate API
+  setModalOtp("");
+  setModalOtpVisible(true);
+}}
+
+  disabled={modalMobile?.length !== 10 || isLoading || timer > 0}
+className={`px-6 py-2 text-sm rounded-full bg-[#7998F4] text-white font-medium whitespace-nowrap ${
+  modalMobile?.length === 10 && timer === 0
+    ? ""
+    : "opacity-40 cursor-not-allowed"
+}`}
+
+>
+  {timer > 0 ? "Resend" : "Send OTP"}
+</button>
+
+
+      </div>
+
+      {timer > 0 && (
+        <p className="text-sm text-red-600 mt-1">
+          You can resend OTP in 00:{timer.toString().padStart(2, "0")}
+        </p>
+      )}
+    </div>
+
+    {/* OTP Boxes */}
+ {modalOtpVisible && (
+  <div>
+    <label className="text-sm font-semibold text-blue-900 mb-1 block">
+      Enter OTP
+    </label>
+
+    <div className="flex justify-between gap-2 max-w-[240px]">
+      {[0, 1, 2, 3, 4, 5].map((index) => (
+        <input
+          key={index}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={modalOtp[index] || ""}
+          onChange={(e) => {
+            const val = e.target.value.replace(/\D/g, "");
+            if (!val && modalOtp[index] === "") return; // avoid flicker
+
+            // Fill OTP array with existing or empty chars
+            const newOtp = modalOtp.split("").concat(Array(6).fill(""));
+            newOtp[index] = val;
+            const otpValue = newOtp.slice(0, 6).join("");
+            setModalOtp(otpValue);
+
+            // Auto-focus next
+            if (val && e.target.nextSibling) e.target.nextSibling.focus();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Backspace" && !modalOtp[index] && e.target.previousSibling) {
+              e.target.previousSibling.focus();
+            }
+          }}
+          className="w-9 h-9 border border-gray-400 rounded text-center text-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      ))}
+    </div>
+
+    <button
+      type="button"
+      onClick={verifyModalOtp}
+      disabled={modalOtp.length !== 6 || isLoading}
+      className={`mt-4 px-4 py-2 rounded-full bg-[#7998F4] text-white text-sm font-semibold ${
+        modalOtp.length === 6 ? "" : "opacity-40 cursor-not-allowed"
+      }`}
+    >
+      {isLoading ? "Verifying..." : "Verify OTP"}
+    </button>
+  </div>
+)}
+
+  </div>
+</Modal>
+
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="bgcolor py-10 flex justify-center items-center min-h-screen"
@@ -538,5 +771,6 @@ export default function FormPage({ usersData }) {
         </div>
       </div>
     </form>
+ </>
   );
 }

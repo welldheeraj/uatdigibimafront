@@ -14,7 +14,7 @@ import { validateFields } from "@/styles/js/validation.js";
 import validateStepTwoData from "./validatesteptwoagedata.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
-import { CallApi } from "@/api";
+import { CallApi,getDBData } from "@/api";
 import { HealthLoaderOne } from "@/components/loader";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
@@ -35,6 +35,8 @@ export default function StepperForm({ usersData, kycData }) {
   const [totalPremium, setTotalPremium] = useState("");
   const [isCKYCHidden, setIsCKYCHidden] = useState(false);
   const [isOtherKycHidden, setIsOtherKycHidden] = useState(false);
+      const [tenureTxn, setTenureTxn] = useState(null);
+       const [finalTxn, setFinalTxn] = useState(null);
   const [quoteData, setQuoteData] = useState({
     totalpremium: "",
     basepremium: "",
@@ -95,7 +97,7 @@ export default function StepperForm({ usersData, kycData }) {
   };
 
   const validateFormStepOne = async () => {
-   step1Form.unregister("kycType");
+    step1Form.unregister("kycType");
     const rawValues = step1Form.getValues();
     console.log(rawValues)
 
@@ -103,7 +105,6 @@ export default function StepperForm({ usersData, kycData }) {
     //   showError("Please complete KYC verification before proceeding.");
     //   return false;
     // }
-
 
     const fieldsValid = await validateFields(step1Form);
     if (!fieldsValid) return false;
@@ -301,7 +302,8 @@ export default function StepperForm({ usersData, kycData }) {
       kycVerified,
       setVerifiedData,
       setIsCKYCHidden,
-      setIsOtherKycHidden
+      setIsOtherKycHidden,
+      finalTxn
     );
   };
 
@@ -323,6 +325,39 @@ export default function StepperForm({ usersData, kycData }) {
     if (quoteData.totalpremium) {
     }
   }, [quoteData]);
+
+
+  useEffect(() => {
+    const fetchFromDB = async () => {
+      try {
+        const data = await getDBData(constant.DBSTORE.HEALTH.BAJAJ.TENURETXN);
+        if (data) {
+          console.log("Retrieved from DB:", data);
+          setTenureTxn(data);
+        } else {
+          console.log("No data found for tenureTxn");
+        }
+      } catch (err) {
+        console.error("Error retrieving data:", err);
+      }
+    };
+
+    fetchFromDB();
+  }, []);
+
+  useEffect(() => {
+    if (!tenureTxn || !summaryData?.tenure) return;
+
+    const selectedTenure = String(summaryData.tenure); 
+    const txnObj = tenureTxn[selectedTenure]; 
+
+    if (txnObj) {
+      console.log("Found matching txn:", txnObj);
+      setFinalTxn(txnObj);
+    } else {
+      console.warn("No matching txn found for tenure:", selectedTenure);
+    }
+  }, [tenureTxn, summaryData]);
 
   return (
     <>
@@ -383,6 +418,7 @@ export default function StepperForm({ usersData, kycData }) {
                   <StepOneForm
                     step1Form={step1Form}
                     kycType={kycType}
+                    finalTxn={finalTxn}
                     setKycType={setKycType}
                     handleVerifyIdentity={handleVerifyIdentity}
                     handleVerifyOther={handleVerifyOther}
