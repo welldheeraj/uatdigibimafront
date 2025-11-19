@@ -74,55 +74,54 @@ export default function ProposalUI() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    if (!coverAmount || tenureOptions.length === 0) return;
+useEffect(() => {
+  if (!coverAmount || tenureOptions.length === 0) return;
 
-    const fetchPrices = async () => {
-  const newPrices = {};
-  const allTxnData = {};
+  const fetchPrices = async () => {
+    const newPrices = {};
+    const allTxnData = {};
 
-  for (const t of tenureOptions) {
-    try {
-      const res = await CallApi(
-        constant.API.HEALTH.BAJAJ.PlANCHECKOUT,
-        "POST",
-        { tenure: t, coverage: coverAmount }
-      );
+    for (const t of tenureOptions) {
+      try {
+        const res = await CallApi(
+          constant.API.HEALTH.BAJAJ.PlANCHECKOUT,
+          "POST",
+          { tenure: t, coverage: coverAmount }
+        );
 
-      if (res?.data) {
-        // Update UI progressively
-        setTenurePrices(prev => ({
-          ...prev,
-          [t]: res.data.premium,
-        }));
+        if (res?.data) {
+          setTenurePrices(prev => ({
+            ...prev,
+            [t]: res.data.premium,
+          }));
 
-        setTenureTxn(prev => ({
-          ...prev,
-          [t]: res.data,
-        }));
+          setTenureTxn(prev => ({
+            ...prev,
+            [t]: res.data,
+          }));
 
-        // Also maintain local copy for final DB store
-        newPrices[t] = res.data.premium;
-        allTxnData[t] = res.data;
+          newPrices[t] = res.data.premium;
+          allTxnData[t] = res.data;
+        }
+      } catch (err) {
+        console.error("Price error:", err);
       }
-    } catch (err) {
-      console.error("Price error:", err);
     }
-  }
 
-  // After all responses are received, store in DB once
-  const updated = { ...tenuretxn, ...allTxnData };
-  await storeDBData(constant.DBSTORE.HEALTH.BAJAJ.TENURETXN, updated);
-  console.log(" TenureTxn saved successfully after all responses");
+    setTenureTxn(prev => {
+      const updated = { ...prev, ...allTxnData };
+      storeDBData(constant.DBSTORE.HEALTH.BAJAJ.TENURETXN, updated);
+      return updated;
+    });
 
-  // optional: update local states once more to ensure sync
-  setTenurePrices(prev => ({ ...prev, ...newPrices }));
-  setTenureTxn(prev => ({ ...prev, ...allTxnData }));
-};
+    console.log("TenureTxn saved successfully after all responses");
 
+    setTenurePrices(prev => ({ ...prev, ...newPrices }));
+  };
 
-    fetchPrices();
-  }, [coverAmount, tenureOptions]);
+  fetchPrices();
+}, [coverAmount, tenureOptions]);
+
   console.log(tenuretxn);
 
   const basePremium = tenurePrices[tenure] || 0;

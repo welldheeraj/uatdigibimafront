@@ -128,7 +128,7 @@ export default function StepperForm({ usersData, kycData }) {
       setLoading(true);
 
       const res = await CallApi(
-        constant.API.MOTOR.BIKE.SHRIRAM.SAVESTEPONE,
+        constant.API.MOTOR.BIKE.BAJAJ.SAVESTEPONE,
         "POST",
         values
       );
@@ -178,7 +178,7 @@ export default function StepperForm({ usersData, kycData }) {
       setLoading(true);
 
       const res = await CallApi(
-        constant.API.MOTOR.BIKE.SHRIRAM.SAVESTEPONE,
+        constant.API.MOTOR.BIKE.BAJAJ.SAVESTEPONE,
         "POST",
         values
       );
@@ -210,7 +210,7 @@ export default function StepperForm({ usersData, kycData }) {
     setLoading(true);
     try {
       const res = await CallApi(
-        constant.API.MOTOR.BIKE.SHRIRAM.SAVESTEPONE,
+        constant.API.MOTOR.BIKE.BAJAJ.SAVESTEPONE,
         "POST",
         data
       );
@@ -378,7 +378,7 @@ const onSubmitStep = async () => {
     const fetchData = async () => {
       try {
         const res = await CallApi(
-          constant.API.MOTOR.BIKE.SHRIRAM.SAVEDATA,
+          constant.API.MOTOR.BIKE.BAJAJ.SAVEDATA,
           "GET"
         );
         if (res?.data?.details) {

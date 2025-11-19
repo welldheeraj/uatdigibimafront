@@ -7,20 +7,20 @@ import { FiTag } from "react-icons/fi";
 import Image from "next/image";
 
 export default function VendorCard({
-     data,
+  data,
   onAddonsClick,
   handlePlanSubmit,
   compared = false,
   disableCompare = false,
   onCompareChange = () => {},
   showCompare = true,
-  }) {
+}) {
   const [showModal, setShowModal] = useState(false);
   const [selectedPremiumData, setSelectedPremiumData] = useState([]);
 
   const router = useRouter();
 
- const handlePremium = () => {
+  const handlePremium = () => {
     const premium = data.premiumBackup || {};
     const premiumArray = Object.entries(premium).map(([key, value]) => ({
       label: key,
@@ -38,20 +38,16 @@ export default function VendorCard({
     <>
       {/* Card */}
       <div className="w-full h-full min-h-[310px] bg-white rounded-3xl shadow-xl p-5 relative overflow-hidden hover:transition-transform duration-300 group">
-     
         <div className="flex flex-col items-center text-center gap-3 mt-2">
-<div className="w-28 h-20 rounded-xl bg-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden">
-  <Image
-    src={`${constant.BASE_URL}/front/logo/${data.logo}` || ""}
-    alt={data.title}
-    width={112}   
-    height={80}   
-    className="w-full h-full object-contain"
-  />
-</div>
-
-
-
+          <div className="w-28 h-20 rounded-xl bg-white shadow-md border border-blue-100 flex items-center justify-center overflow-hidden">
+            <Image
+              src={`${constant.BASE_URL}/front/logo/${data.logo}` || ""}
+              alt={data.title}
+              width={112}
+              height={80}
+              className="w-full h-full object-cover"
+            />
+          </div>
 
           <h2 className="text-blue-900 font-bold text-lg tracking-wide capitalize">
             {data.title || "Unknown Vendor"}
@@ -93,7 +89,7 @@ export default function VendorCard({
               <input
                 id={compareId}
                 type="checkbox"
-                className="h-4 w-4 accent-indigo-600"
+                className="h-4 w-4 accent-pink-600 hover:accent-pink-600"
                 checked={!!compared}
                 disabled={disableCompare && !compared}
                 onChange={(e) => onCompareChange(e.target.checked)}
@@ -114,8 +110,7 @@ export default function VendorCard({
           )}
         </div>
 
-        {/* Glass bottom layer for depth */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-blue-50 via-white to-transparent rounded-b-3xl blur-[1px] opacity-60 pointer-events-none" />
+        
       </div>
 
       {/* Modal for Premium Backup */}

@@ -9,13 +9,25 @@ import AddOnSelection from "./addonselection";
 import MemberDetails from "./editmember";
 import SummaryCard from "./rightsection";
 import SlidePanel from "../sidebar/index";
-import { CallApi } from "../../../../../api";
+
+import {
+  CallApi,
+  getDBData,
+  storeDBData,
+  deleteDBData,
+} from "../../../../../api";
+
+import { isObjectDataChanged } from "@/pages/api/helpers";
+import { showError, showSuccess } from "@/layouts/toaster";
 import constant from "../../../../../env";
 
 export default function ProposalUI() {
   const router = useRouter();
 
+  // ================= STATES ===================
   const [loading, setLoading] = useState(true);
+  const [originalData, setOriginalData] = useState(null);
+
   const [addons, setAddons] = useState({});
   const [addonsDes, setAddonsDes] = useState({});
   const [selectedAddons, setSelectedAddons] = useState([]);
@@ -37,83 +49,208 @@ export default function ProposalUI() {
   const [applyClicked, setApplyClicked] = useState(false);
   const [isAddOnsModified, setIsAddOnsModified] = useState(false);
 
+  // ================= FETCH WITH DB STORE ===================
   useEffect(() => {
+    const fetchCheckoutData = async () => {
+      setLoading(true);
+
+      try {
+        const cached = await getDBData(
+          constant.DBSTORE.HEALTH.ULTIMATE.ULTIMATECHECKOUTDATA
+        );
+
+        if (cached) {
+          console.log("Using ULTIMATECHECKOUTDATA Cache");
+          populateData(cached);
+          setOriginalData(cached);
+          setLoading(false);
+          return;
+        }
+
+        console.log("No cache — calling API...");
+        const res = await CallApi(constant.API.HEALTH.ULTIMATECARE.CHECKOUT);
+
+        if (res) {
+          populateData(res);
+          setOriginalData(res);
+          await storeDBData(
+            constant.DBSTORE.HEALTH.ULTIMATE.ULTIMATECHECKOUTDATA,
+            res
+          );
+        }
+      } catch (err) {
+        console.error("Checkout error:", err);
+        showError("Failed to load checkout data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchCheckoutData();
   }, []);
 
-  const fetchCheckoutData = () => {
-    setLoading(true);
-    CallApi(constant.API.HEALTH.ULTIMATECARE.CHECKOUT)
-      .then((res) => {
-        setSelectedAddons(res.selected_addon || []);
-        setAddons(res.addOn_Value || {});
-        setFullAddonsName(res.addonname || {});
-        setAddonsDes(res.addondes || {});
-        setCompulsoryAddons(res.compulsoryaddon || []);
-        setCoverageOptions(res.coveragelist || []);
-        setCoverAmount(res.coverage || "");
-        setPincode(res.pincode || "");
-        setTotalPremium(res.totalamount || "");
-        setTenureOptions(res.tenureList || []);
-        setTenure(res.tenure || "");
-        setInsurers(res.aInsureData || []);
-        setChildList(res.child || []);
-        setGender(res.gender || "");
-        setKycRequired(res.kyc === "1");
-        const allMembers = res.aInsureData || [];
-        const memberCount = allMembers.length;
-        setMemberName(`Self(${memberCount})`);
-      })
-      .catch((err) => console.error("Checkout error:", err))
-      .finally(() => setLoading(false));
+  // ================= POPULATE STATE ===================
+  const populateData = (res) => {
+    setSelectedAddons(res.selected_addon || []);
+    setAddons(res.addOn_Value || {});
+    setFullAddonsName(res.addonname || {});
+    setAddonsDes(res.addondes || {});
+    setCompulsoryAddons(res.compulsoryaddon || []);
+    setCoverageOptions(res.coveragelist || []);
+    setCoverAmount(res.coverage || "");
+    setPincode(res.pincode || "");
+    setTotalPremium(res.totalamount || "");
+    setTenureOptions(res.tenureList || []);
+    setTenure(res.tenure || "");
+    setInsurers(res.aInsureData || []);
+    setChildList(res.child || []);
+    setGender(res.gender || "");
+    setKycRequired(res.kyc === "1");
+
+    const memberCount = (res.aInsureData || []).length;
+    setMemberName(`Self(${memberCount})`);
   };
 
+  // ================= TENURE PRICE CACHING ===================
   useEffect(() => {
     if (!coverAmount || tenureOptions.length === 0) return;
 
     const fetchPrices = async () => {
-      const newPrices = {};
-      for (const t of tenureOptions) {
-        try {
-          const res = await CallApi(
-            constant.API.HEALTH.ULTIMATECARE.PlANCHECKOUT,
-            "POST",
-            { tenure: t, coverage: coverAmount }
-          );
-          if (res?.data?.premium) newPrices[t] = res.data.premium;
-        } catch (err) {
-          console.error("Price error:", err);
+      const cacheKey =
+        constant.DBSTORE.HEALTH.ULTIMATE.ULTIMATECHECKOUTTENUREDATA;
+
+      try {
+        const cached = await getDBData(cacheKey);
+
+        if (
+          cached &&
+          cached.coverage === coverAmount &&
+          JSON.stringify(cached.tenureOptions) ===
+            JSON.stringify(tenureOptions)
+        ) {
+          console.log("Using Ultimate Tenure Cache");
+          setTenurePrices(cached.tenurePrices || {});
+          return;
         }
+
+        console.log("Fetching ULTIMATE tenure prices API...");
+        const newPrices = {};
+
+        for (const t of tenureOptions) {
+          try {
+            const res = await CallApi(
+              constant.API.HEALTH.ULTIMATECARE.PlANCHECKOUT,
+              "POST",
+              { tenure: t, coverage: coverAmount }
+            );
+
+            if (res?.data?.premium) {
+              newPrices[t] = res.data.premium;
+              setTenurePrices((prev) => ({
+                ...prev,
+                [t]: res.data.premium,
+              }));
+            }
+          } catch (err) {
+            console.error(`Price fetch error for ${t}:`, err);
+          }
+        }
+
+        await deleteDBData(cacheKey);
+        await storeDBData(cacheKey, {
+          coverage: coverAmount,
+          tenureOptions,
+          tenurePrices: newPrices,
+        });
+
+        // setTenurePrices(newPrices);
+      } catch (err) {
+        console.error("Plan price error:", err);
       }
-      setTenurePrices(newPrices);
     };
 
     fetchPrices();
   }, [coverAmount, tenureOptions]);
 
-  const basePremium = tenurePrices[tenure] || 0;
-  // const totalPremium =
-  //   basePremium
-  //  +
-  // Object.entries(addons)
-  //   .filter(([key]) => compulsoryAddons.includes(key))
-  // .reduce((sum, [, price]) => sum + (Number(price) || 0), 0);
-
-  const handleCoverageOrTenureChange = (type, value) => {
+  // ================= HANDLE COVERAGE / TENURE CHANGE ===================
+  const handleCoverageOrTenureChange = async (type, value) => {
     const updatedPayload =
       type === "coverage"
         ? { coverage: value }
         : { coverage: coverAmount, tenure: value };
 
-    if (type === "coverage") setCoverAmount(value);
-    else setTenure(value);
-    setLoading(true);
-    CallApi(constant.API.HEALTH.FILTERPLAN, "POST", updatedPayload)
-      .then(() => fetchCheckoutData())
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    const newState = {
+      ...originalData,
+      coverage: type === "coverage" ? value : coverAmount,
+      tenure: type === "tenure" ? value : tenure,
+    };
+
+    const changed = isObjectDataChanged(originalData, newState);
+
+    if (!changed) {
+      showSuccess("No changes detected");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await CallApi(constant.API.HEALTH.FILTERPLAN, "POST", updatedPayload);
+
+      const res = await CallApi(constant.API.HEALTH.ULTIMATECARE.CHECKOUT);
+
+      if (res) {
+        populateData(res);
+        setOriginalData(res);
+
+        await Promise.all([
+          deleteDBData(constant.DBSTORE.HEALTH.PLANS.HEALTHPLANDATA),
+          deleteDBData(constant.DBSTORE.HEALTH.PLANS.HEALTHPLANVENDOR),
+          deleteDBData(constant.DBSTORE.HEALTH.CARE.CARECHECKOUTDATA),
+          deleteDBData(constant.DBSTORE.HEALTH.ULTIMATE.ULTIMATECHECKOUTDATA),
+          deleteDBData(constant.DBSTORE.HEALTH.BAJAJ.BAJAJCHECKOUTDATA),
+          
+        ]);
+
+        await storeDBData(
+          constant.DBSTORE.HEALTH.ULTIMATE.ULTIMATECHECKOUTDATA,
+          res
+        );
+
+        showSuccess("Plan updated successfully!");
+      }
+    } catch (err) {
+      console.error("Plan update failed:", err);
+      showError("Failed to update plan.");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // ================= ADDONS REFRESH AFTER APPLY ===================
+  const refreshCheckoutData = async () => {
+    try {
+      const res = await CallApi(constant.API.HEALTH.ULTIMATECARE.CHECKOUT);
+
+      if (res) {
+        populateData(res);
+        setOriginalData(res);
+
+        await deleteDBData(
+          constant.DBSTORE.HEALTH.ULTIMATE.ULTIMATECHECKOUTDATA
+        );
+
+        await storeDBData(
+          constant.DBSTORE.HEALTH.ULTIMATE.ULTIMATECHECKOUTDATA,
+          res
+        );
+      }
+    } catch (err) {
+      console.error("Addons refresh error:", err);
+    }
+  };
+
+  // ================= UI ===================
   return (
     <div className="bgcolor min-h-screen px-3 sm:px-10 lg:px-20 py-6">
       <button
@@ -134,13 +271,17 @@ export default function ProposalUI() {
               handleCoverageOrTenureChange("coverage", val)
             }
             coverageOptions={coverageOptions}
+            isSkeletonLoading={loading}
           />
 
           <PolicyPeriodOptions
             tenureOptions={tenureOptions}
             tenure={tenure}
-            setTenure={(val) => handleCoverageOrTenureChange("tenure", val)}
+            setTenure={(val) =>
+              handleCoverageOrTenureChange("tenure", val)
+            }
             tenurePrices={tenurePrices}
+            isSkeletonLoading={loading}
           />
 
           <AddOnSelection
@@ -149,11 +290,10 @@ export default function ProposalUI() {
             compulsoryAddons={compulsoryAddons}
             fullAddonsName={fullAddonsName}
             selectedAddons={selectedAddons}
-            getCheckoutData={fetchCheckoutData}
+            getCheckoutData={refreshCheckoutData}
             setApplyClicked={setApplyClicked}
             setIsAddOnsModified={setIsAddOnsModified}
-            setLoading={setLoading}
-            loading={loading}
+            isSkeletonLoading={loading}
           />
 
           <MemberDetails

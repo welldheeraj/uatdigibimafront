@@ -7,15 +7,13 @@ import { CallApi } from "@/api";
 import constant from "@/env";
 import { Controller } from "react-hook-form";
 
-
 // --- helpers ---
 const normalizeRelation = (rel = "") => rel?.toLowerCase().trim();
-
 
 const getPrefixByRelation = (relation) => {
   const r = normalizeRelation(relation);
   if (r === "son" || r === "daughter") return "child";
-  if (r === "husband" || r === "wife") return "spouse"; // <-- important: unify
+  if (r === "husband" || r === "wife") return "spouse"; 
   return r || "";
 };
 
@@ -28,12 +26,11 @@ const isSpouseRel = (relation) => {
   return r === "husband" || r === "wife";
 };
 
-
 const titleByRelation = (relation) => {
   const r = normalizeRelation(relation);
   if (!r) return "";
   if (r === "husband") return "Husband";
-  if (r === "wife") return "Spouse"; 
+  if (r === "wife") return "Spouse";
   return r.charAt(0).toUpperCase() + r.slice(1);
 };
 
@@ -106,9 +103,7 @@ export default function StepTwoForm({
     setIsAutoFilled(true);
   }, [isAutoFilled, step2Form, steponedata, usersData]);
 
-
   const allMembers = steponedata?.members || [];
-
 
   const spouseMembers = allMembers.filter((m) =>
     ["wife", "husband"].includes(m.name?.toLowerCase())
@@ -124,22 +119,22 @@ export default function StepTwoForm({
   );
 
   // Final members order
-  const orderedMembers = [...spouseMembers, ...childrenMembers, ...otherMembers];
+  const orderedMembers = [
+    ...spouseMembers,
+    ...childrenMembers,
+    ...otherMembers,
+  ];
 
   let childCount = 1;
-
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (isAutoFilled) return;
 
-        const res = await CallApi(
-          constant.API.HEALTH.BAJAJ.SAVESTEPTWO,
-          "GET"
-        );
+        const res = await CallApi(constant.API.HEALTH.BAJAJ.SAVESTEPTWO, "GET");
         const savedData = res.data || [];
-        console.log("hello world",res.occupationlist)
+        console.log("hello world", res.occupationlist);
         setOccupationList(res.occupationlist || {});
 
         // BANK
@@ -210,69 +205,68 @@ export default function StepTwoForm({
     fetchData();
   }, [isAutoFilled, step2Form]);
 
-/** Prefill members from API into form fields (ONLY for members present in Step One) */
-useEffect(() => {
-  if (!apiMembers || !apiMembers.length) return;
+  /** Prefill members from API into form fields (ONLY for members present in Step One) */
+  useEffect(() => {
+    if (!apiMembers || !apiMembers.length) return;
 
-  // 1) Build allow-lists from Step One rendered members
-  const namesFromStepOne = (steponedata?.members || []).map((m) =>
-    normalizeRelation(m?.name)
-  );
+    // 1) Build allow-lists from Step One rendered members
+    const namesFromStepOne = (steponedata?.members || []).map((m) =>
+      normalizeRelation(m?.name)
+    );
 
-  const allowedNames = new Set(namesFromStepOne); // e.g., 'wife', 'son', 'father', etc.
-  const allowSpouse =
-    allowedNames.has("husband") || allowedNames.has("wife"); // spouse fields only if rendered
+    const allowedNames = new Set(namesFromStepOne); // e.g., 'wife', 'son', 'father', etc.
+    const allowSpouse = allowedNames.has("husband") || allowedNames.has("wife"); // spouse fields only if rendered
 
-  const allowedChildSlots = namesFromStepOne.filter(
-    (n) => n === "son" || n === "daughter"
-  ).length; // how many child blocks rendered
+    const allowedChildSlots = namesFromStepOne.filter(
+      (n) => n === "son" || n === "daughter"
+    ).length; // how many child blocks rendered
 
-  let childCountUsed = 0; // do not exceed rendered child slots
+    let childCountUsed = 0; // do not exceed rendered child slots
 
-  // 2) Fill ONLY allowed members
-  apiMembers.forEach((apiMember) => {
-    const relation = normalizeRelation(apiMember?.relation);
-    if (!relation || relation === "self" || relation.includes("nominee")) return;
+    // 2) Fill ONLY allowed members
+    apiMembers.forEach((apiMember) => {
+      const relation = normalizeRelation(apiMember?.relation);
+      if (!relation || relation === "self" || relation.includes("nominee"))
+        return;
 
-    // Skip if this relation is NOT rendered in Step One UI
-    if (isSpouseRel(relation) && !allowSpouse) return;
+      // Skip if this relation is NOT rendered in Step One UI
+      if (isSpouseRel(relation) && !allowSpouse) return;
 
-    if (isChildRel(relation)) {
-      // respect the number of child blocks created by Step One
-      if (childCountUsed >= allowedChildSlots) return;
-      childCountUsed += 1;
-    } else {
-      // e.g. father/mother/brother must exist in Step One list to be filled
-      if (!allowedNames.has(relation)) return;
-    }
+      if (isChildRel(relation)) {
+        // respect the number of child blocks created by Step One
+        if (childCountUsed >= allowedChildSlots) return;
+        childCountUsed += 1;
+      } else {
+        // e.g. father/mother/brother must exist in Step One list to be filled
+        if (!allowedNames.has(relation)) return;
+      }
 
-    const prefix = getPrefixByRelation(relation); // 'spouse' | 'child' | 'father' ...
-    const suffix = isChildRel(relation) ? String(childCountUsed) : "";
-    const dobField = suffix ? `${prefix}dob${suffix}` : `${prefix}dob`;
+      const prefix = getPrefixByRelation(relation); // 'spouse' | 'child' | 'father' ...
+      const suffix = isChildRel(relation) ? String(childCountUsed) : "";
+      const dobField = suffix ? `${prefix}dob${suffix}` : `${prefix}dob`;
 
-    step2Form.setValue(`${prefix}name${suffix}`, apiMember?.name || "");
-    step2Form.setValue(`${prefix}height${suffix}`, apiMember?.height || "");
-    step2Form.setValue(`${prefix}inches${suffix}`, apiMember?.inch || "");
-    step2Form.setValue(`${prefix}weight${suffix}`, apiMember?.weight || "");
+      step2Form.setValue(`${prefix}name${suffix}`, apiMember?.name || "");
+      step2Form.setValue(`${prefix}height${suffix}`, apiMember?.height || "");
+      step2Form.setValue(`${prefix}inches${suffix}`, apiMember?.inch || "");
+      step2Form.setValue(`${prefix}weight${suffix}`, apiMember?.weight || "");
 
-    if (!isChildRel(relation)) {
-      step2Form.setValue(
-        `${prefix}occupation${suffix}`,
-        apiMember?.gender === "MALE" ? "Salaried" : "Unemployed"
-      );
-    }
+      if (!isChildRel(relation)) {
+        step2Form.setValue(
+          `${prefix}occupation${suffix}`,
+          apiMember?.gender === "MALE" ? "Salaried" : "Unemployed"
+        );
+      }
 
-    if (apiMember?.dob) {
-      step2Form.setValue(dobField, apiMember.dob, {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-      step2Form.clearErrors(dobField);
-    }
-  });
-}, [apiMembers, steponedata?.members, step2Form]);
-
+      if (apiMember?.dob) {
+        step2Form.setValue(dobField, apiMember.dob, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
+        step2Form.clearErrors(dobField);
+      }
+    });
+  }, [apiMembers, steponedata?.members, step2Form]);
 
   // Stale field errors clear
   useEffect(() => {
@@ -324,25 +318,22 @@ useEffect(() => {
           )}
         />
 
-<select
-  {...step2Form.register("proposeroccupation", {
-    required: "Please select an occupation",
-  })}
-  className={`${inputClass} max-h-10 overflow-y-auto`}
-  style={{ height: "auto" }}
->
-  <option value="" disabled selected>
-    Select Occupation
-  </option>
-  {Object.entries(occupationList).map(([key, value]) => (
-    <option key={key} value={key}>
-      {value}
-    </option>
-  ))}
-</select>
-
-
-
+        <select
+          {...step2Form.register("proposeroccupation", {
+            required: "Please select an occupation",
+          })}
+          className={`${inputClass} max-h-10 overflow-y-auto`}
+          style={{ height: "auto" }}
+        >
+          <option value="" disabled selected>
+            Select Occupation
+          </option>
+          {Object.entries(occupationList).map(([key, value]) => (
+            <option key={key} value={key}>
+              {value}
+            </option>
+          ))}
+        </select>
 
         <div className="flex gap-2">
           <input
@@ -383,10 +374,7 @@ useEffect(() => {
           placeholder="Monthly Incom"
           className={inputClass}
         />
-       
-       
       </div>
-     
 
       {/* MEMBERS SECTION */}
       {orderedMembers.map((member, index) => {
@@ -399,8 +387,16 @@ useEffect(() => {
         const dobFieldName = isChild ? `${prefix}dob${suffix}` : `${prefix}dob`;
 
         // UI-only dynamic labels
-        const spouseLabel = isSpouse ? (relation === "husband" ? "Husband" : "Spouse") : "";
-        const spouseKeyLabel = isSpouse ? (relation === "husband" ? "husband" : "spouse") : "";
+        const spouseLabel = isSpouse
+          ? relation === "husband"
+            ? "Husband"
+            : "Spouse"
+          : "";
+        const spouseKeyLabel = isSpouse
+          ? relation === "husband"
+            ? "husband"
+            : "spouse"
+          : "";
 
         return (
           <div key={index} className="mt-6">
@@ -412,7 +408,6 @@ useEffect(() => {
                 {...step2Form.register(
                   isChild ? `${prefix}name${suffix}` : `${prefix}name`,
                   {
-                    
                     required: isSpouse
                       ? `${spouseKeyLabel}name is required`
                       : "Name is required",
@@ -430,7 +425,6 @@ useEffect(() => {
                 control={step2Form.control}
                 name={dobFieldName}
                 rules={{
-              
                   required: isSpouse
                     ? `${spouseKeyLabel}dob is required`
                     : "Please select a valid date",
@@ -449,9 +443,10 @@ useEffect(() => {
                       if (date instanceof Date && !isNaN(date)) {
                         const formatted = format(date, "dd-MM-yyyy");
                         field.onChange(formatted);
-                        handleDateChange(`${prefix}${suffix}`, dobFieldName)(
-                          date
-                        );
+                        handleDateChange(
+                          `${prefix}${suffix}`,
+                          dobFieldName
+                        )(date);
                       }
                     }}
                     placeholder={
@@ -476,12 +471,12 @@ useEffect(() => {
                 </select>
               ) : isSpouse ? (
                 <select
-                    {...step2Form.register(`${prefix}occupation`, {
-                      required: `${spouseKeyLabel}occupation is required`,
-                    })}
-                    className={inputClass}
-                    style={{ height: "auto" }}
->
+                  {...step2Form.register(`${prefix}occupation`, {
+                    required: `${spouseKeyLabel}occupation is required`,
+                  })}
+                  className={inputClass}
+                  style={{ height: "auto" }}
+                >
                   <option value="" disabled selected>
                     Select Occupation
                   </option>
@@ -490,9 +485,7 @@ useEffect(() => {
                       {value}
                     </option>
                   ))}
-                  </select>
-
-
+                </select>
               ) : null}
 
               <div className="flex gap-2">
@@ -500,7 +493,6 @@ useEffect(() => {
                   {...step2Form.register(
                     isChild ? `${prefix}height${suffix}` : `${prefix}height`,
                     {
-                     
                       required: isSpouse
                         ? `${spouseKeyLabel}height is required`
                         : "Height (Feet) is required",
@@ -523,7 +515,6 @@ useEffect(() => {
                   {...step2Form.register(
                     isChild ? `${prefix}inches${suffix}` : `${prefix}inches`,
                     {
-                     
                       required: isSpouse
                         ? `${spouseKeyLabel}inches is required`
                         : "Height (Inches) is required",
@@ -550,7 +541,6 @@ useEffect(() => {
                 {...step2Form.register(
                   isChild ? `${prefix}weight${suffix}` : `${prefix}weight`,
                   {
-                   
                     required: isSpouse
                       ? `${spouseKeyLabel}weight is required`
                       : "Weight is required",

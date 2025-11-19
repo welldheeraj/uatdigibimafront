@@ -6,7 +6,11 @@ import Footer from "./partial/footer";
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect, React } from "react";
 import { Poppins } from "next/font/google";
-import CarInsuranceLoader, { BikeInsuranceLoader, HealthLoaderOne, DashboardLoader } from "@/components/loader";
+import CarInsuranceLoader, {
+  BikeInsuranceLoader,
+  HealthLoaderOne,
+  DashboardLoader,
+} from "@/components/loader";
 import { useRouter } from "next/router";
 import { VerifyToken } from "../api";
 import constant from "../env";
@@ -30,18 +34,24 @@ const poppins = Poppins({
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 2,        // 2 minutes fresh
-      cacheTime: 1000 * 60 * 30,       // 30 minutes cache
-      refetchOnWindowFocus: false,     // tab switch pe automatic refetch mat karo
-      refetchOnMount: false,           // component mount pe automatic refetch mat karo
-      retry: 1,                        // ek hi retry agar fail ho
-      keepPreviousData: true,          // purana data dikhe jab tak naya load ho
+      staleTime: 1000 * 60 * 2,
+      cacheTime: 1000 * 60 * 30,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      retry: 1,
+      keepPreviousData: true,
     },
   },
 });
 
 // public routes
-const PUBLIC_ROUTES = ["/", "/login?type=health", "/login?type=motor", "/login/mainlogin", "/adminpnlx"];
+const PUBLIC_ROUTES = [
+  "/",
+  "/login?type=health",
+  "/login?type=motor",
+  "/login/mainlogin",
+  "/adminpnlx",
+];
 
 export default function App({ Component, pageProps }) {
   const [token, setToken] = useState(null);
@@ -58,7 +68,10 @@ export default function App({ Component, pageProps }) {
     router.pathname.startsWith("/adminpnlx") ||
     router.pathname.startsWith("/dashboard");
 
-  const splitRoute = route.trim().split("/").filter((segment) => segment !== "")[0];
+  const splitRoute = route
+    .trim()
+    .split("/")
+    .filter((segment) => segment !== "")[0];
 
   // verify token
   useEffect(() => {
@@ -67,8 +80,10 @@ export default function App({ Component, pageProps }) {
       if (!storedToken) {
         setToken(null);
         setLoading(false);
-        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) router.push(constant.ROUTES.HEALTH.INDEX);
-        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) router.push(constant.ROUTES.MOTOR.INDEX);
+        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX)
+          router.push(constant.ROUTES.HEALTH.INDEX);
+        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX)
+          router.push(constant.ROUTES.MOTOR.INDEX);
         return;
       }
       try {
@@ -79,15 +94,19 @@ export default function App({ Component, pageProps }) {
         } else {
           localStorage.removeItem("token");
           setToken(null);
-          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) router.push(constant.ROUTES.HEALTH.INDEX);
-          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) router.push(constant.ROUTES.MOTOR.INDEX);
+          if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX)
+            router.push(constant.ROUTES.HEALTH.INDEX);
+          if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX)
+            router.push(constant.ROUTES.MOTOR.INDEX);
         }
       } catch (error) {
         console.error("Token verification failed:", error);
         localStorage.removeItem("token");
         setToken(null);
-        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX) router.push(constant.ROUTES.HEALTH.INDEX);
-        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX) router.push(constant.ROUTES.MOTOR.INDEX);
+        if ("/" + splitRoute === constant.ROUTES.HEALTH.INDEX)
+          router.push(constant.ROUTES.HEALTH.INDEX);
+        if ("/" + splitRoute === constant.ROUTES.MOTOR.INDEX)
+          router.push(constant.ROUTES.MOTOR.INDEX);
       } finally {
         setLoading(false);
       }
@@ -176,7 +195,13 @@ export default function App({ Component, pageProps }) {
 
   return (
     <div className={poppins.className}>
-      {!isDashboard && <Header token={token} username={userData?.name} setUsername={setUserData} />}
+      {!isDashboard && (
+        <Header
+          token={token}
+          username={userData?.name}
+          setUsername={setUserData}
+        />
+      )}
       {loading || pageLoading ? (
         renderLoader()
       ) : (
@@ -185,9 +210,13 @@ export default function App({ Component, pageProps }) {
             <Toaster />
             <UserContext.Provider value={{ userData, kycData, token }}>
               <ErrorBoundary>
-                <Component {...pageProps} usersData={userData} kycData={kycData} token={token} />
+                <Component
+                  {...pageProps}
+                  usersData={userData}
+                  kycData={kycData}
+                  token={token}
+                />
               </ErrorBoundary>
-              
             </UserContext.Provider>
             {!isDashboard && <Footer />}
           </PrimeReactProvider>

@@ -76,6 +76,7 @@ const constant = {
       CAR: {
         101: "/motor/car/vendor/shriram/journey",
         103: "/motor/car/vendor/godigit/journey",
+        105: "/motor/car/vendor/bajaj/journey",
         107: "/motor/car/vendor/zuno/journey",
         // Add other car vendors 
 
@@ -197,6 +198,13 @@ const constant = {
           SAVESTEPTWO: "/api/motor-car-shriram/savesteptwo",
           SAVESTEPTHREE: "/api/motor-car-shriram/savestepthree",
         },
+         BAJAJ: {
+         SAVEDATA: "/api/motor-car-bajaj/journey",
+           PANVERIFY: "/api/motor-car-bajaj/verifypan",
+          UPLOADDOCUMENT: "/api/motor-car-bajaj/uploadfile",
+          SAVESTEPONE: "/api/motor-car-bajaj/savestepone",
+         
+        },
         ZUNO: {
           SAVEDATA: "/api/motor-car-zuno/journey",
           UPLOADDOCUMENT: "/api/motor-car-zuno/uploadfile",
@@ -234,11 +242,13 @@ const constant = {
          GODIGIT: {
           SAVEDATA: "/api/motor-bike-godigit/bike-journey",
           UPLOADDOCUMENT: "/api/motor-car-shriram/uploadfile",
-          SAVESTEPONE: "/api/motor-bike-shriram/bikestepone",
+         SAVESTEPONE: "/api/motor-bike-godigit/savestepone",
+
          
         },
          BAJAJ: {
           SAVEDATA: "/api/motor-bike-bajaj/journey",
+           PANVERIFY: "/api/motor-bike-bajaj/verifypan",
           UPLOADDOCUMENT: "/api/motor-bike-bajaj/uploadfile",
           SAVESTEPONE: "/api/motor-bike-bajaj/savestepone",
          

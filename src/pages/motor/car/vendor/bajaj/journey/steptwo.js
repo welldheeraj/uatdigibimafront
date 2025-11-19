@@ -19,7 +19,6 @@ export default function StepTwoForm({
   bankdata,
   prevInsurdata,
 }) {
-  console.log(prevInsurdata)
   const [enabled, setEnabled] = useState(false);
   const [optionsChunk, setOptionsChunk] = useState([]);
   const [page, setPage] = useState(1);
@@ -99,8 +98,8 @@ export default function StepTwoForm({
       const start = 0;
       const end = page * CHUNK_SIZE;
       return bankdata.slice(0, end).map((bank) => ({
-        value: bank.id,
-        label: bank.FIN_NAME,
+        value: bank.Financial_Ins_code,
+        label: bank.Financial_Ins_Name,
       }));
     },
     [bankdata]
@@ -141,12 +140,31 @@ export default function StepTwoForm({
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="labelcls">Enter Bank/ Loan provider</label>
-            
-             <input
-              type="text"
-              placeholder="Bank Type"
-              {...register("bankloantype")}
-              className={inputClass}
+            <Controller
+              name="bankloantype"
+              control={control}
+              rules={{ required: "Please select a Bank Loan Type" }}
+              render={({ field, fieldState: { error } }) => (
+                <div>
+                  <WindowedSelect
+                    options={optionsChunk}
+                    value={optionsChunk.find(
+                      (opt) => opt.value === field.value
+                    )}
+                    onChange={(selected) =>
+                      field.onChange(selected?.value || "")
+                    }
+                    onMenuScrollToBottom={loadMoreOptions}
+                    placeholder="Select or type Bank"
+                    styles={{
+                      menu: (base) => ({ ...base, zIndex: 9999 }),
+                    }}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error.message}</p>
+                  )}
+                </div>
+              )}
             />
           </div>
           <div>
@@ -200,7 +218,7 @@ export default function StepTwoForm({
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="labelcls">Select Insurance</label>
-<Controller
+              <Controller
                 name="prevInsurance"
                 control={control}
                 rules={{ required: "Please select an insurance company" }}
@@ -212,8 +230,8 @@ export default function StepTwoForm({
                       options={
                         Array.isArray(prevInsurdata)
                           ? prevInsurdata.map((prevInsur) => ({
-                              value: prevInsur.Id,
-                              label: prevInsur.insurance,
+                              value: prevInsur.id,
+                              label: prevInsur.Company_Name,
                             }))
                           : []
                       }
@@ -230,7 +248,6 @@ export default function StepTwoForm({
                   </>
                 )}
               />
-
             </div>
             <div>
               <label className="labelcls">Policy Type</label>
@@ -320,7 +337,7 @@ export default function StepTwoForm({
                           Array.isArray(prevInsurdata)
                             ? prevInsurdata.map((prevInsur) => ({
                                 value: prevInsur.id,
-                                label: prevInsur.insurance,
+                                label: prevInsur.Company_Name,
                               }))
                             : []
                         }

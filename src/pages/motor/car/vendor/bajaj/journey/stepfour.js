@@ -6,15 +6,15 @@ import constant from "@/env";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function StepFourForm({
-    motortype,
+  motortype,
   stepthreedata,
   step4Form,
   onSubmitStep,
   totalPremium,
-
 }) {
   const { apiresponse, verify_details, proposal, paymentSummery } =
     stepthreedata || {};
+  console.log(paymentSummery);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -46,20 +46,20 @@ export default function StepFourForm({
       </div>
 
       {/*Vehicle Details */}
-     <SectionCard title="Vehicle Details">
-      {motortype !== "newcar" && verify_details?.make && (
-        <InfoRow label="Make" value={verify_details.make} />
-      )}
-      { verify_details?.model && (
-        <InfoRow label="Model" value={verify_details.model} />
-      )}
-      {motortype !== "newcar" && verify_details?.regdate && (
-        <InfoRow label="Registration Date" value={verify_details.regdate} />
-      )}
-      {verify_details?.idv && (
-        <InfoRow label="IDV" value={`₹ ${verify_details.idv}`} />
-      )}
-    </SectionCard>
+      <SectionCard title="Vehicle Details">
+        {motortype !== "newcar" && verify_details?.make && (
+          <InfoRow label="Make" value={verify_details.make} />
+        )}
+        {verify_details?.model && (
+          <InfoRow label="Model" value={verify_details.model} />
+        )}
+        {motortype !== "newcar" && verify_details?.regdate && (
+          <InfoRow label="Registration Date" value={verify_details.regdate} />
+        )}
+        {verify_details?.idv && (
+          <InfoRow label="IDV" value={`₹ ${verify_details.idv}`} />
+        )}
+      </SectionCard>
 
       {/*Policy Details */}
       <SectionCard title="Policy Details">
@@ -70,25 +70,29 @@ export default function StepFourForm({
 
       {/*Payment Summary */}
 
-<SectionCard title="Payment Summary">
-  {(paymentSummery || []).map((item, idx) => {
-    const label = item.CoverDesc;
-    const value = item.Premium;
-    const isTotal = label?.toLowerCase().includes("total") || 
-                    label?.toLowerCase().includes("final");
+      <SectionCard title="Payment Summary">
+        {paymentSummery &&
+          paymentSummery.length > 0 &&
+          Object.entries(paymentSummery[0]).map(([key, value]) => {
+            if (typeof value === "object") return null;
+            const label = key
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase());
 
-    return (
-      <InfoRow
-        key={idx}
-        label={label}
-        value={`₹ ${value}`}
-        isTotal={isTotal}
-      />
-    );
-  })}
-</SectionCard>
+            const isTotal =
+              key.toLowerCase().includes("totalpremium") ||
+              key.toLowerCase().includes("final");
 
-
+            return (
+              <InfoRow
+                key={key}
+                label={label}
+                value={`₹ ${parseFloat(value).toLocaleString("en-IN")}`}
+                isTotal={isTotal}
+              />
+            );
+          })}
+      </SectionCard>
     </div>
   );
 }
@@ -121,4 +125,3 @@ function InfoRow({ label, value, isTotal = false }) {
     </div>
   );
 }
-

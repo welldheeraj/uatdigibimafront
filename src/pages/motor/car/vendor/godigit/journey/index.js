@@ -8,7 +8,7 @@ import StepOneForm from "./stepone.js";
 import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
 import StepFourForm from "./stepfour.js";
-import VehicleCard from "../../../../vehicledetails/index.js";
+import VehicleCard from "./vehiclecard.js";
 import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "@/styles/js/validation.js";
 import constant from "@/env.js";
@@ -44,6 +44,9 @@ export default function StepperForm({ usersData, kycData }) {
   const [bankdata, setBankData] = useState([]);
   const [prevInsurdata, setPrevInsurData] = useState([]);
   const [motortype, setMotorType] = useState([]);
+
+
+  const [kycError, setKycError] = useState([]);
 
   const searchParams = useSearchParams();
   const summaryData = useMemo(() => {
@@ -144,6 +147,19 @@ export default function StepperForm({ usersData, kycData }) {
 
   const validateFormStepTwo = async () => {
     const values = step2Form.getValues();
+    console.log(motortype)
+     if (motortype === "newcar") {
+    step2Form.unregister("prevInsurance");
+    step2Form.unregister("policynumber");
+    // step2Form.unregister("policytype");
+    // step2Form.unregister("policyfdate");
+    // step2Form.unregister("policytodate");
+    // step2Form.unregister("tpprevInsurance");
+    // step2Form.unregister("tppolicynumber");
+    // step2Form.unregister("tppolicytype");
+    // step2Form.unregister("tppolicyfdate");
+    // step2Form.unregister("tppolicytodate");
+  }
     const fieldsValid = await validateFields(step2Form);
     if (!fieldsValid) return false;
 
@@ -215,6 +231,8 @@ setLoading(true);
         setStepThreeData(res.data);
         showSuccess("Step 3 saved successfully.");
         setLoading(false); 
+        console.log(res?.data?.kyc)
+        setKycError(res?.data?.kyc)
         return true;
       } else {
         if (errorDesc) {
@@ -529,6 +547,7 @@ setLoading(true);
                       totalPremium={totalPremium}
                       onGoToPayment={GoToPayment}
                       motortype={motortype}
+                    
                     />
                   )}
                 </div>
@@ -543,6 +562,7 @@ setLoading(true);
                   icon={<FaCar className="text-blue-600 text-xl" />}
                   currentStep={currentStep}
                   onGoToPayment={GoToPayment}
+                  kycError={kycError}
                 />
               )}
               </div>

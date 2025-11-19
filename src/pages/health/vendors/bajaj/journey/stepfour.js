@@ -23,39 +23,47 @@ export default function StepFourForm({
   const proposer = stepthreedata?.proposar || {};
   const members = stepthreedata?.insures || [];
   const nominee = stepthreedata?.nominee || {};
+  const pedArray = stepthreedata?.ped || [];
+
+
+  const PED_MAP = {};
+
+  Object.entries(constant.BAJAJQUESTION.HEALTH).forEach(([id, q]) => {
+    PED_MAP[q.name] = { ...q, id, type: "HEALTH" };
+  });
+
+  Object.entries(constant.BAJAJQUESTION.LIFESTYLE).forEach(([id, q]) => {
+    PED_MAP[q.name] = { ...q, id, type: "LIFESTYLE" };
+  });
 
 
   let pedData = [];
+
   try {
-    stepthreedata?.insures?.forEach((member) => {
-      const memberPed = member?.ped || {};
-      Object.entries(memberPed).forEach(([key, value]) => {
-        const question =
-          constant.BAJAJQUESTION.HEALTH[key] ||
-          constant.BAJAJQUESTION.LIFESTYLE[key];
+    pedArray.forEach((pedItem) => {
+      const pedObj = pedItem.data || {};
+
+      Object.entries(pedObj).forEach(([key, value]) => {
+        const question = PED_MAP[key];
 
         if (question) {
-   
-          const shortName = member.name?.split(" ")[0] || "Unknown";
+          const shortName = pedItem.name?.split(" ")[0] || "Unknown";
+
           pedData.push({
-            questionId: key,
+            questionId: question.id,
             questionLabel: question.label,
             name: shortName,
+            type: question.type,
           });
         }
       });
     });
   } catch (err) {
-    console.error("Invalid PED format:", err);
+    console.error("PED parsing error:", err);
   }
 
- 
-  const medicalHistory = pedData.filter((item) =>
-    constant.BAJAJQUESTION.HEALTH[item.questionId]
-  );
-  const lifestyleHistory = pedData.filter((item) =>
-    constant.BAJAJQUESTION.LIFESTYLE[item.questionId]
-  );
+  const medicalHistory = pedData.filter((i) => i.type === "HEALTH");
+  const lifestyleHistory = pedData.filter((i) => i.type === "LIFESTYLE");
 
   return (
     <form
@@ -65,7 +73,6 @@ export default function StepFourForm({
       <div className="max-w-5xl mx-auto space-y-10">
         <h2 className="text-3xl font-bold text-gray-800">📋 Proposal Summary</h2>
 
-        {/* Product Details */}
         <SectionCard title="Products Details" onEdit={() => handleEditStep(1)}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <Image
@@ -88,7 +95,7 @@ export default function StepFourForm({
           </div>
         </SectionCard>
 
-        {/* Proposer Details */}
+
         <SectionCard title="Proposer Details" onEdit={() => handleEditStep(1)}>
           <GridDetail
             items={[
@@ -106,22 +113,23 @@ export default function StepFourForm({
           />
         </SectionCard>
 
-        {/* Address */}
+  
         <SectionCard title="Address" onEdit={() => handleEditStep(1)}>
           <p className="text-sm text-gray-600 mb-2">Permanent Address</p>
           <div className="bg-gray-50 p-3 rounded-md border text-sm break-words whitespace-pre-wrap">
             {(() => {
               const addr = proposer.address || {};
-              const { address1, address2, landmark, city, state, pincode } = addr;
-              const formatted = [address1, address2, landmark, city, state, pincode]
-                .filter(Boolean)
-                .join(", ");
-              return formatted || "-";
+              // const { address1, address2, landmark, city, state, pincode } = addr;
+              // const formatted = [address1, address2, landmark, city, state, pincode]
+              //   .filter(Boolean)
+              //   .join(", ");
+              // return formatted || "-";
+              return addr || "-";
             })()}
           </div>
         </SectionCard>
 
-    
+       
         <SectionCard
           title="Insured Members Details"
           onEdit={() => handleEditStep(2)}
@@ -137,7 +145,7 @@ export default function StepFourForm({
           />
         </SectionCard>
 
-        {/* Nominee */}
+ 
         <SectionCard title="Nominee Details" onEdit={() => handleEditStep(2)}>
           <Table
             headers={["Name", "Relation", "Nominee DOB"]}
@@ -147,61 +155,37 @@ export default function StepFourForm({
           />
         </SectionCard>
 
-        {/* Health Details */}
+   
         <SectionCard title="Health Details" onEdit={() => handleEditStep(3)}>
-          {/* Medical History */}
+      
           <div>
             <h4 className="font-semibold text-gray-800 mb-2">Medical History</h4>
             {medicalHistory.length > 0 ? (
-              <table className="w-full text-sm border border-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="p-2 border w-16 text-center">Sr. No.</th>
-                    <th className="p-2 border">Question</th>
-                    <th className="p-2 border">Patient Name</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {medicalHistory.map((item, i) => (
-                    <tr key={i} className="border-t">
-                      <td className="p-2 border text-center">{i + 1}</td>
-                      <td className="p-2 border text-gray-800">
-                        {item.questionLabel}
-                      </td>
-                      <td className="p-2 border text-gray-800">{item.name}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table
+                headers={["Sr. No.", "Question", "Patient Name"]}
+                rows={medicalHistory.map((item, i) => [
+                  i + 1,
+                  item.questionLabel,
+                  item.name,
+                ])}
+              />
             ) : (
               <p className="text-gray-500 italic">N/A</p>
             )}
           </div>
 
-          {/* Lifestyle History */}
+      
           <div className="mt-8">
             <h4 className="font-semibold text-gray-800 mb-2">Lifestyle History</h4>
             {lifestyleHistory.length > 0 ? (
-              <table className="w-full text-sm border border-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="p-2 border w-16 text-center">Sr. No.</th>
-                    <th className="p-2 border">Question</th>
-                    <th className="p-2 border">Patient Name</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lifestyleHistory.map((item, i) => (
-                    <tr key={i} className="border-t">
-                      <td className="p-2 border text-center">{i + 1}</td>
-                      <td className="p-2 border text-gray-800">
-                        {item.questionLabel}
-                      </td>
-                      <td className="p-2 border text-gray-800">{item.name}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table
+                headers={["Sr. No.", "Question", "Patient Name"]}
+                rows={lifestyleHistory.map((item, i) => [
+                  i + 1,
+                  item.questionLabel,
+                  item.name,
+                ])}
+              />
             ) : (
               <p className="text-gray-500 italic">N/A</p>
             )}
@@ -211,7 +195,6 @@ export default function StepFourForm({
     </form>
   );
 }
-
 
 
 function SectionCard({ title, children, onEdit }) {

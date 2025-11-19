@@ -90,7 +90,7 @@ export default function VendorCard({
               <input
                 id={compareId}
                 type="checkbox"
-                className="h-4 w-4 accent-indigo-600"
+                className="h-4 w-4 accent-pink-600 hover:accent-pink-600"
                 checked={!!compared}
                 disabled={disableCompare && !compared}
                 onChange={(e) => onCompareChange(e.target.checked)}

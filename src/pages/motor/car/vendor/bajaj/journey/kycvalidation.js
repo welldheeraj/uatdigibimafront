@@ -17,29 +17,27 @@ export default async function validateKycStep(
   setIsAadharKycHidden,
   setIsOtherKycHidden
 ) {
-  // if (kycVerified) return true;
+  //  console.log(values)
   if (!kycType) return showError("Please select a KYC type."), false;
-
   try {
     let payload, res;
-
-    // PAN Verification
     if (kycType === "PAN Card") {
-      const { customerpancardno, customerpancardDob } = values;
-      if (!customerpancardno || !customerpancardDob)
+      const { pancardno, pancarddob } = values;
+      if (!pancardno || !pancarddob)
         return showError("PAN Number and DOB are required."), false;
 
       if (
-        !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(customerpancardno.trim().toUpperCase())
+        !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pancardno.trim().toUpperCase())
       )
         return showError("Invalid PAN number (e.g., ABCDE1234F)."), false;
 
       payload = {
-        customerpancardno,
-        customerpancardDob,
+        pancardno,
+        pancarddob,
       };
-
+      // console.log(payload)
       res = await CallApi(constant.API.HEALTH.PANVERIFY, "POST", payload);
+
       if (res?.status && res?.kyc === "1") {
         showSuccess("PAN verified");
         setKycVerified(true);
@@ -54,7 +52,9 @@ export default async function validateKycStep(
         return true;
       }
 
-      showError(res?.responseData?.message || "PAN verification failed");
+      showError(
+        res?.responseData?.message || res?.message || "PAN verification failed"
+      );
     }
 
     // Aadhar Verification
@@ -101,74 +101,57 @@ export default async function validateKycStep(
           res?.message ||
           "Aadhar verification failed"
       );
+      return false;
     }
 
     // Others Verification
-    else if (kycType === "Others") {
-      const {
-        identity,
-        address,
-        identityValue,
-        addressValue,
-        fatherName,
-        identityFile,
-        addressFile,
-        insurePhoto,
-      } = data;
+  else if (kycType === "Others") {
+  // match your actual field key exactly (usually lowercase)
+  const identity = data?.proofs?.identity?.type || data?.identity;
+  const identityfrontFile = data?.proofs?.identity?.frontFileObj || data?.identityfrontFile;
+  const identitybackFile  = data?.proofs?.identity?.backFileObj  || data?.identitybackFile;
 
-      if (
-        !identity ||
-        !address ||
-        !identityFile ||
-        !addressFile ||
-        !insurePhoto
-      ) {
-        showError("Missing fields or files.");
-        return false;
-      }
+  if (!identity || !identityfrontFile || !identitybackFile) {
+    showError("Missing fields or files.");
+    return false;
+  }
 
-      const formData = new FormData();
-      formData.append("identityfront", identityFile);
-      formData.append("addressfront", addressFile);
-      formData.append("insurephoto", insurePhoto);
+  const formData = new FormData();
+  formData.append("identityfront", identityfrontFile);
+  formData.append("identityback", identitybackFile);
+  formData.append("identitytypeproof", identity.toLowerCase());
 
-      formData.append("fathername", fatherName);
-      formData.append("identitytypeproof", identity.toLowerCase());
-      formData.append("addresstypeproof", address.toLowerCase());
+  // (Optional) Debug logs:
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+  // return false;
 
-      const identityValueKey = `identity${identity.toLowerCase()}number`;
-      const addressValueKey = `addresstype${address.toLowerCase()}number`;
+  try {
+    const res = await UploadDocument(
+      constant.API.MOTOR.CAR.ZUNO.UPLOADDOCUMENT,
+      "POST",
+      formData
+    );
 
-      formData.append(identityValueKey, identityValue);
-      formData.append(addressValueKey, addressValue);
-
-      for (let [key, value] of formData.entries()) {
-        // console.log(`${key}:`, value);
-      }
-      try {
-        const res = await UploadDocument(
-          constant.API.MOTOR.BIKE.BAJAJ.UPLOADDOCUMENT,
-          "POST",
-          formData
-        );
-
-        if (res?.status) {
-          showSuccess("Documents verified");
-          setKycVerified(true);
-          setVerifiedData?.({ kyctype: "o" });
-          setIsOtherKycHidden?.(true);
-          return true;
-        }
-
-        showError(res?.message || "Document verification failed");
-      } catch (err) {
-        console.error("Upload error:", err);
-        showError("Something went wrong during upload");
-      }
-
-      setKycVerified(false);
-      return false;
+    if (res?.status) {
+      showSuccess("Documents verified");
+      setKycVerified(true);
+      setVerifiedData?.({ kyctype: "o" });
+      setIsOtherKycHidden?.(true);
+      return true;
     }
+
+    showError(res?.message || "Document verification failed");
+  } catch (err) {
+    console.error("Upload error:", err);
+    showError("Something went wrong during upload");
+  }
+
+  setKycVerified(false);
+  return false;
+}
+
 
     setKycVerified(false);
     return false;

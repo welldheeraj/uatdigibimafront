@@ -1,7 +1,14 @@
 "use client";
-import { useForm, useWatch } from "react-hook-form";
-import { useState, useEffect } from "react";
-import { CallApi } from "../../../../../api";
+
+import { useState, useEffect, useMemo } from "react";   // <-- useMemo HERE
+import { useForm, useWatch } from "react-hook-form";   // <-- NOT here
+
+import {
+  CallApi,
+  deleteDBData,
+  storeDBData,
+  getDBData,
+} from "../../../../../api";
 import constant from "../../../../../env";
 import { showSuccess, showError } from "@/layouts/toaster";
 
@@ -14,17 +21,24 @@ export default function AddOnSelection({
   getCheckoutData,
   setApplyClicked,
   setIsAddOnsModified,
+     isSkeletonLoading = false,
 }) {
-  const normalizedAddons = Array.isArray(selectedAddons)
-    ? selectedAddons
-    : typeof selectedAddons === "string" && selectedAddons.startsWith("[")
-    ? JSON.parse(selectedAddons)
-    : Object.values(selectedAddons || {});
+  // ================= NORMALIZATION ====================
+  const normalizedAddons = useMemo(() => {
+    return Array.isArray(selectedAddons)
+      ? selectedAddons
+      : typeof selectedAddons === "string" && selectedAddons.startsWith("[")
+      ? JSON.parse(selectedAddons)
+      : Object.values(selectedAddons || {});
+  }, [selectedAddons]);
+
+
   const pedDefaultValue = normalizedAddons.includes("1")
     ? "1"
     : normalizedAddons.includes("2")
     ? "2"
     : "";
+
   const opdToken = (normalizedAddons || []).find((a) =>
     /^opd(500|5000)$/i.test(String(a))
   );
@@ -36,6 +50,7 @@ export default function AddOnSelection({
     : normalizedAddons.includes("5000")
     ? "5000"
     : "";
+
   const initialAddons = {};
   Object.keys(addons || {}).forEach((k) => {
     initialAddons[k] = normalizedAddons.includes(k);
@@ -44,6 +59,7 @@ export default function AddOnSelection({
   initialAddons.ped = normalizedAddons.includes("ped");
   initialAddons.opd = Boolean(opdToken) || normalizedAddons.includes("opd");
 
+  // ================= FORM ====================
   const { register, handleSubmit, control, setValue, reset } = useForm({
     defaultValues: {
       addons: initialAddons,
@@ -52,6 +68,7 @@ export default function AddOnSelection({
     },
   });
 
+  // ================= STATES ====================
   const [hasUserChanged, setHasUserChanged] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -60,45 +77,51 @@ export default function AddOnSelection({
     name: "addons.ped",
     defaultValue: initialAddons.ped,
   });
+
   const opdChecked = useWatch({
     control,
     name: "addons.opd",
     defaultValue: initialAddons.opd,
   });
-  const isPedSelected = !!pedChecked;
 
-  useEffect(() => {
-    const nextAddons = {};
-    Object.keys(addons || {}).forEach((k) => {
-      nextAddons[k] = normalizedAddons.includes(k);
-    });
-    nextAddons.ped = normalizedAddons.includes("ped");
-    const nextOpdToken = (normalizedAddons || []).find((a) =>
-      /^opd(500|5000)$/i.test(String(a))
-    );
-    nextAddons.opd = Boolean(nextOpdToken) || normalizedAddons.includes("opd");
+  // ================= RESET WHEN CHECKOUT UPDATED ====================
+useEffect(() => {
+  const nextAddons = {};
+  Object.keys(addons || {}).forEach((k) => {
+    nextAddons[k] = normalizedAddons.includes(k);
+  });
 
-    const nextPedVal = normalizedAddons.includes("1")
-      ? "1"
-      : normalizedAddons.includes("2")
-      ? "2"
-      : "";
+  nextAddons.ped = normalizedAddons.includes("ped");
 
-    const nextOpdVal = nextOpdToken
-      ? String(nextOpdToken).replace(/opd/i, "")
-      : normalizedAddons.includes("500")
-      ? "500"
-      : normalizedAddons.includes("5000")
-      ? "5000"
-      : "";
+  const nextOpdToken = (normalizedAddons || []).find((a) =>
+    /^opd(500|5000)$/i.test(String(a))
+  );
 
-    reset({
-      addons: nextAddons,
-      pedaddonvalue: nextPedVal,
-      opdaddonvalue: nextOpdVal,
-    });
-  }, [reset, addons, selectedAddons,normalizedAddons]);
+  nextAddons.opd = Boolean(nextOpdToken) || normalizedAddons.includes("opd");
 
+  const nextPedVal = normalizedAddons.includes("1")
+    ? "1"
+    : normalizedAddons.includes("2")
+    ? "2"
+    : "";
+
+  const nextOpdVal = nextOpdToken
+    ? String(nextOpdToken).replace(/opd/i, "")
+    : normalizedAddons.includes("500")
+    ? "500"
+    : normalizedAddons.includes("5000")
+    ? "5000"
+    : "";
+
+  reset({
+    addons: nextAddons,
+    pedaddonvalue: nextPedVal,
+    opdaddonvalue: nextOpdVal,
+  });
+}, [reset, addons, selectedAddons, normalizedAddons]);
+
+
+  // ================= SYNC PED/OPD WHEN NECESSARY ====================
   useEffect(() => {
     if (opdToken) {
       setValue("addons.opd", true, { shouldDirty: false });
@@ -106,15 +129,18 @@ export default function AddOnSelection({
         shouldDirty: false,
       });
     }
+
     if (normalizedAddons.includes("ped")) {
       setValue("addons.ped", true, { shouldDirty: false });
       setValue("pedaddonvalue", pedDefaultValue, { shouldDirty: false });
     }
   }, [opdToken, normalizedAddons, pedDefaultValue, setValue]);
 
+  // ================= APPLY ADDONS ====================
   const onSubmit = async (data) => {
     let selectedKeys = [];
     const addonsData = data.addons || {};
+
     const isPedChecked = addonsData.ped;
     const pedValue = data.pedaddonvalue;
 
@@ -133,10 +159,9 @@ export default function AddOnSelection({
     }
 
     if (isPedChecked) {
-      if (!pedValue) {
-        showError("Please select a value for PED Wait Period Modification.");
-        return;
-      }
+      if (!pedValue)
+        return showError("Please select a value for PED Wait Period Modification.");
+
       if (["1", "2"].includes(pedValue)) {
         selectedKeys.push("ped", pedValue);
       }
@@ -145,10 +170,8 @@ export default function AddOnSelection({
     }
 
     if (isOpdChecked) {
-      if (!opdValue) {
-        showError("Please select a value for OPD.");
-        return;
-      }
+      if (!opdValue) return showError("Please select a value for OPD.");
+
       if (["500", "5000"].includes(opdValue)) {
         selectedKeys.push(`opd${opdValue}`);
         selectedKeys = selectedKeys.filter(
@@ -166,16 +189,20 @@ export default function AddOnSelection({
 
     try {
       setLoading(true);
-      const payload = { addon: selectedKeys };
-      const response = await CallApi(
-        constant.API.HEALTH.ULTIMATECARE.ADDADDONS,
-        "POST",
-        payload
-      );
-      if (typeof setApplyClicked === "function") setApplyClicked(true);
-      if (typeof setIsAddOnsModified === "function") setIsAddOnsModified(false);
 
-      if (getCheckoutData) getCheckoutData();
+      const payload = { addon: selectedKeys };
+
+      await CallApi(constant.API.HEALTH.ULTIMATECARE.ADDADDONS, "POST", payload);
+
+      // ====== DB CLEAR AFTER ADDONS CHANGE ======
+      await deleteDBData(constant.DBSTORE.HEALTH.ULTIMATE.ULTIMATECHECKOUTDATA);
+
+      // ====== REFRESH CHECKOUT FROM API ======
+      if (getCheckoutData) await getCheckoutData();
+
+      setApplyClicked?.(true);
+      setIsAddOnsModified?.(false);
+
       showSuccess("Add-Ons applied successfully.");
       setHasUserChanged(false);
     } catch (error) {
@@ -186,60 +213,43 @@ export default function AddOnSelection({
     }
   };
 
+  // ================= UI BUILD ====================
   const optionalAddOns = Object.entries(addons).filter(
     ([key]) => !compulsoryAddons.includes(key)
   );
 
-  if (optionalAddOns.length === 0) {
+  if (isSkeletonLoading || optionalAddOns.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 px-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
+       <div className="flex justify-between items-center mb-4">
           <div>
             <div className="h-4 w-24 bg-gray-300 rounded animate-pulse mb-2" />
             <div className="h-3 w-72 bg-gray-200 rounded animate-pulse" />
           </div>
           <div className="h-8 w-20 bg-purple-200 rounded-full animate-pulse" />
         </div>
-
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="border rounded-2xl p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center animate-pulse"
-          >
-            <div className="flex-1 pr-4">
-              <div className="h-4 w-40 bg-gray-300 rounded mb-2" />
-              <div className="h-3 w-64 bg-gray-200 rounded" />
-            </div>
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-4 md:mt-0">
-              <div className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-xl min-w-[120px]">
-                <div className="h-10 w-16 bg-gray-300 rounded" />
-                <div className="h-4 w-4 bg-gray-300 rounded-full" />
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
     );
   }
 
-  const safeDesObj =
-    addonsDes && typeof addonsDes === "object" ? addonsDes : {};
+  const safeDesObj = addonsDes || {};
   const firstKey = optionalAddOns[0]?.[0];
+
   const headerDesc =
-    (firstKey &&
-      (safeDesObj[String(firstKey).toLowerCase()] ?? safeDesObj[firstKey])) ||
+    safeDesObj[String(firstKey).toLowerCase()] ||
+    safeDesObj[firstKey] ||
     "No description available.";
 
   return (
     <div className="bg-white rounded-xl p-4 px-6 mb-6">
       <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-semibold text-base mb-2">Add-On</h2>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {headerDesc}
-            </p>
+            <p className="text-sm text-gray-600">{headerDesc}</p>
           </div>
+
           <button
             type="submit"
             className="px-6 py-1 thmbtn flex items-center justify-center gap-2"
@@ -256,33 +266,31 @@ export default function AddOnSelection({
           </button>
         </div>
 
+        {/* Add On Rows */}
         {optionalAddOns.map(([key, price]) => {
           const lowerKey = String(key).toLowerCase();
           const isPED = lowerKey === "ped";
           const isOPD = lowerKey === "opd";
 
           const rowDesc =
-            safeDesObj[lowerKey] ??
-            safeDesObj[key] ??
-            "No description available.";
+            safeDesObj[lowerKey] || safeDesObj[key] || "No description available.";
 
           return (
             <div
               key={key}
               className="border rounded-2xl p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center"
             >
+              {/* Left description */}
               <div className="flex-1 pr-4">
                 <p className="font-semibold text-sm text-black mb-1">
                   {fullAddonsName[key] || key}
                 </p>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {rowDesc}
-                </p>
+                <p className="text-sm text-gray-600">{rowDesc}</p>
               </div>
 
+              {/* Right controls */}
               <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-4 md:mt-0">
                 <label className="flex items-center gap-2 px-4 py-3 border border-gray-400 rounded-xl min-w-[120px] cursor-pointer">
-                  {/* Premium box hide for PED & OPD */}
                   {!isPED && !isOPD && (
                     <div className="text-center leading-tight text-sm text-gray-800">
                       <p className="font-medium">Premium</p>
@@ -298,14 +306,13 @@ export default function AddOnSelection({
                     onChange={(e) => {
                       setValue(`addons.${key}`, e.target.checked);
                       setHasUserChanged(true);
-                      if (typeof setIsAddOnsModified === "function")
-                        setIsAddOnsModified(true);
-                      if (typeof setApplyClicked === "function")
-                        setApplyClicked(false);
+                      setIsAddOnsModified?.(true);
+                      setApplyClicked?.(false);
                     }}
                     className="accent-purple-500 w-4 h-4"
                   />
 
+                  {/* PED SELECT */}
                   {isPED && (
                     <select
                       {...register("pedaddonvalue")}
@@ -313,10 +320,8 @@ export default function AddOnSelection({
                       disabled={!pedChecked}
                       onChange={() => {
                         setHasUserChanged(true);
-                        if (typeof setIsAddOnsModified === "function")
-                          setIsAddOnsModified(true);
-                        if (typeof setApplyClicked === "function")
-                          setApplyClicked(false);
+                        setIsAddOnsModified?.(true);
+                        setApplyClicked?.(false);
                       }}
                     >
                       <option value="" disabled>
@@ -327,6 +332,7 @@ export default function AddOnSelection({
                     </select>
                   )}
 
+                  {/* OPD SELECT */}
                   {isOPD && (
                     <select
                       {...register("opdaddonvalue")}
@@ -334,10 +340,8 @@ export default function AddOnSelection({
                       disabled={!opdChecked}
                       onChange={() => {
                         setHasUserChanged(true);
-                        if (typeof setIsAddOnsModified === "function")
-                          setIsAddOnsModified(true);
-                        if (typeof setApplyClicked === "function")
-                          setApplyClicked(false);
+                        setIsAddOnsModified?.(true);
+                        setApplyClicked?.(false);
                       }}
                     >
                       <option value="" disabled>
@@ -353,6 +357,7 @@ export default function AddOnSelection({
           );
         })}
 
+        {/* Apply Button */}
         <div className="flex justify-end">
           <button
             type="submit"

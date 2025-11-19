@@ -1,17 +1,17 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
+
 export default function PolicyPeriodOptions({
   tenureOptions = [],
   tenure,
   setTenure,
   tenurePrices = {},
   onTenureChange,
+  isSkeletonLoading = false, // ✔ CARE-style skeleton support
 }) {
   const [priceLoading, setPriceLoading] = useState(false);
   const prevPricesRef = useRef({});
-
-  const formatPrice = (price) =>
-    price ? `- ₹${Number(price).toLocaleString()}` : null;
 
   useEffect(() => {
     if (Object.keys(prevPricesRef.current).length === 0) {
@@ -25,11 +25,37 @@ export default function PolicyPeriodOptions({
       setPriceLoading(true);
       prevPricesRef.current = tenurePrices;
 
-      const timeout = setTimeout(() => setPriceLoading(false), 600); 
+      const timeout = setTimeout(() => setPriceLoading(false), 600);
       return () => clearTimeout(timeout);
     }
   }, [tenurePrices]);
 
+  // ---------------------------------------------------------
+  // 🦴 CARE-style Skeleton Loader
+  // ---------------------------------------------------------
+  if (isSkeletonLoading) {
+    return (
+        <div className="bg-white rounded-xl p-4 sm:px-8 mb-6 w-full">
+        <div className="mb-2 h-4 w-32 bg-gray-300 rounded animate-pulse" />
+        <div className="mb-4 h-3 w-64 bg-gray-200 rounded animate-pulse" />
+        <div className="flex flex-wrap gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center space-x-2 border rounded-xl px-4 py-3 min-w-[150px] sm:w-[200px] h-[56px] bg-gray-100 animate-pulse"
+            >
+              <div className="h-4 w-4 rounded-full bg-gray-300" />
+              <div className="h-4 w-24 bg-gray-300 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------
+  // 🦴 If no tenure options
+  // ---------------------------------------------------------
   if (tenureOptions.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 sm:px-8 mb-6 w-full">
@@ -51,6 +77,9 @@ export default function PolicyPeriodOptions({
     );
   }
 
+  // ---------------------------------------------------------
+  // 🔄 Change Handler
+  // ---------------------------------------------------------
   const handleTenureChange = (event) => {
     const selectedTenure = event.target.value;
     setTenure(selectedTenure);
@@ -59,6 +88,9 @@ export default function PolicyPeriodOptions({
     }
   };
 
+  // ---------------------------------------------------------
+  // UI (CARE-style)
+  // ---------------------------------------------------------
   return (
     <div className="bg-white rounded-xl p-4 px-5 mb-6">
       <div className="font-semibold text-base mb-2">Policy Period</div>
@@ -69,12 +101,13 @@ export default function PolicyPeriodOptions({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-2">
         {tenureOptions.map((year) => (
-           <label
+          <label
             key={year}
             className={`relative flex items-center gap-2 px-6 py-3 border rounded-xl cursor-pointer transition-all duration-200 flex-1 min-w-[160px] max-w-full ${
               tenure == year ? "border-pink-500" : "border-gray-400"
             }`}
           >
+            {/* Pink Ping Effect */}
             {tenure == year && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping opacity-70" />
             )}
@@ -90,7 +123,7 @@ export default function PolicyPeriodOptions({
 
             <span className="text-sm text-black font-medium flex">
               {year} {year === 1 ? "Year" : "Years"}
-              {!priceLoading && tenurePrices[year] ? (
+              {tenurePrices[year] ? (
                 <span className="ml-2 font-semibold text-black">
                   {`@ ₹${tenurePrices[year].toLocaleString()}`}
                 </span>

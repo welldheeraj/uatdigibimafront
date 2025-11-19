@@ -3,19 +3,18 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
-import { FaChevronLeft, FaCheck, FaBicycle  } from "react-icons/fa";
+import { FaChevronLeft, FaCheck, FaCar } from "react-icons/fa";
 import StepOneForm from "./stepone.js";
 import StepTwoForm from "./steptwo.js";
 import StepThreeForm from "./stepthree.js";
 import StepFourForm from "./stepfour.js";
-import VehicleCard from "../../../../vehicledetails/index.js";
-
+import VehicleCard from "./vehiclecard.js";
 import { showSuccess, showError } from "@/layouts/toaster";
 import { validateFields } from "@/styles/js/validation.js";
 import constant from "@/env.js";
 import validateKycStep from "./kycvalidation.js";
 import { CallApi } from "@/api";
-import {BikeInsuranceLoader} from "@/components/loader.js";
+import CarInsuranceLoader from "@/components/loader.js";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -28,6 +27,7 @@ export default function StepperForm({ usersData, kycData }) {
   const [sameAddress, setSameAddress] = useState(true);
   const [proofs, setProofs] = useState({ identity: "", address: "" });
   const [fileNames, setFileNames] = useState({});
+ const [proofFiles, setProofFiles] = useState({});
   const [kycVerified, setKycVerified] = useState(false);
   const [isPanVerified, setIsPanVerified] = useState(false);
   const [verifieddata, setVerifiedData] = useState([]);
@@ -38,9 +38,8 @@ export default function StepperForm({ usersData, kycData }) {
   const [isPanKycHidden, setIsPanKycHidden] = useState(false);
   const [isAadharKycHidden, setIsAadharKycHidden] = useState(false);
   const [isOtherKycHidden, setIsOtherKycHidden] = useState(false);
-
   const [vehicleDetails, setVehicleDetails] = useState([]);
-  const [bikedata, setBikeData] = useState([]);
+  const [cardata, setCarData] = useState([]);
   const [journeydata, setJourneyData] = useState([]);
   const [userinfodata, setUserInfoData] = useState([]);
   const [bankdata, setBankData] = useState([]);
@@ -92,11 +91,11 @@ export default function StepperForm({ usersData, kycData }) {
   const step4Form = useForm();
 
   const inputClass = "border border-gray-400 rounded px-3 py-2 text-sm w-full";
-   const steps = ["", "", "", ""];
+  const steps = ["", "", "", ""];
 
   const back = async () => {
     if (currentStep === 1) {
-      router.push(constant.ROUTES.MOTOR.BIKE.BIKEPLANS);
+      router.push(constant.ROUTES.MOTOR.CAR.PLANS);
     } else {
       setLoading(true);
       setCurrentStep((prev) => prev - 1);
@@ -111,13 +110,9 @@ export default function StepperForm({ usersData, kycData }) {
       return false;
     }
     step1Form.unregister("gstnumber");
-
     const fieldsValid = await validateFields(step1Form);
     if (!fieldsValid) return false;
-
-    // GST number validation only if value exists
     const gstValue = rawValues.gstnumber?.trim();
-
     const values = {
       ...rawValues,
       customerpancardDob: rawValues.customerpancardDob,
@@ -128,7 +123,7 @@ export default function StepperForm({ usersData, kycData }) {
       setLoading(true);
 
       const res = await CallApi(
-        constant.API.MOTOR.BIKE.GODIGIT.SAVESTEPONE,
+        constant.API.MOTOR.CAR.BAJAJ.SAVESTEPONE,
         "POST",
         values
       );
@@ -178,7 +173,7 @@ export default function StepperForm({ usersData, kycData }) {
       setLoading(true);
 
       const res = await CallApi(
-        constant.API.MOTOR.BIKE.GODIGIT.SAVESTEPONE,
+        constant.API.MOTOR.CAR.BAJAJ.SAVESTEPONE,
         "POST",
         values
       );
@@ -198,19 +193,19 @@ export default function StepperForm({ usersData, kycData }) {
   };
 
   const validateFormStepThree = async (step3Form, steptwodata) => {
-    //  setLoading(true); 
+    // setLoading(true); 
+
     const fieldsValid = await validateFields(step3Form);
     if (!fieldsValid) {
-      // setLoading(false);
+      // setLoading(false); 
       return false;
     }
 
-
     const data = step3Form.getValues();
-    setLoading(true);
+setLoading(true);
     try {
       const res = await CallApi(
-        constant.API.MOTOR.BIKE.GODIGIT.SAVESTEPONE,
+        constant.API.MOTOR.CAR.BAJAJ.SAVESTEPONE,
         "POST",
         data
       );
@@ -220,7 +215,7 @@ export default function StepperForm({ usersData, kycData }) {
       if (status === true || res === 1) {
         setStepThreeData(res.data);
         showSuccess("Step 3 saved successfully.");
-          setLoading(false); 
+        setLoading(false); 
         return true;
       } else {
         if (errorDesc) {
@@ -228,16 +223,15 @@ export default function StepperForm({ usersData, kycData }) {
         } else {
           showError("Step 3 save failed. Please try again.");
         }
-        setLoading(false);
+        setLoading(false); // Stop loader on failure
         return false;
       }
     } catch (error) {
       console.error("Step 3 API call error:", error);
       showError("Something went wrong while saving Step 3.");
-      setLoading(false);
+      setLoading(false); // Stop loader on error
       return false;
     }
-    return result;
   };
 
   const GoToPayment = () => {
@@ -262,13 +256,13 @@ export default function StepperForm({ usersData, kycData }) {
     setLoading(true);
 
     router.push(
-      `/motor/bike/vendor/shriram/payment?proposalNumber=${proposalNumber}&polSysId=${polSysId}&premium=${premium}&productcode=${productcode}`
+      `/motor/car/vendor/shriram/payment?proposalNumber=${proposalNumber}&polSysId=${polSysId}&premium=${premium}&productcode=${productcode}`
     );
   };
 
   const goNext = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
 
-const onSubmitStep = async () => {
+  const onSubmitStep = async () => {
     setSubmitStepLoader(true);
     try {
       let isValid = false;
@@ -296,74 +290,32 @@ const onSubmitStep = async () => {
     } finally {
       setSubmitStepLoader(false);
     }
-
-    // setLoading(false);
   };
 
   const handleVerifyPan = async () => {
     const values = step1Form.getValues();
-     await validateKycStep(
-          step1Form,
-          "PAN Card",
-          values,
-          proofs,
-          setKycVerified,
-          kycVerified,
-          setIsPanVerified,
-          setVerifiedData,
-          setIsPanKycHidden,
-          setIsAadharKycHidden,
-          setIsOtherKycHidden
-        );
+    await validateKycStep(
+      step1Form,
+      "PAN Card",
+      values,
+      proofs,
+      setKycVerified,
+      kycVerified,
+      setIsPanVerified,
+      setVerifiedData,
+      setIsPanKycHidden,
+      setIsAadharKycHidden,
+      setIsOtherKycHidden
+    );
   };
 
   const handleVerifyAadhar = async () => {
     const values = step1Form.getValues();
     await validateKycStep(
-         step1Form,
-         "Aadhar ( Last 4 Digits )",
-         values,
-         proofs,
-         setKycVerified,
-         kycVerified,
-         undefined,
-         setVerifiedData,
-         setIsPanKycHidden,
-         setIsAadharKycHidden,
-         setIsOtherKycHidden
-       );
-  };
-
-  const handleVerifyOther = async () => {
-    const values = step1Form.getValues();
-
-    const identityType = proofs.identity;
-    const addressType = proofs.address;
-
-    const identityInput = document.getElementById(`identity-${identityType}`);
-    const addressInput = document.getElementById(`address-${addressType}`);
-    const photoInput = document.getElementById("media-upload");
-
-    const identityFile = identityInput?.files?.[0];
-    const addressFile = addressInput?.files?.[0];
-    const insurePhoto = photoInput?.files?.[0];
-
-    const kycData = {
-      identity: identityType,
-      address: addressType,
-      identityValue: proofs.identityValue,
-      addressValue: proofs.addressValue,
-      fatherName: proofs.fatherName,
-      identityFile,
-      addressFile,
-      insurePhoto,
-    };
-
-    await validateKycStep(
       step1Form,
-      "Others",
+      "Aadhar ( Last 4 Digits )",
       values,
-      kycData,
+      proofs,
       setKycVerified,
       kycVerified,
       undefined,
@@ -374,17 +326,56 @@ const onSubmitStep = async () => {
     );
   };
 
+ const handleVerifyOther = async () => {
+  const values = step1Form.getValues();
+
+  const identityType = proofs.identity;
+  const addressType = proofs.address;
+
+  // ✅ Front & Back file inputs
+  const identityFrontInput = document.getElementById(`identity-${identityType}-front`);
+  const identityBackInput = document.getElementById(`identity-${identityType}-back`);
+
+
+  const identityfrontFile = identityFrontInput?.files?.[0];
+  const identitybackFile = identityBackInput?.files?.[0];
+
+  const kycData = {
+    identity: identityType,
+    identityValue: proofs.identityValue,
+
+    identityfrontFile,
+    identitybackFile,
+
+  };
+
+  // console.log("FINAL KYC DATA:", kycData);
+
+  await validateKycStep(
+    step1Form,
+    "Others",
+    values,
+    kycData,
+    setKycVerified,
+    kycVerified,
+    undefined,
+    setVerifiedData,
+    setIsPanKycHidden,
+    setIsAadharKycHidden,
+    setIsOtherKycHidden
+  );
+};
 
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await CallApi(
-          constant.API.MOTOR.BIKE.GODIGIT.SAVEDATA,
+          constant.API.MOTOR.CAR.BAJAJ.SAVEDATA,
           "GET"
         );
         if (res?.data?.details) {
-          setBikeData(res.data.details);
+          setCarData(res.data.details);
         }
         if (res?.data?.user) {
           setJourneyData(res.data.user);
@@ -392,7 +383,6 @@ const onSubmitStep = async () => {
             userdob: res.data.userdob,
             username: res.data.username,
           });
-
         }
         if (res?.data?.bank) {
           setBankData(res.data.bank);
@@ -407,21 +397,6 @@ const onSubmitStep = async () => {
         if (res?.cache) {
           setMotorType(res.cache);
         }
-        // if (res?.journey) {
-        //   setJourneyData(res.journey);
-        // }
-
-        // const carDataArray = res.data;
-        // if (Array.isArray(carDataArray) && carDataArray.length > 0) {
-        //   const firstEntry = carDataArray[0];
-
-        //   try {
-        //     const parsedDetails = JSON.parse(firstEntry.knowcar_reg_details);
-        //     setBikeData(parsedDetails);
-        //   } catch (err) {
-        //     console.error("Failed to parse knowcar_reg_details:", err);
-        //   }
-        // }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -433,9 +408,9 @@ const onSubmitStep = async () => {
   return (
     <>
       {loading ? (
-        <BikeInsuranceLoader />
+        <CarInsuranceLoader />
       ) : (
-        <div className="min-h-screen bgcolor p-4 sm:p-8">
+        <div className="min-h-screen bgcolor px-4 py-6 sm:px-6 md:px-8">
           <button
             onClick={back}
             className="text-blue-700 flex items-center gap-2 mb-4 text-sm font-medium"
@@ -443,138 +418,141 @@ const onSubmitStep = async () => {
             <FaChevronLeft /> Go back to Previous
           </button>
 
-          <div className="max-w-7xl mx-auto lg:flex lg:gap-6 flex-col lg:flex-row">
-           <div className="flex-1 bg-white rounded-[32px] shadow p-8">
-              {/* Stepper */}
-              <div className="flex justify-between items-center">
-                {steps.map((label, i) => {
-                  const sn = i + 1;
-                  const active = sn === currentStep;
-                  const done = sn < currentStep;
+          <div className="max-w-7xl mx-auto grid grid-cols-12 gap-3">
+            <div className="col-span-12 md:col-span-8">
+              <div className="bg-white rounded-[32px] shadow p-4 sm:p-6 md:p-8">
+                <div className="flex justify-between items-center">
+                  {steps.map((label, i) => {
+                    const sn = i + 1;
+                    const active = sn === currentStep;
+                    const done = sn < currentStep;
 
-                  return (
-                    <div
-                      key={sn}
-                      className={`flex items-center ${
-                        sn !== steps.length ? "w-full" : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-8 h-8 rounded-full border flex justify-center items-center text-sm font-medium ${
-                            done || active
-                              ? "thmbtn text-white border-white-600"
-                              : "bg-white text-gray-700 border-gray-300"
-                          }`}
-                        >
-                          {done ? <FaCheck size={12} /> : sn}
+                    return (
+                      <div
+                        key={sn}
+                        className={`flex items-center ${
+                          sn !== steps.length ? "w-full" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-8 h-8 rounded-full border flex justify-center items-center text-sm font-medium ${
+                              done || active
+                                ? "thmbtn text-white border-white-600"
+                                : "bg-white text-gray-700 border-gray-300"
+                            }`}
+                          >
+                            {done ? <FaCheck size={12} /> : sn}
+                          </div>
+                          {label && (
+                            <span className="text-sm text-gray-700">
+                              {label}
+                            </span>
+                          )}
                         </div>
-                        {label && (
-                          <span className="text-sm text-gray-700">{label}</span>
+                        {sn !== steps.length && (
+                          <div
+                            className={`flex-1 h-0.5 mx-2 ${
+                              done ? "thmbtn" : "bg-gray-200"
+                            }`}
+                          />
                         )}
                       </div>
-                      {sn !== steps.length && (
-                        <div
-                          className={`flex-1 h-0.5 mx-2 ${
-                            done ? "thmbtn" : "bg-gray-200"
-                          }`}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
 
-              {/* Step Content */}
-              <div className="mt-10">
-                {currentStep === 1 && (
-                  <StepOneForm
-                    step1Form={step1Form}
-                    kycType={kycType}
-                    setKycType={setKycType}
-                    handleVerifyPan={handleVerifyPan}
-                    handleVerifyAadhar={handleVerifyAadhar}
-                    handleVerifyOther={handleVerifyOther}
-                    loading={loading}
-                    sameAddress={sameAddress}
-                    setSameAddress={setSameAddress}
-                    fileNames={fileNames}
-                    setFileNames={setFileNames}
-                    proofs={proofs}
-                    setProofs={setProofs}
-                    inputClass={inputClass}
-                    onSubmitStep={onSubmitStep}
-                    kycVerified={kycVerified}
-                    setKycVerified={setKycVerified}
-                    setIsPanVerified={setIsPanVerified}
-                    isPanVerified={isPanVerified}
-                    verifieddata={verifieddata}
-                    usersData={usersData}
-                    kycData={kycData}
-                     bikedata={bikedata}
-                    journeydata={journeydata}
-                    userinfodata={userinfodata}
+                {/* Step Content */}
+                <div className="mt-10">
+                  {currentStep === 1 && (
+                    <StepOneForm
+                      step1Form={step1Form}
+                      kycType={kycType}
+                      setKycType={setKycType}
+                      handleVerifyPan={handleVerifyPan}
+                      handleVerifyAadhar={handleVerifyAadhar}
+                      handleVerifyOther={handleVerifyOther}
+                      loading={loading}
+                      setLoading={setLoading}
+                      sameAddress={sameAddress}
+                      setSameAddress={setSameAddress}
+                      fileNames={fileNames}
+                      setFileNames={setFileNames}
+                      proofFiles={proofFiles}
+                      setProofFiles={setProofFiles}
+                      proofs={proofs}
+                      setProofs={setProofs}
+                      inputClass={inputClass}
+                      onSubmitStep={onSubmitStep}
+                      kycVerified={kycVerified}
+                      setKycVerified={setKycVerified}
+                      setIsPanVerified={setIsPanVerified}
+                      isPanVerified={isPanVerified}
+                      verifieddata={verifieddata}
+                      usersData={usersData}
+                      kycData={kycData}
+                      cardata={cardata}
+                      journeydata={journeydata}
+                      userinfodata={userinfodata}
                       isPanKycHidden={isPanKycHidden}
-                    setIsPanKycHidden={setIsPanKycHidden}
-                    isAadharKycHidden={isAadharKycHidden}
-                    setIsAadharKycHidden={setIsAadharKycHidden}
-                    isOtherKycHidden={isOtherKycHidden}
-                    setIsOtherKycHidden={setIsOtherKycHidden}
-                  />
-                )}
-                {currentStep === 2 && (
-                  <StepTwoForm
-                    step2Form={step2Form}
-                    steponedata={steponedata}
-                    inputClass={inputClass}
-                    onSubmitStep={onSubmitStep}
-                    usersData={usersData}
-                    bikedata={bikedata}
-                    journeydata={journeydata}
-                    bankdata={bankdata}
-                    prevInsurdata={prevInsurdata}
-                    motortype={motortype}
-                  />
-                )}
-                {currentStep === 3 && (
-                  <StepThreeForm
-                    step3Form={step3Form}
-                    steptwodata={steptwodata}
-                    inputClass={inputClass}
-                    onSubmitStep={onSubmitStep}
-                    journeydata={journeydata}
-                  />
-                )}
-                {currentStep === 4 && (
-                  <StepFourForm
-                    step4Form={step4Form}
-                    stepthreedata={stepthreedata}
-                    onSubmitStep={onSubmitStep}
-                    currentStep={currentStep}
-                    totalPremium={totalPremium}
-                    onGoToPayment={GoToPayment}
-                    motortype={motortype}
-                  />
-                )}
+                      setIsPanKycHidden={setIsPanKycHidden}
+                      isAadharKycHidden={isAadharKycHidden}
+                      setIsAadharKycHidden={setIsAadharKycHidden}
+                      isOtherKycHidden={isOtherKycHidden}
+                      setIsOtherKycHidden={setIsOtherKycHidden}
+                    />
+                  )}
+                  {currentStep === 2 && (
+                    <StepTwoForm
+                      step2Form={step2Form}
+                      steponedata={steponedata}
+                      inputClass={inputClass}
+                      onSubmitStep={onSubmitStep}
+                      usersData={usersData}
+                      cardata={cardata}
+                      journeydata={journeydata}
+                      bankdata={bankdata}
+                      prevInsurdata={prevInsurdata}
+                      motortype={motortype}
+                    />
+                  )}
+                  {currentStep === 3 && (
+                    <StepThreeForm
+                      step3Form={step3Form}
+                      steptwodata={steptwodata}
+                      inputClass={inputClass}
+                      onSubmitStep={onSubmitStep}
+                      journeydata={journeydata}
+                    />
+                  )}
+                  {currentStep === 4 && (
+                    <StepFourForm
+                      step4Form={step4Form}
+                      stepthreedata={stepthreedata}
+                      onSubmitStep={onSubmitStep}
+                      currentStep={currentStep}
+                      totalPremium={totalPremium}
+                      onGoToPayment={GoToPayment}
+                      motortype={motortype}
+                    />
+                  )}
+                </div>
               </div>
             </div>
-
-         
-
-            <div className="lg:w-1/3 w-full ">
-    <div className="w-full lg:w-[415px] bg-white rounded-2xl shadow-sm p-6 text-sm self-start">
-        {(motortype === "knowbike" || motortype === "newbike") && (
-              <VehicleCard
-                vehicleDetails={vehicleDetails}
-                title={motortype === "knowbike" ? "Private Bike" : "New Bike"}
-                icon={<FaBicycle  className="text-blue-600 text-xl" />}
-                currentStep={currentStep}
-                onGoToPayment={GoToPayment}
-              />
-            )}
-      </div>
-     
-    </div>
+            <div className="col-span-12 md:col-span-4 self-start">
+              <div className="bg-white rounded-[32px] shadow p-4 sm:p-6 md:p-8">
+                   {(motortype === "knowcar" || motortype === "newcar") && (
+                <VehicleCard
+                  vehicleDetails={vehicleDetails}
+                  title={motortype === "knowcar" ? "Private Car" : "New Car"}
+                  icon={<FaCar className="text-blue-600 text-xl" />}
+                  currentStep={currentStep}
+                  onGoToPayment={GoToPayment}
+                />
+              )}
+              </div>
+             
+            </div>
           </div>
         </div>
       )}
